@@ -8,12 +8,17 @@ services:
     runtime: node
     plan: free
     autoDeploy: true
-    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm run build
-    startCommand: pnpm start
+    # Run pnpm THROUGH corepack — `corepack enable` fails on Render's read-only
+    # /usr/bin (EROFS). `corepack pnpm` needs no symlinks. Start runs node
+    # directly so no package manager is needed at runtime.
+    buildCommand: corepack pnpm install --frozen-lockfile && corepack pnpm run build
+    startCommand: node dist/index.js
     healthCheckPath: /healthz
     envVars:
       - key: NODE_ENV
         value: production
+      - key: COREPACK_ENABLE_DOWNLOAD_PROMPT
+        value: "0"
       # Postgres connection string from Neon or Supabase. Set the value in the
       # Render dashboard (sync:false keeps the secret out of the repo).
       - key: DATABASE_URL
