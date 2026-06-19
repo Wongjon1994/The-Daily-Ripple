@@ -259,24 +259,50 @@ export default function SwipeDemo({ brief, currentIndex: externalIndex, onPrevio
         </button>
       </div>
 
-      {/* Progress dots */}
-      <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap justify-center mt-7 sm:mt-8">
-        {brief.sections.map((_, idx) => (
-          <button
-            key={idx}
-            onClick={() => handleDotClick(idx)}
-            disabled={isProcessing.current}
-            className={cn(
-              "rounded-full transition-all duration-200",
-              idx === currentIndex
-                ? "w-2 sm:w-2.5 h-2 sm:h-2.5 bg-[var(--color-cyan)]"
-                : "w-1.5 sm:w-2 h-1.5 sm:h-2 bg-[var(--border)] hover:bg-[var(--muted-foreground)]",
-              "disabled:cursor-not-allowed"
-            )}
-            aria-label={`Go to story ${idx + 1}`}
-          />
-        ))}
+      {/* Progress dots, flanked by prev/next arrows on mobile so the swipe
+          gesture is discoverable (desktop uses the floating side arrows). */}
+      <div className="flex items-center justify-center gap-3 sm:gap-4 mt-7 sm:mt-8">
+        <button
+          onClick={goToPrevious}
+          disabled={isProcessing.current}
+          aria-label="Previous story"
+          className="lg:hidden flex items-center justify-center rounded-full w-9 h-9 shrink-0 border border-border/70 bg-background/70 text-mist-dim transition-colors active:scale-95 hover:text-[var(--color-cyan)] hover:border-[var(--color-cyan)]/50 disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </button>
+
+        <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap justify-center">
+          {brief.sections.map((_, idx) => (
+            <button
+              key={idx}
+              onClick={() => handleDotClick(idx)}
+              disabled={isProcessing.current}
+              className={cn(
+                "rounded-full transition-all duration-200",
+                idx === currentIndex
+                  ? "w-2 sm:w-2.5 h-2 sm:h-2.5 bg-[var(--color-cyan)]"
+                  : "w-1.5 sm:w-2 h-1.5 sm:h-2 bg-[var(--border)] hover:bg-[var(--muted-foreground)]",
+                "disabled:cursor-not-allowed"
+              )}
+              aria-label={`Go to story ${idx + 1}`}
+            />
+          ))}
+        </div>
+
+        <button
+          onClick={goToNext}
+          disabled={isProcessing.current}
+          aria-label="Next story"
+          className="lg:hidden flex items-center justify-center rounded-full w-9 h-9 shrink-0 border border-border/70 bg-background/70 text-mist-dim transition-colors active:scale-95 hover:text-[var(--color-cyan)] hover:border-[var(--color-cyan)]/50 disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          <ChevronRight className="h-4 w-4" />
+        </button>
       </div>
+
+      {/* Mobile swipe hint */}
+      <p className="lg:hidden text-center text-[11px] mt-2.5" style={{ color: "var(--color-mist-faint)" }}>
+        Swipe or tap the arrows to move between stories
+      </p>
     </div>
   );
 }

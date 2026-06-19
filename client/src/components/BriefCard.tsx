@@ -235,7 +235,7 @@ export default function BriefCard({ section, categoryColor, briefUrl, elevated }
               Singapore Lens
             </span>
             <span
-              className="text-[13px] italic leading-snug"
+              className="text-[13px] leading-snug"
               style={{ fontFamily: "'Playfair Display', Georgia, serif", color: "var(--color-mist-dim)" }}
             >
               {lensTeaser}
@@ -345,7 +345,7 @@ export default function BriefCard({ section, categoryColor, briefUrl, elevated }
                   return (
                     <Fragment key={i}>
                       {text && (
-                        <p className="text-sm leading-7" style={{ color: "var(--color-gold-soft)" }}>
+                        <p className="text-base leading-7" style={{ color: "var(--color-mist)" }}>
                           {text}
                         </p>
                       )}
@@ -378,19 +378,6 @@ export default function BriefCard({ section, categoryColor, briefUrl, elevated }
           {/* Hairline before the apparatus (tags + sources) */}
           <div className="border-t border-border/30 mb-4" />
 
-          {/* Tags */}
-          {section.tags?.length > 0 && (
-            <div className="flex flex-wrap gap-1 mb-4">
-              {section.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="text-[10px] font-mono text-muted-foreground/45 px-1.5 py-0.5 rounded bg-white/5 border border-border/20"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-          )}
 
           {/* Sources with link validation */}
           {section.sources?.length > 0 ? (

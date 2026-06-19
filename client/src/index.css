@@ -194,7 +194,7 @@
   }
 
   .singapore-lens-text {
-    @apply text-sm leading-relaxed italic;
+    @apply text-sm leading-relaxed;
     font-family: 'Playfair Display', Georgia, serif;
     color: oklch(0.88 0.012 220);
   }
