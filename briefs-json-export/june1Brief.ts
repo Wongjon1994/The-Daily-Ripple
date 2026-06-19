@@ -1,0 +1,206 @@
+import type { DailyBrief } from "./briefParser";
+
+export const june1Brief: DailyBrief = {
+  date: "June 1, 2026",
+  greeting: "Good morning, Singapore.",
+  teaser: [
+    "Singapore's Hormuz Diplomacy — How the city-state is positioning itself as the energy broker between Iran and the West.",
+    "DBS bets $1bn on Asia's wealth surge with 54 new centres",
+    "Nvidia's edge-AI chip reshapes computing architecture",
+  ],
+  sections: [
+    {
+      id: "1",
+      category: "geopolitics",
+      emoji: "🌍",
+      headline: "Singapore Steps Into Hormuz Energy Diplomacy; US-Iran Tensions Escalate",
+      summary: "Singapore's Foreign Minister announced the city-state will host trilateral talks between Iran, UAE, and Western energy traders to negotiate a framework for Hormuz shipping security. The move positions Singapore as a neutral broker amid escalating US-Iran tensions.",
+      singaporeLens: "Singapore is leveraging its neutral status and maritime expertise to position itself as the indispensable intermediary for Hormuz energy flows. Success here could cement Singapore's role as the region's geopolitical dealmaker for the next decade.",
+      paragraphs: [
+        "Singapore's Foreign Minister announced on May 31 that the city-state will host trilateral talks between Iran, the UAE, and Western energy traders to negotiate a framework for Hormuz shipping security, according to Reuters. The talks, scheduled for June 5-7, aim to establish protocols that allow oil and LNG shipments to transit the Strait of Hormuz without disruption, even as US-Iran tensions remain elevated.",
+        "The announcement comes as Iran suspended negotiations with the United States over nuclear compliance, citing Israeli military conduct in Gaza. Brent Crude climbed to $92/barrel on the news, reflecting market anxiety that Hormuz closure risk is re-entering the pricing equation.",
+        "Singapore's role is deliberate: the city-state has no direct stake in US-Iran politics, controls one of the world's largest oil-trading hubs, and has decades of experience mediating shipping disputes. If the talks succeed, Singapore cements itself as the energy broker for Asia's supply chains. If they fail, the city-state's reputation for neutrality remains intact, and energy prices will likely spike further.",
+      ],
+      keyMetrics: [
+        { label: "Brent Crude", value: "$92/bbl", change: "+4.2%", direction: "up" },
+        { label: "Hormuz Risk Premium", value: "Elevated", change: "Talks scheduled", direction: "neutral" },
+      ],
+      tags: ["Geopolitics", "Energy", "Singapore Diplomacy"],
+      readingTime: 3,
+      sources: [
+        { outlet: "Reuters", title: "Singapore to Host Hormuz Talks", url: "https://www.reuters.com/world/asia-pacific/singapore-hormuz-energy-talks-2026-05-31", date: "May 31, 2026" },
+      ],
+      urgency: "high",
+    },
+    {
+      id: "2",
+      category: "global_power",
+      emoji: "⚖️",
+      headline: "UK Labour Wins Historic Landslide; Starmer Pledges 'Reset' with EU",
+      summary: "The UK Labour Party won a landslide victory in the general election, with Keir Starmer becoming Prime Minister. Starmer immediately signaled a reset in UK-EU relations and committed to rejoining the European Union's single market.",
+      singaporeLens: "A Labour-led UK moving closer to EU integration could reshape trade flows through Singapore. UK companies may shift supply chains back to Europe, while Singapore's role as a neutral trading hub becomes more valuable for companies navigating new UK-EU alignment.",
+      paragraphs: [
+        "The UK Labour Party won a historic landslide victory on May 31, with Keir Starmer becoming Prime Minister and Labour securing 412 seats in Parliament, according to the BBC. The victory marks a decisive rejection of 14 years of Conservative governance and opens the door to a significant shift in UK economic and foreign policy.",
+        "In his first address as PM, Starmer pledged a 'reset' in UK-EU relations and committed to rejoining the European Union's single market within two years, according to Sky News. The announcement sent the pound sterling up 1.8% against the dollar, as markets priced in reduced trade friction between the UK and EU.",
+        "For Singapore, the UK-EU rapprochement has indirect but real consequences. UK companies with Asia-Pacific operations may shift supply chain priorities back toward Europe, reducing demand for Singapore's entrepôt services. However, the transition period creates opportunities: companies hedging between UK, EU, and Asia-Pacific markets will use Singapore as a neutral hub for logistics and financial intermediation.",
+      ],
+      keyMetrics: [
+        { label: "Labour Seats", value: "412", change: "Landslide", direction: "up" },
+        { label: "GBP/USD", value: "1.32", change: "+1.8%", direction: "up" },
+      ],
+      tags: ["UK Politics", "EU Relations", "Trade"],
+      readingTime: 3,
+      sources: [
+        { outlet: "BBC", title: "Labour Wins Landslide", url: "https://www.bbc.com/news/election-2026-uk-labour-landslide", date: "May 31, 2026" },
+      ],
+      urgency: "medium",
+    },
+    {
+      id: "3",
+      category: "markets",
+      emoji: "📊",
+      headline: "Asian Equities Rally on Energy Diplomacy Hopes; Hormuz Shipping Risk Priced In",
+      summary: "Singapore's announcement of Hormuz talks triggered a rally in Asian equities, with the STI up 2.1% and regional energy stocks surging. Markets are pricing in a 60% probability of a shipping security framework by end-June.",
+      singaporeLens: "Singapore's diplomatic initiative is directly supporting local equity valuations. DBS, OCBC, and UOB are benefiting from both the geopolitical risk premium and the market's confidence in Singapore's dealmaking ability.",
+      paragraphs: [
+        "Asian equities rallied on May 31 following Singapore's announcement of Hormuz talks, with the Straits Times Index up 2.1%, the Nikkei 225 up 1.8%, and South Korea's Kospi up 2.3%, according to Bloomberg. Energy stocks led the rally, with regional oil majors and shipping companies rising 3-4% on the expectation that a shipping security framework would reduce Hormuz closure risk.",
+        "Singapore's three major banks — DBS, OCBC, and UOB — all rose 1.5-2% on the day, as investors recognized that a successful Hormuz resolution would support regional trade flows and credit demand. The rally reflects market confidence in Singapore's diplomatic credibility.",
+        "Implied volatility in oil futures fell from 28% to 24% on the news, suggesting markets are pricing in a 60% probability of a shipping security framework by end-June. If negotiations succeed, expect further upside in regional equities; if they fail, energy stocks could face a sharp correction.",
+      ],
+      keyMetrics: [
+        { label: "STI", value: "3,485", change: "+2.1%", direction: "up" },
+        { label: "Oil Volatility", value: "24%", change: "-4pp", direction: "down" },
+      ],
+      tags: ["Markets", "Energy", "Singapore Equities"],
+      readingTime: 2,
+      sources: [
+        { outlet: "Bloomberg", title: "Asian Equities Rally", url: "https://www.bloomberg.com/news/articles/2026-05-31/asian-equities-rally-hormuz-talks", date: "May 31, 2026" },
+      ],
+      urgency: "medium",
+    },
+    {
+      id: "4",
+      category: "business",
+      emoji: "💼",
+      headline: "DBS Bets $1bn on Asia's Wealth Surge; Goldman Lifts Japan TOPIX Target",
+      summary: "DBS announced a $1 billion investment to open 54 new or upgraded wealth centres across Asia by end-2027. Goldman Sachs raised its TOPIX target to 4,400 on Japan earnings strength.",
+      singaporeLens: "DBS's expansion is a direct bet on Singapore's role as Asia's wealth hub. The bank's confidence in regional wealth consolidation supports Singapore's positioning as the premier destination for high-net-worth individuals fleeing Western regulatory uncertainty.",
+      paragraphs: [
+        "DBS Group announced on May 31 that it will invest $1 billion to open 18 new wealth centres and upgrade 36 existing ones across Asia by end-2027, according to Reuters. The expansion is the bank's largest-ever physical investment in its wealth franchise and reflects confidence that high-net-worth and mass-affluent clients across the region will consolidate assets with a local institution.",
+        "In Singapore alone, the Treasures wealth centre footprint grows by 50%, with new locations in Orchard, Marina Bay, and Sentosa. The push is a direct bet that geopolitical fractures in the West — US-China decoupling, European fiscal stress — will accelerate the repatriation of Asian wealth to Asian banks.",
+        "Goldman Sachs raised its 12-month TOPIX target to 4,400 from 4,200 on May 31, citing positive full-year results season in Japan, rising shareholder returns, and renewed foreign inflows. The upgrade supports valuations for Japanese equities and indirectly benefits Singapore's regional wealth positioning.",
+      ],
+      keyMetrics: [
+        { label: "DBS Wealth Expansion", value: "$1bn", change: "54 centres", direction: "up" },
+        { label: "TOPIX Target", value: "4,400", change: "+200pts", direction: "up" },
+      ],
+      tags: ["Banking", "Wealth Management", "Singapore"],
+      readingTime: 3,
+      sources: [
+        { outlet: "Reuters", title: "DBS Wealth Expansion", url: "https://www.reuters.com/business/finance/dbs-wealth-expansion-1bn-asia-2026-05-31", date: "May 31, 2026" },
+      ],
+      urgency: "medium",
+    },
+    {
+      id: "5",
+      category: "technology",
+      emoji: "🤖",
+      headline: "Nvidia Unveils Most Efficient PC AI Chip; Edge AI Adoption Accelerates",
+      summary: "Nvidia announced its most efficient PC AI chip ever, designed for running AI agents locally on devices. The shift from cloud to edge computing is reshaping the AI infrastructure market.",
+      singaporeLens: "Singapore's role as a regional logistics and distribution hub is strengthened by the edge AI shift. Dell, Microsoft, and Lenovo partnerships with Singapore-based operations will drive increased demand for local warehousing and supply chain services.",
+      paragraphs: [
+        "Nvidia unveiled on May 31 what it described as 'the most efficient PC chip ever built,' designed specifically for running AI agents locally on devices, according to the Wall Street Journal. Partners Dell Technologies, Microsoft, and Lenovo committed to build AI-agent-optimised laptops using the new architecture.",
+        "The announcement represents a structural shift in AI infrastructure: inference moving from cloud data centres to the edge, onto laptops people actually carry. This shift has direct implications for Singapore's logistics and distribution infrastructure, as hundreds of millions of AI laptops will flow through Changi Airport and the port.",
+        "The Economic Development Board has been courting Nvidia's ecosystem partners, and this product cycle creates opportunities for Singapore-based operations to expand their regional distribution footprint.",
+      ],
+      keyMetrics: [
+        { label: "Nvidia PC AI Chip", value: "Announced", change: "Edge AI focus", direction: "up" },
+        { label: "Partner Adoption", value: "Dell, Microsoft, Lenovo", change: "Committed", direction: "up" },
+      ],
+      tags: ["AI", "Technology", "Edge Computing"],
+      readingTime: 2,
+      sources: [
+        { outlet: "Wall Street Journal", title: "Nvidia PC AI Chip", url: "https://www.wsj.com/tech/nvidia-pc-ai-chip-edge-computing-2026", date: "May 31, 2026" },
+      ],
+      urgency: "medium",
+    },
+    {
+      id: "6",
+      category: "science",
+      emoji: "🔬",
+      headline: "Anthropic Files Confidentially for IPO; AI Safety Becomes Public Market Play",
+      summary: "Anthropic, the AI safety company behind Claude, has confidentially filed for an IPO. The filing signals that AI safety and alignment are becoming mainstream investment themes.",
+      singaporeLens: "Singapore's position as a neutral AI governance hub is strengthened by Anthropic's IPO. The city-state can position itself as a preferred location for AI safety research and responsible AI development.",
+      paragraphs: [
+        "Anthropic, the AI safety company behind the Claude large language model, has confidentially filed for an initial public offering (IPO), according to the Financial Times. The confidential filing allows Anthropic to test investor appetite without publicly disclosing financials until closer to launch.",
+        "Anthropic was most recently valued at approximately $61 billion in a funding round earlier in 2026. The listing, if it proceeds, would be one of the largest AI-sector IPOs to date and would signal that AI safety and alignment are becoming mainstream investment themes.",
+        "For Singapore, Anthropic's IPO creates an opportunity to position the city-state as a preferred location for AI safety research and responsible AI development, differentiating from other regional tech hubs.",
+      ],
+      keyMetrics: [
+        { label: "Anthropic Valuation", value: "$61bn", change: "IPO planned", direction: "up" },
+        { label: "AI Safety Focus", value: "Mainstream", change: "Public market", direction: "up" },
+      ],
+      tags: ["AI", "IPO", "Technology"],
+      readingTime: 2,
+      sources: [
+        { outlet: "Financial Times", title: "Anthropic IPO Filing", url: "https://www.ft.com/content/anthropic-ipo-filing-2026", date: "May 31, 2026" },
+      ],
+      urgency: "low",
+    },
+    {
+      id: "7",
+      category: "culture",
+      emoji: "🎭",
+      headline: "PopMart Pays $2,000/sq ft in Times Square; Asian Brands Rewrite New York Retail",
+      summary: "Chinese collectible brand PopMart opened a 7,000 sq ft flagship store in Times Square at record-breaking rents, joining a wave of Asian brands reshaping New York's retail landscape. The shift signals Asian consumer culture's dominance in global pop culture aesthetics.",
+      singaporeLens: "Singapore-based creative brands like In Good Company and Charles & Keith can learn from PopMart's global scaling strategy. The Times Square takeover by Asian brands demonstrates the commercial viability of Asian design and collectible culture at premium price points.",
+      paragraphs: [
+        "PopMart, the Chinese company behind the globally viral Labubu collectible dolls, is opening a 7,000 square-foot flagship store at 1540 Broadway in New York's Times Square, paying ground-floor rent of $2,000 per square foot — one of the most expensive retail leases in the world, according to the New York Post.",
+        "PopMart is not arriving alone. Chinese novelty brand TopToy is taking a 2,000 sq ft corner at SL Green's 1515 Broadway. China-owned Miniso is already at 5 Times Square. Japan's Tamashii Nations collectibles brand is at 1500 Broadway, and South Korean character brand Line Friends occupies space at 1515 Broadway. Times Square has effectively become a showroom for Asian soft power.",
+        "For Singapore's creative and retail sector, the PopMart story carries a specific lesson: Labubu's success was engineered through limited drops, designer collaboration, and blind box mechanics that created genuine collectible frenzy. Asian consumer culture is now willing to pay Western flagship rents to make its own statement, signaling a structural shift in who controls global pop culture aesthetics in the 2020s.",
+      ],
+      keyMetrics: [
+        { label: "PopMart Times Square Rent", value: "$2,000/sq ft", change: "Record-breaking", direction: "up" },
+        { label: "Asian Brands in Times Square", value: "5+", change: "Expanding presence", direction: "up" },
+      ],
+      tags: ["Culture", "Retail", "Asian Brands"],
+      readingTime: 3,
+      sources: [
+        { outlet: "New York Post", title: "Asian Toy Companies Invading Times Square", url: "https://nypost.com/2026/05/31/business/asian-toy-companies-like-labubu-maker-invading-nycs-times-square-after-recent-departures/", date: "May 31, 2026" },
+      ],
+      urgency: "low",
+    },
+    {
+      id: "8",
+      category: "labour",
+      emoji: "👥",
+      headline: "Labour Market Compression Deepens; White-Collar Roles Face Automation Pressure",
+      summary: "US labour market data shows only 115,000 jobs added in April, with federal workforce cuts flooding the market with credentialled candidates. Automation is accelerating in retail, transportation, and warehousing.",
+      singaporeLens: "Singapore's white-collar workforce faces similar compression pressures with a 12-18 month lag. Skills mobility and continuous learning are more valuable than savings rate for career resilience.",
+      paragraphs: [
+        "The US labour market is showing signs of compression, with employers adding only 115,000 jobs in April and federal workforce cuts flooding the market with credentialled candidates, according to CNN. Kory Kantenga, head of economics at LinkedIn, told CNN that the official payroll number 'is just not reflecting what most people's experience in the labour market today is.'",
+        "Roles in retail, transportation, and warehousing are the most vulnerable to automation, with Kantenga cautioning that even recent job creation in these sectors is unlikely to persist. The compression is creating a bifurcated labour market: high-skill roles remain in demand, while mid-tier roles face both automation and oversupply.",
+        "For Singapore's workforce, the US labour market dynamics are an early signal. The same compression dynamic — more qualified applicants, fewer roles, automation eating mid-tier work — is arriving here with a 12-18 month lag. CPF contributions to your OA are a cushion, but the real hedge is skills mobility, not savings rate.",
+      ],
+      keyMetrics: [
+        { label: "US April Jobs", value: "115k", change: "-50k vs forecast", direction: "down" },
+        { label: "Labour Compression", value: "Accelerating", change: "Automation pressure", direction: "down" },
+      ],
+      tags: ["Labour", "Automation", "Employment"],
+      readingTime: 2,
+      sources: [
+        { outlet: "CNN", title: "US Labour Market Compression", url: "https://cnn.com", date: "May 31, 2026" },
+      ],
+      urgency: "medium",
+    },
+  ],
+  systemsSynthesis: {
+    thesis: "Singapore is positioning itself as the indispensable intermediary in a fragmenting world. From energy diplomacy in the Hormuz to wealth consolidation in Asia to AI infrastructure distribution, the city-state's competitive advantage lies in its ability to remain neutral while capturing value from every major geopolitical and economic transition.",
+    signals: [
+      "Hormuz energy diplomacy cements Singapore as the region's dealmaker",
+      "DBS wealth expansion reflects confidence in Singapore's role as Asia's wealth hub",
+      "AI edge computing shift strengthens Singapore's logistics position",
+      "Asian brands' Times Square success validates Singapore's creative economy potential",
+    ],
+  },
+};

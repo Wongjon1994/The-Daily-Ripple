@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "frontend",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["-y", "pnpm@10", "exec", "vite", "--host"],
+      "port": 3000
+    }
+  ]
+}

@@ -1,0 +1,86 @@
+RIPPLE DASHBOARD - COMPLETE PACKAGE FOR CLAUDE CODE
+====================================================
+
+DOCUMENTATION (Read in this order):
+1. CLAUDE_HANDOFF_TRANSITION.md - Main handoff document
+2. CLAUDE_CODE_PACKAGE.md - This package guide
+3. DATABASE_FUNCTIONALITY.md - Brief storage architecture
+4. MVP1_SPECIFICATION.md - Product vision
+5. N8N_HYBRID_INTEGRATION_GUIDE.md - n8n workflow
+6. README.md - Setup instructions
+
+CRITICAL COMPONENT SOURCE CODE:
+- client/src/components/BriefCard.tsx (story display - GAP 1)
+- client/src/components/WeeklyBriefSelector.tsx (brief picker - GAP 2)
+- client/src/components/TrendsDashboard.tsx (trends view - OPEN)
+- client/src/components/SwipeDemo.tsx (story navigation)
+- client/src/components/MastheadBanner.tsx (header)
+- client/src/pages/BriefPageEnhanced.tsx (main page)
+- client/src/pages/Home.tsx (landing page)
+
+DESIGN SYSTEM & STYLING:
+- client/src/index.css (design tokens - CRITICAL)
+- components.json (shadcn/ui config)
+- client/index.html (HTML template)
+- tailwind.config.ts (Tailwind config)
+
+DATA & LOGIC UTILITIES:
+- client/src/lib/briefParser.ts
+- client/src/lib/weekUtils.ts
+- client/src/lib/dateUtils.ts
+- client/src/lib/signalMapper.ts
+- client/src/lib/storyMapper.ts
+- client/src/lib/singaporeLensMapper.ts
+- client/src/lib/trpc.ts
+
+HARDCODED BRIEF DATA (Current state):
+- client/src/lib/may31Brief.ts
+- client/src/lib/june1Brief.ts
+- client/src/lib/june2Brief.ts
+- client/src/lib/june3Brief.ts
+- client/src/lib/june4Brief.ts
+- client/src/lib/june5Brief.ts
+
+BACKEND SOURCE CODE:
+- server/routers.ts (tRPC API)
+- server/db.ts (database helpers)
+- drizzle/schema.ts (database schema)
+- server/_core/context.ts
+- server/_core/oauth.ts
+- server/_core/llm.ts
+- server/_core/notification.ts
+- server/storage.ts
+
+CONFIGURATION:
+- package.json
+- pnpm-lock.yaml
+- tsconfig.json
+- vite.config.ts
+- drizzle.config.ts
+- n8n-workflow-export.json
+
+ENTIRE DIRECTORIES (recommended):
+- client/src/ (all frontend code)
+- server/ (all backend code)
+- drizzle/ (database config)
+
+SCREENSHOTS NEEDED:
+1. Daily Brief tab (full page, collapsed card, expanded card)
+2. Trends tab (all signal categories)
+3. Brief selector dropdown (all states)
+4. Responsive views (desktop, tablet, mobile)
+5. Interaction states (hover, loading, empty)
+
+DOWNLOAD OPTIONS:
+Option A: Download individual files from Management UI Code panel
+Option B: Download entire project as ZIP from Management UI More menu
+Option C: Use git clone if you have access to the repository
+
+RECOMMENDED APPROACH:
+1. Download entire project as ZIP
+2. Extract and review CLAUDE_HANDOFF_TRANSITION.md
+3. Share with Claude Code
+4. Claude reads CLAUDE_CODE_PACKAGE.md for file guide
+5. Iterate on gaps and Trends design
+
+Questions? Check CLAUDE_CODE_PACKAGE.md for detailed file descriptions.

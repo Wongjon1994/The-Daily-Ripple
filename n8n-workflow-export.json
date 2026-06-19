@@ -1,0 +1,95 @@
+{
+  "name": "Ripple Dashboard Daily Brief Publisher",
+  "nodes": [
+    {
+      "parameters": {
+        "minute": [0],
+        "hour": [6],
+        "dayOfWeek": [],
+        "timezone": "UTC"
+      },
+      "name": "Daily Schedule (6 AM UTC)",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [50, 300],
+      "id": "schedule-trigger"
+    },
+    {
+      "parameters": {
+        "functionCode": "// Generate today's brief payload\nconst now = new Date();\nconst date = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });\nconst dateSlug = date.toLowerCase().replace(/\\s+/g, '-');\n\nreturn {\n  json: {\n    date: date,\n    dateSlug: dateSlug,\n    sections: [\n      {\n        title: \"Daily Geopolitical Update\",\n        summary: \"Key geopolitical developments and their implications\",\n        content: \"Detailed geopolitical analysis and news\",\n        category: \"Geopolitics\",\n        singaporeLens: \"Impact on Singapore's regional position and security\",\n        readingTime: 5,\n        source: \"Intelligence Sources\"\n      },\n      {\n        title: \"Market Intelligence\",\n        summary: \"Financial markets and economic indicators\",\n        content: \"Market movements and economic analysis\",\n        category: \"Markets\",\n        singaporeLens: \"Singapore's role in regional financial markets\",\n        readingTime: 4,\n        source: \"Financial News\"\n      },\n      {\n        title: \"Technology & Innovation\",\n        summary: \"Latest developments in AI, tech, and innovation\",\n        content: \"Technology trends and their implications\",\n        category: \"Technology\",\n        singaporeLens: \"Singapore's tech ecosystem and innovation initiatives\",\n        readingTime: 3,\n        source: \"Tech News\"\n      },\n      {\n        title: \"Culture & Society\",\n        summary: \"Cultural trends and social developments\",\n        content: \"Cultural and societal updates\",\n        category: \"Culture\",\n        singaporeLens: \"Singapore's cultural landscape and society\",\n        readingTime: 3,\n        source: \"Culture & Media\"\n      }\n    ]\n  }\n};"
+      },
+      "name": "Generate Brief Payload",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "id": "generate-payload"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://rippledash-ht3duhth.manus.space/api/scheduled/publish-n8n-brief",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "bodyParametersUi": "json",
+        "body": "={{ $node[\"Generate Brief Payload\"].json }}"
+      },
+      "name": "Publish to Dashboard",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [450, 300],
+      "id": "publish-request"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "name": "Success Response",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [650, 300],
+      "id": "success-response"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "name": "Error Handler",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [650, 450],
+      "id": "error-handler"
+    }
+  ],
+  "connections": {
+    "Daily Schedule (6 AM UTC)": {
+      "main": [[{ "node": "Generate Brief Payload", "type": "main", "index": 0 }]]
+    },
+    "Generate Brief Payload": {
+      "main": [[{ "node": "Publish to Dashboard", "type": "main", "index": 0 }]]
+    },
+    "Publish to Dashboard": {
+      "main": [[{ "node": "Success Response", "type": "main", "index": 0 }]],
+      "error": [[{ "node": "Error Handler", "type": "main", "index": 0 }]]
+    }
+  },
+  "active": true,
+  "settings": {
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "executionOrder": "v1"
+  },
+  "versionId": "1.0",
+  "meta": {
+    "instanceId": "ripple-dashboard",
+    "description": "Automatically publishes daily intelligence briefs to the Ripple Dashboard at 6 AM UTC",
+    "created": "2026-06-06",
+    "updated": "2026-06-06"
+  }
+}

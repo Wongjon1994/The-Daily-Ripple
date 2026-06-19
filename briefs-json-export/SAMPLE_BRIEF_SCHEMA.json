@@ -1,0 +1,113 @@
+{
+  "date": "June 1, 2026",
+  "greeting": "Good morning, Singapore.",
+  "teaser": [
+    "Singapore's Hormuz Diplomacy — How the city-state is positioning itself as the energy broker between Iran and the West.",
+    "DBS bets $1bn on Asia's wealth surge with 54 new centres",
+    "Nvidia's edge-AI chip reshapes computing architecture"
+  ],
+  "sections": [
+    {
+      "id": "1",
+      "category": "geopolitics",
+      "emoji": "🌍",
+      "headline": "Singapore Steps Into Hormuz Energy Diplomacy; US-Iran Tensions Escalate",
+      "summary": "Singapore's Foreign Minister announced the city-state will host trilateral talks between Iran, UAE, and Western energy traders to negotiate a framework for Hormuz shipping security. The move positions Singapore as a neutral broker amid escalating US-Iran tensions.",
+      "singaporeLens": "Singapore is leveraging its neutral status and maritime expertise to position itself as the indispensable intermediary for Hormuz energy flows. Success here could cement Singapore's role as the region's geopolitical dealmaker for the next decade.",
+      "paragraphs": [
+        "Singapore's Foreign Minister announced on May 31 that the city-state will host trilateral talks between Iran, the UAE, and Western energy traders to negotiate a framework for Hormuz shipping security, according to Reuters. The talks, scheduled for June 5-7, aim to establish protocols that allow oil and LNG shipments to transit the Strait of Hormuz without disruption, even as US-Iran tensions remain elevated.",
+        "The announcement comes as Iran suspended negotiations with the United States over nuclear compliance, citing Israeli military conduct in Gaza. Brent Crude climbed to $92/barrel on the news, reflecting market anxiety that Hormuz closure risk is re-entering the pricing equation.",
+        "Singapore's role is deliberate: the city-state has no direct stake in US-Iran politics, controls one of the world's largest oil-trading hubs, and has decades of experience mediating shipping disputes. If the talks succeed, Singapore cements itself as the energy broker for Asia's supply chains. If they fail, the city-state's reputation for neutrality remains intact, and energy prices will likely spike further."
+      ],
+      "keyMetrics": [
+        {
+          "label": "Brent Crude",
+          "value": "$92/bbl",
+          "change": "+4.2%",
+          "direction": "up"
+        },
+        {
+          "label": "Hormuz Risk Premium",
+          "value": "Elevated",
+          "change": "Talks scheduled",
+          "direction": "neutral"
+        }
+      ],
+      "tags": [
+        "Geopolitics",
+        "Energy",
+        "Singapore Diplomacy"
+      ],
+      "readingTime": 3,
+      "sources": [
+        {
+          "outlet": "Reuters",
+          "title": "Singapore to Host Hormuz Talks",
+          "url": "https://www.reuters.com/world/asia-pacific/singapore-hormuz-energy-talks-2026-05-31",
+          "date": "May 31, 2026"
+        },
+        {
+          "outlet": "Sky News",
+          "title": "Energy Diplomacy",
+          "url": "https://news.sky.com/story/singapore-hormuz-energy-talks-2026",
+          "date": "May 31, 2026"
+        }
+      ],
+      "urgency": "high"
+    },
+    {
+      "id": "2",
+      "category": "business",
+      "emoji": "💼",
+      "headline": "DBS Bets $1 Billion on Asia's Wealth Surge with 54 New Centres",
+      "summary": "DBS Group announced a $1 billion investment to open 54 new wealth management centres across Asia, targeting the region's growing high-net-worth population. The expansion reflects confidence in Asia's economic trajectory despite geopolitical headwinds.",
+      "singaporeLens": "DBS's aggressive expansion signals confidence in Singapore's role as Asia's wealth hub. The bank's investment in regional centres also strengthens Singapore's position as the financial intermediary for Asian capital flows.",
+      "paragraphs": [
+        "DBS Group announced on June 1 that it will invest $1 billion to open 54 new wealth management centres across Asia over the next three years, according to Bloomberg. The expansion targets high-net-worth individuals and ultra-high-net-worth families seeking diversified investment strategies amid geopolitical uncertainty.",
+        "The announcement comes as Asian wealth creation accelerates: UBS estimates that Asia's high-net-worth population will grow by 40% by 2030, driven by technology entrepreneurship, real estate appreciation, and commodity wealth in Southeast Asia.",
+        "For Singapore, DBS's expansion reinforces the city-state's position as Asia's wealth management hub. The bank's new centres will funnel capital through Singapore's financial infrastructure, strengthening our role as the region's capital intermediary."
+      ],
+      "keyMetrics": [
+        {
+          "label": "DBS Investment",
+          "value": "$1B",
+          "change": "New",
+          "direction": "up"
+        },
+        {
+          "label": "New Centres",
+          "value": "54",
+          "change": "Over 3 years",
+          "direction": "up"
+        },
+        {
+          "label": "Asia HNW Growth",
+          "value": "40%",
+          "change": "By 2030",
+          "direction": "up"
+        }
+      ],
+      "tags": [
+        "Banking",
+        "Wealth Management",
+        "Asia Growth"
+      ],
+      "readingTime": 2,
+      "sources": [
+        {
+          "outlet": "Bloomberg",
+          "title": "DBS Wealth Expansion",
+          "url": "https://www.bloomberg.com/news/articles/2026-06-01/dbs-1-billion-wealth-centres-asia",
+          "date": "June 1, 2026"
+        },
+        {
+          "outlet": "Reuters",
+          "title": "Asian Wealth Growth",
+          "url": "https://www.reuters.com/business/finance/dbs-wealth-asia-2026-06-01",
+          "date": "June 1, 2026"
+        }
+      ],
+      "urgency": "medium"
+    }
+  ]
+}

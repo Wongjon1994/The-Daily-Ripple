@@ -1,0 +1,439 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * The Daily Ripple — "Quiet Authority" design system
+ * Warm ink navy, bone text, single muted-gold accent.
+ * Category colors appear only as small label text — never as borders or glows.
+ */
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --font-display: 'Playfair Display', Georgia, serif;
+  --font-sans: 'Source Sans 3', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* ── Blue / Teal palette (matches the masthead banner) ───────── */
+  /* Surfaces: deep terminal navy with a cool blue cast */
+  --color-ink: oklch(0.15 0.035 248);
+  --color-ink-raised: oklch(0.20 0.035 248);
+  --color-ink-well: oklch(0.12 0.030 248);
+
+  /* Text: cool mist white */
+  --color-mist: oklch(0.95 0.008 230);
+  --color-mist-dim: oklch(0.82 0.016 230);
+  --color-mist-faint: oklch(0.68 0.022 240);
+
+  /* Primary accent: banner cyan/teal */
+  --color-cyan: oklch(0.74 0.115 205);
+  --color-cyan-dim: oklch(0.74 0.115 205 / 0.6);
+
+  /* Editorial gold — warm prose tone (cool/warm duotone with cyan) */
+  --color-gold-soft: oklch(0.845 0.072 84);   /* readable body prose */
+  --color-gold-rich: oklch(0.80 0.120 82);    /* labels, greeting */
+
+  /* Category voices — distinct but harmonized to the cool scheme */
+  --color-cat-geopolitics: oklch(0.66 0.155 25);   /* warm red */
+  --color-cat-markets: oklch(0.70 0.130 165);      /* teal-green */
+  --color-cat-economics: oklch(0.80 0.130 80);     /* amber */
+  --color-cat-tech: oklch(0.72 0.110 200);         /* cyan */
+  --color-cat-science: oklch(0.68 0.120 265);      /* indigo */
+  --color-cat-culture: oklch(0.70 0.130 35);       /* coral */
+  --color-cat-singapore: oklch(0.70 0.120 165);    /* teal */
+
+  /* Legacy aliases kept so older components don't break */
+  --color-navy: oklch(0.15 0.035 248);
+  --color-navy-light: oklch(0.20 0.035 248);
+  --color-navy-lighter: oklch(0.26 0.035 248);
+  --color-parchment: oklch(0.94 0.008 230);
+  --color-parchment-dim: oklch(0.74 0.018 230);
+  --color-amber: oklch(0.80 0.130 80);
+  --color-crimson: oklch(0.66 0.155 25);
+  --color-teal: oklch(0.72 0.110 200);
+  --color-teal-bright: oklch(0.78 0.130 200);
+  --color-sage: oklch(0.70 0.130 165);
+  --color-coral: oklch(0.70 0.130 35);
+  --color-violet: oklch(0.68 0.120 265);
+  --color-gold-warm: oklch(0.80 0.130 80);
+  --color-gold-warm-light: oklch(0.86 0.110 85);
+}
+
+:root {
+  --radius: 0.5rem;
+  /* Height of the sticky nav bar; other sticky bars stack beneath it. */
+  --nav-h: 3rem;
+  --background: oklch(0.14 0.035 248);
+  --foreground: oklch(0.95 0.008 230);
+  --card: oklch(0.235 0.040 248);
+  --card-foreground: oklch(0.95 0.008 230);
+  --popover: oklch(0.235 0.040 248);
+  --popover-foreground: oklch(0.95 0.008 230);
+  --primary: oklch(0.74 0.115 205);
+  --primary-foreground: oklch(0.15 0.035 248);
+  --secondary: oklch(0.24 0.032 248);
+  --secondary-foreground: oklch(0.88 0.010 230);
+  --muted: oklch(0.24 0.032 248);
+  --muted-foreground: oklch(0.72 0.022 240);
+  --accent: oklch(0.24 0.032 248);
+  --accent-foreground: oklch(0.94 0.008 230);
+  --destructive: oklch(0.66 0.155 25);
+  --destructive-foreground: oklch(0.96 0.010 230);
+  --border: oklch(0.28 0.028 248);
+  --input: oklch(0.28 0.028 248);
+  --ring: oklch(0.74 0.115 205);
+  --chart-1: oklch(0.74 0.115 205);
+  --chart-2: oklch(0.70 0.130 165);
+  --chart-3: oklch(0.68 0.120 265);
+  --chart-4: oklch(0.80 0.130 80);
+  --chart-5: oklch(0.70 0.130 35);
+  --sidebar: oklch(0.13 0.032 248);
+  --sidebar-foreground: oklch(0.94 0.008 230);
+  --sidebar-primary: oklch(0.74 0.115 205);
+  --sidebar-primary-foreground: oklch(0.15 0.035 248);
+  --sidebar-accent: oklch(0.20 0.035 248);
+  --sidebar-accent-foreground: oklch(0.94 0.008 230);
+  --sidebar-border: oklch(0.28 0.028 248);
+  --sidebar-ring: oklch(0.74 0.115 205);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Source Sans 3', system-ui, sans-serif;
+  }
+
+  /* Faded geopolitical map behind the whole site (fixed, dark-overlaid). */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      linear-gradient(to bottom, oklch(0.14 0.035 248 / 0.70), oklch(0.13 0.035 248 / 0.88)),
+      url("/hero-geopolitical-map.png") center top / cover no-repeat;
+  }
+
+  /* Typography hierarchy */
+  .text-label {
+    @apply text-xs font-semibold uppercase;
+    letter-spacing: 0.15em;
+  }
+
+  .section-header {
+    @apply text-lg sm:text-xl lg:text-2xl font-bold;
+    font-family: 'Playfair Display', Georgia, serif;
+  }
+
+  .text-headline {
+    @apply text-lg sm:text-2xl lg:text-3xl font-bold leading-tight;
+    font-family: 'Playfair Display', Georgia, serif;
+  }
+
+  .text-body {
+    @apply text-sm sm:text-base leading-relaxed;
+  }
+
+  .text-metadata {
+    @apply text-xs sm:text-sm;
+    color: var(--color-mist-faint);
+  }
+
+  /* Singapore Lens — a margin note from a private analyst */
+  .singapore-lens {
+    @apply p-4 rounded-none;
+    background: oklch(0.22 0.045 205 / 0.35);
+    border-left: 3px solid var(--color-cyan);
+  }
+
+  .singapore-lens-label {
+    @apply text-xs font-semibold uppercase;
+    color: var(--color-cyan);
+    letter-spacing: 0.18em;
+  }
+
+  .singapore-lens-text {
+    @apply text-sm leading-relaxed italic;
+    font-family: 'Playfair Display', Georgia, serif;
+    color: oklch(0.88 0.012 220);
+  }
+
+  /* Brief card — collapsed "deck" (standfirst) clamp + fade-to-more. */
+  .deck-clamp {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .deck-fade {
+    -webkit-mask-image: linear-gradient(to bottom, black 48%, transparent 100%);
+    mask-image: linear-gradient(to bottom, black 48%, transparent 100%);
+  }
+
+  /* Brief card — pull-quote lifted out of the expanded body. */
+  .pull-quote {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-style: italic;
+    font-size: 1.15rem;
+    line-height: 1.45;
+    color: var(--color-mist);
+    border-left: 3px solid var(--cap-color, var(--color-cyan));
+    padding: 0.15rem 0 0.15rem 1rem;
+    margin: 1.4rem 0;
+  }
+
+  /* Brief card — expanded lede paragraph with an editorial drop cap. */
+  .lede-para::first-letter {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-weight: 700;
+    font-size: 3.1em;
+    line-height: 0.78;
+    float: left;
+    margin: 0.02em 0.1em 0 0;
+    color: var(--cap-color, var(--color-cyan));
+  }
+
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  [type="button"]:not(:disabled),
+  [type="submit"]:not(:disabled),
+  [type="reset"]:not(:disabled),
+  a[href],
+  select:not(:disabled),
+  input[type="checkbox"]:not(:disabled),
+  input[type="radio"]:not(:disabled) {
+    @apply cursor-pointer;
+  }
+}
+
+@layer components {
+  .container {
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .flex {
+    min-height: 0;
+    min-width: 0;
+  }
+
+  @media (min-width: 640px) {
+    .container {
+      padding-left: 1.5rem;
+      padding-right: 1.5rem;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .container {
+      padding-left: 2rem;
+      padding-right: 2rem;
+      max-width: 1280px;
+    }
+  }
+}
+
+/* Animations — deliberate pace of ink on paper. No glow, no pulse. */
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.45s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.4s ease-out forwards;
+}
+
+/* Stagger delays */
+.stagger-1 { animation-delay: 60ms; }
+.stagger-2 { animation-delay: 120ms; }
+.stagger-3 { animation-delay: 180ms; }
+.stagger-4 { animation-delay: 240ms; }
+.stagger-5 { animation-delay: 300ms; }
+.stagger-6 { animation-delay: 360ms; }
+
+/* Trends theme cards — reactive edge in the theme's own colour on hover */
+.trends-theme {
+  transition: border-color 0.2s ease;
+}
+.trends-theme:hover {
+  border-color: color-mix(in oklab, var(--theme-accent, var(--color-cyan)) 45%, transparent);
+}
+
+/* Reading deck — Option A "spotlight & lift" */
+.brief-spotlight {
+  position: relative;
+}
+.brief-spotlight::before {
+  content: "";
+  position: absolute;
+  inset: -6% -12% -2%;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    70% 72% at 50% 42%,
+    oklch(0.37 0.08 244 / 0.62) 0%,
+    oklch(0.25 0.055 246 / 0.30) 46%,
+    transparent 74%
+  );
+}
+.brief-spotlight > * {
+  position: relative;
+  z-index: 1;
+}
+/* Lifted focal card: bright top edge + deep soft shadow */
+.card-lift {
+  box-shadow:
+    0 28px 56px -20px rgba(0, 0, 0, 0.9),
+    0 6px 16px -8px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 0 oklch(0.95 0.01 230 / 0.08);
+  border-top-color: oklch(0.5 0.03 244 / 0.6);
+}
+
+/* Sparkline hover points (Trends) */
+.spark-point {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.spark-point:hover { z-index: 5; }
+.spark-dot {
+  display: block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-ink-raised);
+  border: 1.5px solid var(--color-cyan-dim);
+  transition: transform 0.1s ease;
+}
+.spark-dot-last {
+  background: var(--color-cyan);
+  border-color: var(--color-cyan);
+}
+.spark-point:hover .spark-dot {
+  transform: scale(1.6);
+  border-color: var(--color-cyan);
+}
+.spark-label {
+  position: absolute;
+  bottom: 160%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: 230px;
+  text-align: left;
+  background: var(--color-ink-well);
+  border: 0.5px solid var(--border);
+  color: var(--color-mist);
+  padding: 7px 9px;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px -10px rgba(0, 0, 0, 0.75);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.12s ease;
+  z-index: 6;
+}
+/* Keep the tooltip inside the card at the chart's first/last points. */
+.spark-label-start { left: 0; transform: none; }
+.spark-label-end { left: auto; right: 0; transform: none; }
+.spark-point:hover .spark-label { opacity: 1; }
+.spark-label-val {
+  display: block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.spark-label-val em {
+  color: var(--color-mist-faint);
+  font-style: normal;
+  font-weight: 400;
+  margin-left: 6px;
+}
+.spark-label-story {
+  display: block;
+  margin-top: 4px;
+  font-size: 11.5px;
+  line-height: 1.35;
+  color: var(--color-mist-dim);
+  font-family: 'Playfair Display', Georgia, serif;
+}
+.spark-label-cue {
+  display: block;
+  margin-top: 5px;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--color-cyan);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: oklch(0.15 0.035 248);
+}
+::-webkit-scrollbar-thumb {
+  background: oklch(0.32 0.030 248);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: oklch(0.40 0.030 248);
+}
