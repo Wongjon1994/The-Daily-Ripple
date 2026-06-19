@@ -54,6 +54,8 @@ const THEME_COLORS: Record<string, string> = {
 const REALISED = "var(--color-cat-markets)"; // teal-green
 const WATCH = "var(--color-amber)";
 const shortDate = (d: string) => d.replace(/,?\s*2026$/, "");
+/** "June 19, 2026" → "Jun 19" — compact enough for the card footer. */
+const compactDate = (d: string) => shortDate(d).replace(/^(\w{3})\w*/, "$1");
 const dirColor = (d?: "up" | "down" | "neutral") =>
   d === "up" ? REALISED : d === "down" ? "var(--color-cat-geopolitics)" : "var(--color-mist-faint)";
 
@@ -399,13 +401,12 @@ function MetricCard({ m, isExpanded, onToggle }: { m: TrackedMetric; isExpanded:
           </div>
         </div>
 
-        <div className="flex items-baseline gap-2">
+        <div className="flex items-baseline gap-x-2 gap-y-0.5 flex-wrap">
           <span className="text-2xl font-mono font-semibold leading-none" style={{ color: "var(--color-mist)" }}>{latest.value}</span>
           {m.kind === "quant" && m.delta !== null && (
-            <span className="flex items-center gap-1 text-xs font-mono" style={{ color: dirColor(m.delta > 0 ? "up" : m.delta < 0 ? "down" : "neutral") }}>
+            <span className="flex items-center gap-1 text-xs font-mono whitespace-nowrap" style={{ color: dirColor(m.delta > 0 ? "up" : m.delta < 0 ? "down" : "neutral") }}>
               <DirectionIcon direction={m.delta > 0 ? "up" : m.delta < 0 ? "down" : "neutral"} />
               {m.delta > 0 ? "+" : ""}{m.delta.toFixed(1)}%
-              <span style={{ color: "var(--color-mist-faint)" }}>over period</span>
             </span>
           )}
           {m.kind === "qual" && (
@@ -438,11 +439,12 @@ function MetricCard({ m, isExpanded, onToggle }: { m: TrackedMetric; isExpanded:
         )}
 
         <div className="flex items-center justify-between gap-2 mt-2 pt-2.5 border-t border-border/30">
-          <span className="text-[11px] font-mono truncate" style={{ color: "var(--color-mist-faint)" }}>
-            {shortDate(m.points[0].date)} — {shortDate(latest.date)} · {m.points.length} readings
+          <span className="text-[11px] font-mono whitespace-nowrap" style={{ color: "var(--color-mist-faint)" }}>
+            {compactDate(m.points[0].date)} – {compactDate(latest.date)}
+            <span className="ml-1.5 opacity-70">· {m.points.length} pts</span>
           </span>
           <span className="flex items-center gap-1 text-[11px] font-semibold shrink-0" style={{ color: "var(--color-cyan)" }}>
-            {isExpanded ? "Hide" : signalCount > 0 ? "Signal ledger" : "Details"}
+            {isExpanded ? "Hide" : signalCount > 0 ? "Signal ledger" : "Explore"}
             <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", isExpanded && "rotate-180")} />
           </span>
         </div>
@@ -484,8 +486,15 @@ function MetricCard({ m, isExpanded, onToggle }: { m: TrackedMetric; isExpanded:
             </div>
           )}
 
-          {/* The per-reading "story behind the numbers" now lives on the chart
-              itself — hover a data point to read its headline and open the brief. */}
+          {/* When there are no bound signals, still make the expand worthwhile:
+              point the reader at the per-reading stories on the chart. */}
+          {realised.length === 0 && watching.length === 0 && topical.length === 0 && (
+            <div className="border-t border-border/40 px-4 py-4">
+              <p className="text-[11px] leading-relaxed" style={{ color: "var(--color-mist-faint)" }}>
+                No flagged signals for this metric yet — hover a point on the chart to read that day's brief.
+              </p>
+            </div>
+          )}
         </>
       )}
     </div>
