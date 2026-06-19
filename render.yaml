@@ -10,7 +10,7 @@ services:
     autoDeploy: true
     buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm run build
     startCommand: pnpm start
-    healthCheckPath: /
+    healthCheckPath: /healthz
     envVars:
       - key: NODE_ENV
         value: production

@@ -42,6 +42,12 @@ async function startServer() {
     }
   });
 
+  // Lightweight health check — used by the host's health probe and the
+  // keep-warm cron ping (avoids serving the full SPA HTML on every poll).
+  app.get("/healthz", (_req, res) => {
+    res.status(200).json({ ok: true, ts: Date.now() });
+  });
+
   // ── Static assets (production) ──────────────────────────────────────────────
   const staticPath =
     process.env.NODE_ENV === "production"
