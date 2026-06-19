@@ -1,11 +1,11 @@
-import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { bigint, jsonb, pgTable, serial, text } from "drizzle-orm/pg-core";
 
 /**
  * Canonical briefs table — replaces both dailyBriefs and n8nBriefs.
  * One row per published brief day.
  */
-export const briefs = sqliteTable("briefs", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
+export const briefs = pgTable("briefs", {
+  id: serial("id").primaryKey(),
   /** Human-readable date: "May 31, 2026" */
   date: text("date").notNull(),
   /** URL slug for routing: "may-31-2026" */
@@ -15,36 +15,27 @@ export const briefs = sqliteTable("briefs", {
   /** Opening greeting */
   greeting: text("greeting").notNull(),
   /** Array of teaser lines */
-  teaser: text("teaser", { mode: "json" })
-    .notNull()
-    .$type<string[]>()
-    .default([]),
+  teaser: jsonb("teaser").notNull().$type<string[]>().default([]),
   /** Array of 8 BriefSection objects */
-  sections: text("sections", { mode: "json" })
-    .notNull()
-    .$type<BriefSection[]>()
-    .default([]),
+  sections: jsonb("sections").notNull().$type<BriefSection[]>().default([]),
   /** Systems synthesis with thesis + signals */
-  systemsSynthesis: text("systems_synthesis", { mode: "json" })
-    .$type<{ thesis: string; signals: string[] }>(),
+  systemsSynthesis: jsonb("systems_synthesis").$type<{ thesis: string; signals: string[] }>(),
   /** Source Telegraph.ph URL if published there */
   telegraphUrl: text("telegraph_url"),
   /** Original raw payload from n8n (for debugging) */
-  rawPayload: text("raw_payload", { mode: "json" }),
+  rawPayload: jsonb("raw_payload"),
   /** Unix timestamp (ms) */
-  createdAt: integer("created_at").notNull().$defaultFn(() => Date.now()),
-  updatedAt: integer("updated_at").notNull().$defaultFn(() => Date.now()),
+  createdAt: bigint("created_at", { mode: "number" }).notNull().$defaultFn(() => Date.now()),
+  updatedAt: bigint("updated_at", { mode: "number" }).notNull().$defaultFn(() => Date.now()),
 });
 
 /**
  * Cached market ticker data, refreshed by external cron.
  */
-export const marketTicker = sqliteTable("market_ticker", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
-  tickerData: text("ticker_data", { mode: "json" })
-    .notNull()
-    .$type<TickerItem[]>(),
-  fetchedAt: integer("fetched_at").notNull().$defaultFn(() => Date.now()),
+export const marketTicker = pgTable("market_ticker", {
+  id: serial("id").primaryKey(),
+  tickerData: jsonb("ticker_data").notNull().$type<TickerItem[]>(),
+  fetchedAt: bigint("fetched_at", { mode: "number" }).notNull().$defaultFn(() => Date.now()),
 });
 
 // ─── Shared sub-types ────────────────────────────────────────────────────────

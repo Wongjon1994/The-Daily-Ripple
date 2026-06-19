@@ -1,51 +1,65 @@
-import Database from "better-sqlite3";
-import { drizzle } from "drizzle-orm/better-sqlite3";
+import { drizzle } from "drizzle-orm/node-postgres";
+import { Pool } from "pg";
 import { desc, eq, gte, lte, and } from "drizzle-orm";
 import * as schema from "../drizzle/schema.js";
 import type { InsertBrief } from "../drizzle/schema.js";
 
-const DB_PATH = process.env.DATABASE_PATH || "./ripple.db";
+const connectionString = process.env.DATABASE_URL;
 
+let _pool: Pool | null = null;
 let _db: ReturnType<typeof drizzle> | null = null;
+
+function getPool(): Pool {
+  if (!_pool) {
+    if (!connectionString) {
+      throw new Error(
+        "DATABASE_URL is not set. Point it at your Neon/Supabase Postgres connection string."
+      );
+    }
+    _pool = new Pool({
+      connectionString,
+      // Neon/Supabase require TLS; set ?sslmode=disable in the URL for a local
+      // Postgres without certs.
+      ssl: /sslmode=disable/.test(connectionString) ? false : { rejectUnauthorized: false },
+      max: 10,
+    });
+  }
+  return _pool;
+}
 
 export function getDb() {
   if (!_db) {
-    const sqlite = new Database(DB_PATH);
-    sqlite.pragma("journal_mode = WAL");
-    sqlite.pragma("foreign_keys = ON");
-    _db = drizzle(sqlite, { schema });
+    _db = drizzle(getPool(), { schema });
   }
   return _db;
 }
 
 /** Ensure the briefs and market_ticker tables exist. */
-export function initDb() {
-  const sqlite = new Database(DB_PATH);
-  sqlite.pragma("journal_mode = WAL");
-  sqlite.exec(`
+export async function initDb(): Promise<void> {
+  const pool = getPool();
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS briefs (
-      id           INTEGER PRIMARY KEY AUTOINCREMENT,
-      date         TEXT    NOT NULL,
-      date_slug    TEXT    NOT NULL UNIQUE,
-      brief_date   TEXT    NOT NULL UNIQUE,
-      greeting     TEXT    NOT NULL,
-      teaser       TEXT    NOT NULL DEFAULT '[]',
-      sections     TEXT    NOT NULL DEFAULT '[]',
-      systems_synthesis TEXT,
+      id            SERIAL  PRIMARY KEY,
+      date          TEXT    NOT NULL,
+      date_slug     TEXT    NOT NULL UNIQUE,
+      brief_date    TEXT    NOT NULL UNIQUE,
+      greeting      TEXT    NOT NULL,
+      teaser        JSONB   NOT NULL DEFAULT '[]'::jsonb,
+      sections      JSONB   NOT NULL DEFAULT '[]'::jsonb,
+      systems_synthesis JSONB,
       telegraph_url TEXT,
-      raw_payload  TEXT,
-      created_at   INTEGER NOT NULL,
-      updated_at   INTEGER NOT NULL
+      raw_payload   JSONB,
+      created_at    BIGINT  NOT NULL,
+      updated_at    BIGINT  NOT NULL
     );
     CREATE INDEX IF NOT EXISTS idx_briefs_brief_date ON briefs(brief_date);
 
     CREATE TABLE IF NOT EXISTS market_ticker (
-      id          INTEGER PRIMARY KEY AUTOINCREMENT,
-      ticker_data TEXT    NOT NULL,
-      fetched_at  INTEGER NOT NULL
+      id          SERIAL  PRIMARY KEY,
+      ticker_data JSONB   NOT NULL,
+      fetched_at  BIGINT  NOT NULL
     );
   `);
-  sqlite.close();
 }
 
 // ─── Brief CRUD ──────────────────────────────────────────────────────────────

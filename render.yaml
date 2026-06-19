@@ -1,0 +1,23 @@
+# Render Blueprint — deploys The Daily Ripple as a single Node web service.
+# It builds the Vite SPA + bundles the Express server, then runs `pnpm start`
+# (NODE_ENV=production node dist/index.js), which serves the SPA and the API.
+# Spec: https://render.com/docs/blueprint-spec
+services:
+  - type: web
+    name: the-daily-ripple
+    runtime: node
+    plan: free
+    autoDeploy: true
+    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm run build
+    startCommand: pnpm start
+    healthCheckPath: /
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Postgres connection string from Neon or Supabase. Set the value in the
+      # Render dashboard (sync:false keeps the secret out of the repo).
+      - key: DATABASE_URL
+        sync: false
+      # Set only if n8n will publish briefs to /api/publish:
+      # - key: PUBLISH_API_KEY
+      #   generateValue: true

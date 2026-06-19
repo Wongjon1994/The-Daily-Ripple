@@ -4,7 +4,7 @@ node_modules/
 # Build output
 dist/
 
-# Local SQLite database (reseedable via server/seed.ts)
+# Local SQLite database (legacy — app now uses cloud Postgres via DATABASE_URL)
 ripple.db
 ripple.db-shm
 ripple.db-wal

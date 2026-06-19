@@ -12,8 +12,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 async function startServer() {
-  // Initialise SQLite tables and seed sample data if empty
-  initDb();
+  // Ensure Postgres tables exist, then seed sample data if empty
+  await initDb();
   await seedBriefs();
 
   const app = express();

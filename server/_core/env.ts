@@ -1,6 +1,6 @@
 export const ENV = {
-  /** Path to the SQLite database file */
-  databasePath: process.env.DATABASE_PATH || "./ripple.db",
+  /** Postgres connection string (Neon/Supabase) */
+  databaseUrl: process.env.DATABASE_URL || "",
 
   /** API key required to publish briefs via n8n.publish */
   publishApiKey: process.env.PUBLISH_API_KEY || "",
