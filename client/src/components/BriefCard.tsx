@@ -334,17 +334,6 @@ export default function BriefCard({ section, categoryColor, briefUrl, elevated }
               </p>
             )}
 
-            {/* Singapore Lens — promoted, dressed as an analyst's note */}
-            {showLens && (
-              <div className="singapore-lens my-4">
-                <div className="flex items-center gap-1.5 mb-1.5">
-                  <MapPin className="h-3.5 w-3.5 shrink-0" style={{ color: "var(--color-cyan)" }} />
-                  <p className="singapore-lens-label">Singapore Lens · Analyst's note</p>
-                </div>
-                <p className="singapore-lens-text">{section.singaporeLens}</p>
-              </div>
-            )}
-
             {/* Remaining paragraphs, with the pull-quote lifted inline */}
             {bodyParas.length > 0 && (
               <div className="space-y-4">
@@ -371,6 +360,17 @@ export default function BriefCard({ section, categoryColor, briefUrl, elevated }
                     </Fragment>
                   );
                 })}
+              </div>
+            )}
+
+            {/* Singapore Lens — the local angle, closing out the full story */}
+            {showLens && (
+              <div className="singapore-lens mt-5">
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <MapPin className="h-3.5 w-3.5 shrink-0" style={{ color: "var(--color-cyan)" }} />
+                  <p className="singapore-lens-label">Singapore Lens · Analyst's note</p>
+                </div>
+                <p className="singapore-lens-text">{section.singaporeLens}</p>
               </div>
             )}
           </div>
