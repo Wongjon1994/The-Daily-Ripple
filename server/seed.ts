@@ -26,6 +26,7 @@ import { jun16Brief } from "../briefs-json-export/jun16Brief.js";
 import { jun17Brief } from "../briefs-json-export/jun17Brief.js";
 import { jun18Brief } from "../briefs-json-export/jun18Brief.js";
 import { jun19Brief } from "../briefs-json-export/jun19Brief.js";
+import { jun20Brief } from "../briefs-json-export/jun20Brief.js";
 
 // Canonical "read the full brief" URLs — the authoritative, verified-working
 // link for each day (Telegraph for May 31 / Jun 1, linkly shortlinks after).
@@ -48,6 +49,7 @@ const BRIEFS = [
   { brief: jun17Brief, briefDate: "2026-06-17", dateSlug: "june-17-2026", telegraphUrl: "https://linkly.link/2kY90" },
   { brief: jun18Brief, briefDate: "2026-06-18", dateSlug: "june-18-2026", telegraphUrl: "https://linkly.link/2kijD" },
   { brief: jun19Brief, briefDate: "2026-06-19", dateSlug: "june-19-2026", telegraphUrl: "https://linkly.link/2ksxv" },
+  { brief: jun20Brief, briefDate: "2026-06-20", dateSlug: "june-20-2026", telegraphUrl: "https://telegra.ph/The-Daily-Ripple-06-20-2" },
 ];
 
 /** Always-run: ensure every known brief has its canonical URL set. */
@@ -59,13 +61,10 @@ export async function backfillBriefUrls(): Promise<void> {
 
 export async function seedBriefs(): Promise<void> {
   const count = await countBriefs();
-  if (count > 0) {
-    console.log(`[seed] Database already has ${count} brief(s). Backfilling canonical URLs.`);
-    await backfillBriefUrls();
-    return;
-  }
-
-  console.log(`[seed] Seeding ${BRIEFS.length} briefs...`);
+  // The bundled briefs are the canonical set: upsert them all on every boot so a
+  // newly added brief publishes into an already-seeded database (idempotent by
+  // dateSlug). Briefs added separately at runtime via /api/publish are untouched.
+  console.log(`[seed] Syncing ${BRIEFS.length} briefs (database currently has ${count})...`);
   for (const { brief, briefDate, dateSlug, telegraphUrl } of BRIEFS) {
     await upsertBrief({
       date: brief.date,
@@ -78,7 +77,6 @@ export async function seedBriefs(): Promise<void> {
       telegraphUrl,
       rawPayload: null,
     });
-    console.log(`[seed]  ✓ ${brief.date}`);
   }
   console.log("[seed] Done.");
 }

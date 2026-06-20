@@ -14,8 +14,8 @@ const SERIF = "'Playfair Display', Georgia, serif";
 
 /** The eight things every brief covers — mirrors the daily deck. */
 const COVERAGE = [
-  { emoji: "📰", label: "Lead story", color: "var(--color-cyan)" },
-  { emoji: "🌐", label: "Global politics & policy", color: "var(--color-cat-geopolitics)" },
+  { emoji: "🌐", label: "Lead story", color: "var(--color-cyan)" },
+  { emoji: "⚖️", label: "Global politics & policy", color: "var(--color-cat-geopolitics)" },
   { emoji: "📊", label: "Markets", color: "var(--color-cat-economics)" },
   { emoji: "💼", label: "Business", color: "var(--color-cat-economics)" },
   { emoji: "🤖", label: "Technology & the future of work", color: "var(--color-cat-tech)" },

@@ -182,7 +182,9 @@ export default function BriefCard({ section, categoryColor, briefUrl, elevated }
               className="text-[11px] font-semibold tracking-[0.15em] uppercase"
               style={{ color }}
             >
-              {section.category.replace("-", " ")}
+              {/* Story 1 is always the day's lead — label it as such on the card,
+                  even though its underlying category stays as the story's nature. */}
+              {section.id === "1" ? "Lead story" : section.category.replace("-", " ")}
             </span>
             <UrgencyDot urgency={section.urgency} />
           </div>
