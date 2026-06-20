@@ -263,12 +263,6 @@ export const jun20Brief: DailyBrief = {
           "title": "About that granite tower at Obama's presidential center",
           "url": "https://www.latimes.com/entertainment-arts/newsletter/2026-06-19/essential-arts-june-19-obama-presidential-center-tower",
           "date": "June 19, 2026"
-        },
-        {
-          "outlet": "CNBC",
-          "title": "Trump tells Axios he no longer views Anthropic as a national security threat",
-          "url": "https://www.cnbc.com/2026/06/19/trump-tells-axios-he-no-longer-views-anthropic-as-national-security-threat.html",
-          "date": "June 19, 2026"
         }
       ],
       "urgency": "low",
@@ -281,11 +275,12 @@ export const jun20Brief: DailyBrief = {
       "emoji": "🔗",
       "category": "systems",
       "headline": "Systems synthesis — the hidden thread connecting today's stories",
-      "summary": "📎 Sources",
+      "summary": "This week's most important story isn't the Iran peace deal — it's what happened immediately after it: a US president banned allies from a commercial AI tool, then un-banned it within a week, while…",
       "paragraphs": [
-        "📎 Sources"
+        "This week's most important story isn't the Iran peace deal — it's what happened immediately after it: a US president banned allies from a commercial AI tool, then un-banned it within a week, while his own Fed chair signalled a possible rate hike and MSCI downgraded our nearest large neighbour's market credibility. The connecting thread is the same in all three cases: the architecture of global trust that Singapore was built to intermediate — open capital markets, reliable technology access, rules-based financial infrastructure — is being tested simultaneously on its financial, technological, and institutional dimensions. Brent crude's 9% weekly fall is the feel-good headline; the erosion of predictability in US policy is the structural concern. A dollar strengthening on Fed hawkishness, Anthropic access toggled by presidential mood, and Indonesia's market opacity flagged by MSCI all point to the same pressure: the cost of dependency on external infrastructure, whether monetary, technological, or informational, is rising.",
+        "Three signals to watch. First, if MSCI formally places Indonesia on an emerging-market downgrade watch list in its next review cycle, monitor SGX's weekly foreign institutional flow data — the number to look for is whether net inflows to Singapore-listed ASEAN-exposure REITs and banks accelerate above their 52-week average, signalling capital rotating toward Singapore as the \"cleaner\" regional venue. Second, if the Anthropic access dispute re-escalates — perhaps triggered by a different AI model or a broader technology decoupling move from Washington — watch IMDA's public procurement tender list for sovereign AI infrastructure contracts: that's the signal that Singapore is accelerating its own model-independence buffer rather than waiting for US policy to stabilise. Third, if Warsh's rate-hike signal hardens into a formal Fed dot-plot revision in September, the USD/SGD rate approaching 1.40 becomes the lived trigger for your mortgage repricing conversation — that's the number where a fixed-rate lock starts making more financial sense than riding the SORA float."
       ],
-      "singaporeLens": null,
+      "singaporeLens": " The connecting thread is the same in all three cases: the architecture of global trust that Singapore was built to intermediate — open capital markets, reliable technology access, rules-based financial infrastructure — is being tested simultaneously on its financial, technological, and institutional dimensions. Brent crude's 9% weekly fall is the feel-good headline; the erosion of predictability in US policy is the structural concern.",
       "keyMetrics": [],
       "readingTime": 2,
       "sources": [],
@@ -297,7 +292,7 @@ export const jun20Brief: DailyBrief = {
     }
   ],
   "systemsSynthesis": {
-    "thesis": "📎 Sources",
+    "thesis": "This week's most important story isn't the Iran peace deal — it's what happened immediately after it: a US president banned allies from a commercial AI tool, then un-banned it within a week, while his own Fed chair signalled a possible rate hike and MSCI downgraded our nearest large neighbour's…",
     "signals": []
   }
 };

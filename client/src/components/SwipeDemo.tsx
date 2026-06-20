@@ -183,7 +183,6 @@ export default function SwipeDemo({ brief, currentIndex: externalIndex, onPrevio
       <div className="flex items-center justify-center gap-5 sm:gap-7 mb-6 sm:mb-7">
         <button
           onClick={goToPrevious}
-          disabled={isProcessing.current}
           aria-label="Previous story"
           className={arrowBtn}
         >
@@ -201,7 +200,6 @@ export default function SwipeDemo({ brief, currentIndex: externalIndex, onPrevio
 
         <button
           onClick={goToNext}
-          disabled={isProcessing.current}
           aria-label="Next story"
           className={arrowBtn}
         >
@@ -268,13 +266,11 @@ export default function SwipeDemo({ brief, currentIndex: externalIndex, onPrevio
           <button
             key={idx}
             onClick={() => handleDotClick(idx)}
-            disabled={isProcessing.current}
             className={cn(
               "rounded-full transition-all duration-200",
               idx === currentIndex
                 ? "w-2 sm:w-2.5 h-2 sm:h-2.5 bg-[var(--color-cyan)]"
-                : "w-1.5 sm:w-2 h-1.5 sm:h-2 bg-[var(--border)] hover:bg-[var(--muted-foreground)]",
-              "disabled:cursor-not-allowed"
+                : "w-1.5 sm:w-2 h-1.5 sm:h-2 bg-[var(--border)] hover:bg-[var(--muted-foreground)]"
             )}
             aria-label={`Go to story ${idx + 1}`}
           />

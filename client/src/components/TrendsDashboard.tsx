@@ -310,7 +310,9 @@ export default function TrendsDashboard({ briefs }: { briefs: Record<string, Dai
               const Icon = THEME_ICONS[t.icon] ?? Telescope;
               const open = openThemes.has(t.key);
               const color = THEME_COLORS[t.key] ?? "var(--color-cyan)";
-              const preview = t.signals.map((s) => s.signal.text).join(" · ");
+              // First signal only — a long joined string tripped iOS Safari's
+              // -webkit-line-clamp into reserving the full text height.
+              const preview = t.signals[0]?.signal.text ?? "";
               return (
                 <div
                   key={t.key}
@@ -338,7 +340,7 @@ export default function TrendsDashboard({ briefs }: { briefs: Record<string, Dai
                       <ChevronDown className={cn("h-4 w-4 transition-transform", open && "rotate-180")} style={{ color: "var(--color-mist-faint)" }} />
                     </div>
                     {!open && (
-                      <p className="text-xs leading-relaxed mt-1.5 line-clamp-1" style={{ color: "var(--color-mist-faint)" }}>
+                      <p className="text-xs mt-1.5 truncate" style={{ color: "var(--color-mist-faint)" }}>
                         {preview}
                       </p>
                     )}

@@ -157,7 +157,12 @@ for (const node of content) {
   if (typeof node !== "object") continue;
   const tag = node.tag;
   if (tag === "h3") {
-    const hd = parseHeader(text(node));
+    const raw = text(node);
+    // The §8 "SYSTEMS SYNTHESIS" heading has no "—" headline and is followed by
+    // blockquotes. Close the current section so the synthesis blockquotes and
+    // its sources list don't get attached to the previous story (e.g. Culture).
+    if (/systems\s+synthesis/i.test(raw)) { cur = null; continue; }
+    const hd = parseHeader(raw);
     if (!hd) continue;
     const category = EMOJI_CATEGORY[hd.emoji] || (LABEL_CATEGORY.find(([re]) => re.test(hd.label)) || [, "geopolitics"])[1];
     cur = { ...hd, num: sections.length + 1, category, paragraphs: [], keyMetrics: [], sources: [] };
@@ -168,8 +173,13 @@ for (const node of content) {
     if (hasLink(node)) cur.sources.push(...parseSources(node));
     else cur.keyMetrics.push(...parseMetrics(node));
   } else if (tag === "blockquote") {
-    // §8 systems synthesis is published as a blockquote
-    synthesisText = text(node).replace(/^🔗?\s*\d*\.?\s*SYSTEMS SYNTHESIS/i, "").trim();
+    // §8 systems synthesis is published as one or more blockquotes. ACCUMULATE
+    // them (some briefs split it across several) and skip the trailing
+    // "📎 Sources" marker blockquote — otherwise it would overwrite the prose.
+    const t = text(node).replace(/^🔗?\s*\d*\.?\s*SYSTEMS SYNTHESIS/i, "").trim();
+    if (t && !t.startsWith("📎")) {
+      synthesisText = synthesisText ? `${synthesisText} ${t}` : t;
+    }
   }
 }
 
@@ -205,7 +215,7 @@ const builtSections = sections.map(buildSection);
 
 // append §8 systems-synthesis section if present
 if (synthesisText) {
-  const paras = synthesisText.split(/(?=Three conditional signals|Here are three|Two signals|The thread is this)/i).map((x) => x.trim()).filter(Boolean);
+  const paras = synthesisText.split(/(?=Three conditional signals|Here are three|Two signals|Three signals to watch|The thread is this)/i).map((x) => x.trim()).filter(Boolean);
   const lens = (synthesisText.match(/[^.]*Singapore[^.]*\.(?:[^.]*\.)?/i) || [])[0] || null;
   builtSections.push({
     id: "8", emoji: "🔗", category: "systems",
