@@ -54,6 +54,7 @@ const NAV_ITEMS = [
   { href: "/", label: "Today's Brief" },
   { href: "/trends", label: "Trends" },
   { href: "/calendar", label: "Archive" },
+  { href: "/about", label: "About" },
 ];
 
 export default function MastheadBanner({
