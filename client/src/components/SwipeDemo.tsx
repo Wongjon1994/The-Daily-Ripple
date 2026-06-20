@@ -170,25 +170,46 @@ export default function SwipeDemo({ brief, currentIndex: externalIndex, onPrevio
   const prevIndex = (currentIndex - 1 + total) % total;
   const nextIndex = (currentIndex + 1) % total;
 
-  const arrowClass =
-    "hidden lg:flex absolute top-1/2 -translate-y-1/2 z-20 items-center justify-center rounded-full w-11 h-11 " +
-    "border border-border/70 bg-background/70 backdrop-blur-sm transition-colors " +
+  const arrowBtn =
+    "flex items-center justify-center rounded-full w-10 h-10 shrink-0 " +
+    "border border-border/70 bg-background/70 backdrop-blur-sm transition-colors active:scale-95 " +
     "text-mist-dim hover:text-[var(--color-cyan)] hover:border-[var(--color-cyan)]/50 " +
     "disabled:opacity-40 disabled:cursor-not-allowed";
 
   return (
     <div className="brief-spotlight w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10">
-      {/* Story counter — large current number, BT-style */}
-      <div className="text-center mb-6 sm:mb-7">
-        <span className="text-2xl sm:text-3xl font-bold leading-none" style={{ color: "var(--color-mist)" }}>
-          {currentIndex + 1}
-        </span>
-        <span className="text-base sm:text-lg ml-2" style={{ color: "var(--color-mist-faint)" }}>
-          of {total}
-        </span>
+      {/* Story counter with prev/next arrows — the primary deck navigation,
+          kept together at the top so it's reachable on every screen size. */}
+      <div className="flex items-center justify-center gap-5 sm:gap-7 mb-6 sm:mb-7">
+        <button
+          onClick={goToPrevious}
+          disabled={isProcessing.current}
+          aria-label="Previous story"
+          className={arrowBtn}
+        >
+          <ChevronLeft className="h-5 w-5" />
+        </button>
+
+        <div className="text-center leading-none min-w-[60px]">
+          <span className="text-2xl sm:text-3xl font-bold" style={{ color: "var(--color-mist)" }}>
+            {currentIndex + 1}
+          </span>
+          <span className="text-base sm:text-lg ml-2" style={{ color: "var(--color-mist-faint)" }}>
+            of {total}
+          </span>
+        </div>
+
+        <button
+          onClick={goToNext}
+          disabled={isProcessing.current}
+          aria-label="Next story"
+          className={arrowBtn}
+        >
+          <ChevronRight className="h-5 w-5" />
+        </button>
       </div>
 
-      {/* Carousel: peeks flank a centered focal card, arrows float in the margins */}
+      {/* Carousel: peeks flank a centered focal card (clickable to navigate) */}
       <div className="relative">
         <div className="relative mx-auto overflow-hidden px-0" style={{ maxWidth: "min(100%, 760px)" }}>
           <div className="relative w-full max-w-[600px] mx-auto">
@@ -239,64 +260,25 @@ export default function SwipeDemo({ brief, currentIndex: externalIndex, onPrevio
             )}
           </div>
         </div>
-
-        {/* Floating circular arrows — at the focal card's edges on desktop */}
-        <button
-          onClick={goToPrevious}
-          disabled={isProcessing.current}
-          className={cn(arrowClass, "left-1 sm:left-2 lg:left-[calc(50%-372px)]")}
-          aria-label="Previous story"
-        >
-          <ChevronLeft className="h-5 w-5" />
-        </button>
-        <button
-          onClick={goToNext}
-          disabled={isProcessing.current}
-          className={cn(arrowClass, "right-1 sm:right-2 lg:right-[calc(50%-372px)]")}
-          aria-label="Next story"
-        >
-          <ChevronRight className="h-5 w-5" />
-        </button>
       </div>
 
-      {/* Progress dots, flanked by prev/next arrows on mobile so the swipe
-          gesture is discoverable (desktop uses the floating side arrows). */}
-      <div className="flex items-center justify-center gap-3 sm:gap-4 mt-7 sm:mt-8">
-        <button
-          onClick={goToPrevious}
-          disabled={isProcessing.current}
-          aria-label="Previous story"
-          className="lg:hidden flex items-center justify-center rounded-full w-9 h-9 shrink-0 border border-border/70 bg-background/70 text-mist-dim transition-colors active:scale-95 hover:text-[var(--color-cyan)] hover:border-[var(--color-cyan)]/50 disabled:opacity-40 disabled:cursor-not-allowed"
-        >
-          <ChevronLeft className="h-4 w-4" />
-        </button>
-
-        <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap justify-center">
-          {brief.sections.map((_, idx) => (
-            <button
-              key={idx}
-              onClick={() => handleDotClick(idx)}
-              disabled={isProcessing.current}
-              className={cn(
-                "rounded-full transition-all duration-200",
-                idx === currentIndex
-                  ? "w-2 sm:w-2.5 h-2 sm:h-2.5 bg-[var(--color-cyan)]"
-                  : "w-1.5 sm:w-2 h-1.5 sm:h-2 bg-[var(--border)] hover:bg-[var(--muted-foreground)]",
-                "disabled:cursor-not-allowed"
-              )}
-              aria-label={`Go to story ${idx + 1}`}
-            />
-          ))}
-        </div>
-
-        <button
-          onClick={goToNext}
-          disabled={isProcessing.current}
-          aria-label="Next story"
-          className="lg:hidden flex items-center justify-center rounded-full w-9 h-9 shrink-0 border border-border/70 bg-background/70 text-mist-dim transition-colors active:scale-95 hover:text-[var(--color-cyan)] hover:border-[var(--color-cyan)]/50 disabled:opacity-40 disabled:cursor-not-allowed"
-        >
-          <ChevronRight className="h-4 w-4" />
-        </button>
+      {/* Progress dots */}
+      <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap justify-center mt-7 sm:mt-8">
+        {brief.sections.map((_, idx) => (
+          <button
+            key={idx}
+            onClick={() => handleDotClick(idx)}
+            disabled={isProcessing.current}
+            className={cn(
+              "rounded-full transition-all duration-200",
+              idx === currentIndex
+                ? "w-2 sm:w-2.5 h-2 sm:h-2.5 bg-[var(--color-cyan)]"
+                : "w-1.5 sm:w-2 h-1.5 sm:h-2 bg-[var(--border)] hover:bg-[var(--muted-foreground)]",
+              "disabled:cursor-not-allowed"
+            )}
+            aria-label={`Go to story ${idx + 1}`}
+          />
+        ))}
       </div>
 
       {/* Mobile swipe hint */}
