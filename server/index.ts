@@ -27,16 +27,32 @@ async function startServer() {
     createExpressMiddleware({ router: appRouter, createContext })
   );
 
-  // Webhook alias: n8n can POST to /api/publish instead of going through tRPC
+  const authorized = (req: express.Request) =>
+    !!process.env.PUBLISH_API_KEY &&
+    (req.headers["x-api-key"] as string | undefined) === process.env.PUBLISH_API_KEY;
+
+  // Webhook alias: n8n can POST the full structured DailyBrief to /api/publish.
   app.post("/api/publish", async (req, res) => {
-    const key = req.headers["x-api-key"] as string | undefined;
-    if (!process.env.PUBLISH_API_KEY || key !== process.env.PUBLISH_API_KEY) {
-      return res.status(401).json({ error: "Unauthorized" });
-    }
+    if (!authorized(req)) return res.status(401).json({ error: "Unauthorized" });
     try {
       const { upsertBrief } = await import("./db.js");
       await upsertBrief(req.body);
       res.json({ ok: true });
+    } catch (err) {
+      res.status(500).json({ error: String(err) });
+    }
+  });
+
+  // Publish from a Telegraph URL: the server fetches the published page, parses
+  // it into the DailyBrief schema, and upserts it. n8n POSTs { url, date? }.
+  app.post("/api/publish-telegraph", async (req, res) => {
+    if (!authorized(req)) return res.status(401).json({ error: "Unauthorized" });
+    try {
+      const { briefFromTelegraph } = await import("./telegraphImport.js");
+      const brief = await briefFromTelegraph({ url: req.body?.url, date: req.body?.date });
+      const { upsertBrief } = await import("./db.js");
+      await upsertBrief(brief);
+      res.json({ ok: true, dateSlug: brief.dateSlug, sections: Array.isArray(brief.sections) ? brief.sections.length : 0 });
     } catch (err) {
       res.status(500).json({ error: String(err) });
     }
