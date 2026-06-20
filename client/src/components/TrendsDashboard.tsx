@@ -7,7 +7,7 @@
  * All analysis lives in lib/trendsAnalysis.ts; this file only renders.
  */
 
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Link } from "wouter";
 import type { DailyBrief } from "@/lib/briefParser";
 import {
@@ -77,6 +77,24 @@ function Sparkline({
   realisedValues: Set<number>;
   realisedDates: Set<string>;
 }) {
+  // On touch devices there's no hover, so the first tap on a point reveals its
+  // tooltip (preview) and a second tap follows the link. Desktop is unchanged.
+  const [active, setActive] = useState<number | null>(null);
+  const isTouch = useMemo(
+    () => typeof window !== "undefined" && !!window.matchMedia?.("(hover: none)").matches,
+    []
+  );
+  useEffect(() => {
+    if (active === null) return;
+    const clear = () => setActive(null);
+    // Defer so the opening tap doesn't immediately dismiss the tooltip.
+    const id = window.setTimeout(() => document.addEventListener("click", clear), 0);
+    return () => {
+      window.clearTimeout(id);
+      document.removeEventListener("click", clear);
+    };
+  }, [active]);
+
   if (chartPoints.length < 2) return null;
   const w = 200, h = 48, pad = 6;
   const vals = chartPoints.map((p) => p.numeric!);
@@ -107,9 +125,16 @@ function Sparkline({
           <Link
             key={i}
             href={`/brief/${c.point.slug}?story=${c.point.storyIndex + 1}`}
-            className="spark-point"
+            className={cn("spark-point", active === i && "spark-point-active")}
             style={{ left: `${(c.x / w) * 100}%`, top: `${(c.y / h) * 100}%` }}
             aria-label={`${c.point.value} on ${shortDate(c.point.date)} — open the ${shortDate(c.point.date)} brief`}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (isTouch && active !== i) {
+                e.preventDefault();
+                setActive(i);
+              }
+            }}
           >
             <span
               className={cn("spark-dot", i === coords.length - 1 && "spark-dot-last")}

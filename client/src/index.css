@@ -392,7 +392,11 @@
 /* Keep the tooltip inside the card at the chart's first/last points. */
 .spark-label-start { left: 0; transform: none; }
 .spark-label-end { left: auto; right: 0; transform: none; }
-.spark-point:hover .spark-label { opacity: 1; }
+.spark-point:hover .spark-label,
+.spark-point-active .spark-label { opacity: 1; }
+/* When tapped on touch (active), the tooltip becomes the tap target so its
+   "Open brief →" link is reachable. */
+.spark-point-active .spark-label { pointer-events: auto; }
 .spark-label-val {
   display: block;
   font-family: 'JetBrains Mono', monospace;

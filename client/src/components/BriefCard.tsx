@@ -401,28 +401,32 @@ export default function BriefCard({ section, categoryColor, briefUrl, elevated }
                       rel="noopener noreferrer"
                       title={status !== "loading" ? STATUS_TITLE[status] : undefined}
                       className={cn(
-                        "flex items-center gap-2 px-2.5 py-2 rounded-lg text-xs cursor-pointer",
+                        "flex items-start gap-2.5 px-2.5 py-2 rounded-lg text-xs cursor-pointer",
                         "border transition-all hover:bg-white/5",
                         flagged
                           ? "border-crimson/20 bg-crimson/5 hover:border-crimson/35"
                           : "border-border/20 hover:border-border/40"
                       )}
                     >
-                      <LinkStatusIcon status={status} />
+                      <span className="shrink-0 mt-0.5">
+                        <LinkStatusIcon status={status} />
+                      </span>
                       <div className="flex-1 min-w-0">
-                        <span className="font-semibold text-foreground/75">
-                          {source.outlet}
-                        </span>
-                        {source.title && (
-                          <span className="text-muted-foreground/45 ml-1.5 truncate">
-                            — {source.title}
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-foreground/75 truncate">
+                            {source.outlet}
                           </span>
+                          <span className="ml-auto shrink-0 text-[11px] font-mono text-muted-foreground/40">
+                            {source.date}
+                          </span>
+                          <ExternalLink className="h-3 w-3 text-muted-foreground/30 shrink-0" />
+                        </div>
+                        {source.title && (
+                          <p className="text-muted-foreground/50 text-[11px] leading-snug mt-0.5 line-clamp-2">
+                            {source.title}
+                          </p>
                         )}
                       </div>
-                      <span className="text-muted-foreground/35 shrink-0 text-[10px] font-mono">
-                        {source.date}
-                      </span>
-                      <ExternalLink className="h-3 w-3 text-muted-foreground/30 shrink-0" />
                     </a>
                   );
                 })}
