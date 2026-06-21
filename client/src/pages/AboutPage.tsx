@@ -88,7 +88,7 @@ export default function AboutPage() {
             <SectionHeader color="var(--color-gold-rich)">What this is</SectionHeader>
 
             <p className={para} style={{ color: "var(--color-mist-dim)" }}>
-              Every weekday, we cover eight things — the lead story, global politics and policy,
+              Every Monday to Saturday, we cover eight things — the lead story, global politics and policy,
               markets, business, technology and the future of work, science and health, culture,
               and a closing "Systems Synthesis" that connects the day's stories in a way the
               headlines alone won't show you.

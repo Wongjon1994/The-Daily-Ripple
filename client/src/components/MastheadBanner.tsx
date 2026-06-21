@@ -116,7 +116,7 @@ export default function MastheadBanner({
             src={BANNER_SRC}
             alt="The Daily Ripple — Your world, connected. Your Singapore, ahead."
             onError={() => setBannerOk(false)}
-            className="w-full h-auto block max-w-5xl mx-auto"
+            className="w-full h-auto block max-w-5xl mx-auto object-contain max-h-[150px] sm:max-h-[180px] lg:max-h-[210px]"
           />
         </Link>
       ) : (

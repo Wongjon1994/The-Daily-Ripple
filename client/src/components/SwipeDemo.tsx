@@ -177,7 +177,7 @@ export default function SwipeDemo({ brief, currentIndex: externalIndex, onPrevio
     "disabled:opacity-40 disabled:cursor-not-allowed";
 
   return (
-    <div className="brief-spotlight w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10">
+    <div className="brief-spotlight w-full px-4 sm:px-6 lg:px-8 pt-3 sm:pt-4 lg:pt-5 pb-6 sm:pb-8 lg:pb-10">
       {/* Story counter with prev/next arrows — the primary deck navigation,
           kept together at the top so it's reachable on every screen size. */}
       <div className="flex items-center justify-center gap-5 sm:gap-7 mb-6 sm:mb-7">
