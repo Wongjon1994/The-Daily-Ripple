@@ -172,6 +172,42 @@ function splitSentences(t: string): string[] {
     .filter(Boolean);
 }
 
+/** Is a single sentence a forward-looking watch-signal worth surfacing? */
+function isWatchSentence(raw: string, isSystems: boolean): boolean {
+  if (raw.length < 45) return false;
+  const conditional =
+    isSystems && (ORDINAL.test(raw) || /^if\b/i.test(raw) || /,\s*watch\b/i.test(raw));
+  if (!WATCH.test(raw) && !conditional) return false;
+  return raw.replace(ORDINAL, "").replace(HEADER, "").length >= 45;
+}
+
+/** Normalise a watch sentence (strip ordinal/header lead-ins, capitalise). */
+function cleanWatchSentence(raw: string): string {
+  const s = raw.replace(ORDINAL, "").replace(HEADER, "");
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+/**
+ * Partition a section's narrative (Singapore Lens, or systems-synthesis prose)
+ * into its analysis `body` and the forward-looking `watch` signals it contains.
+ *
+ * This is the single source of truth for "what counts as a signal" — both the
+ * Trends "Broader signals" list (via buildWatchSignals) and the brief card's
+ * watch note read from it, so the two stay matched 1-to-1 by construction.
+ */
+export function partitionLensWatch(
+  text: string | null | undefined,
+  isSystems = false
+): { body: string; watch: string[] } {
+  const body: string[] = [];
+  const watch: string[] = [];
+  for (const raw of splitSentences(text || "")) {
+    if (isWatchSentence(raw, isSystems)) watch.push(cleanWatchSentence(raw));
+    else body.push(raw);
+  }
+  return { body: body.join(" ").trim(), watch };
+}
+
 export function buildWatchSignals(briefs: Record<string, DailyBrief>): WatchSignal[] {
   const out: WatchSignal[] = [];
   const seen = new Set<string>();
@@ -181,13 +217,7 @@ export function buildWatchSignals(briefs: Record<string, DailyBrief>): WatchSign
     brief.sections.forEach((section, idx) => {
       const isSystems = section.category === "systems";
       const text = isSystems ? section.paragraphs.join(" ") : section.singaporeLens || "";
-      for (const raw of splitSentences(text)) {
-        if (raw.length < 45) continue;
-        const conditional = isSystems && (ORDINAL.test(raw) || /^if\b/i.test(raw) || /,\s*watch\b/i.test(raw));
-        if (!WATCH.test(raw) && !conditional) continue;
-        let sentence = raw.replace(ORDINAL, "").replace(HEADER, "");
-        if (sentence.length < 45) continue;
-        sentence = sentence.charAt(0).toUpperCase() + sentence.slice(1);
+      for (const sentence of partitionLensWatch(text, isSystems).watch) {
         const norm = sentence.toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 90);
         if (seen.has(norm)) continue;
         seen.add(norm);

@@ -6,7 +6,7 @@
 
 import { useState, useMemo, Fragment } from "react";
 import type { BriefSection, KeyMetric } from "@/lib/briefParser";
-import { splitLensWatch } from "@/lib/briefParser";
+import { partitionLensWatch } from "@/lib/trendsAnalysis";
 import { ChevronDown, Clock, ExternalLink, CheckCircle2, XCircle, HelpCircle, ShieldAlert, BookOpen, MapPin, ArrowRight, Eye } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { trpc } from "@/lib/trpc";
@@ -118,15 +118,13 @@ export default function BriefCard({ section, categoryColor, briefUrl, elevated }
     return !body.includes(norm(section.singaporeLens).slice(0, 50));
   }, [section.singaporeLens, section.paragraphs]);
 
-  // Split the lens into analysis + a forward-looking "Watch" signal. A
-  // structured section.watch (from n8n) wins; otherwise derive it from the text.
-  const lensParts = useMemo(() => {
-    if (!section.singaporeLens) return { body: "", watch: null as string | null };
-    if (section.watch && section.watch.trim()) {
-      return { body: section.singaporeLens.trim(), watch: section.watch.trim() };
-    }
-    return splitLensWatch(section.singaporeLens);
-  }, [section.singaporeLens, section.watch]);
+  // Split the lens into analysis + the forward-looking watch-signals it carries.
+  // Uses the same extractor that feeds the Trends "Broader signals" list, so the
+  // card's signals match what surfaces in Trends 1-to-1.
+  const lensParts = useMemo(
+    () => partitionLensWatch(section.singaporeLens, section.category === "systems"),
+    [section.singaporeLens, section.category]
+  );
 
   // A short taste of the Singapore Lens, teased before expansion.
   const lensTeaser = useMemo(() => {
@@ -383,14 +381,18 @@ export default function BriefCard({ section, categoryColor, briefUrl, elevated }
                   <MapPin className="h-3.5 w-3.5 shrink-0" style={{ color: "var(--color-cyan)" }} />
                   <p className="singapore-lens-label">Singapore Lens · Analyst's note</p>
                 </div>
-                <p className="singapore-lens-text">{lensParts.body}</p>
-                {lensParts.watch && (
+                {lensParts.body && <p className="singapore-lens-text">{lensParts.body}</p>}
+                {lensParts.watch.length > 0 && (
                   <div className="lens-watch mt-3.5">
-                    <div className="flex items-center gap-1.5 mb-1">
+                    <div className="flex items-center gap-1.5 mb-1.5">
                       <Eye className="h-3.5 w-3.5 shrink-0" style={{ color: "var(--color-gold-rich)" }} />
-                      <p className="lens-watch-label">Watch</p>
+                      <p className="lens-watch-label">
+                        {lensParts.watch.length > 1 ? "Signals to watch" : "Signal to watch"}
+                      </p>
                     </div>
-                    <p className="singapore-lens-text">{lensParts.watch}</p>
+                    {lensParts.watch.map((s, i) => (
+                      <p key={i} className={cn("singapore-lens-text", i > 0 && "mt-2")}>{s}</p>
+                    ))}
                   </div>
                 )}
               </div>

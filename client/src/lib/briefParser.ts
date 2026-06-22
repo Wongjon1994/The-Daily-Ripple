@@ -26,10 +26,6 @@ export interface BriefSection {
   summary: string;
   paragraphs: string[];
   singaporeLens: string | null;
-  /** Optional forward-looking "signal to watch" note. If n8n emits this field
-   *  it is used directly; otherwise it is derived from the Singapore Lens text
-   *  by splitLensWatch(). */
-  watch?: string | null;
   keyMetrics: KeyMetric[];
   readingTime: number;
   sources: BriefSource[];
@@ -46,41 +42,6 @@ export interface DailyBrief {
     thesis: string;
     signals: string[];
   };
-}
-
-/**
- * Split a Singapore Lens into its analysis body and a forward-looking
- * "signal to watch" note.
- *
- * Daily n8n briefs close many section lenses with a forward signal flagged by
- * a leading "Watch" cue (e.g. "Watch Brent: if it clears $90, …"). This pulls
- * that trailing sentence out so the card can present it as a separate, labelled
- * "Watch" paragraph. The split is purely textual, so it applies automatically
- * to every future brief; if a section instead carries a structured `watch`
- * field, the caller should prefer that.
- *
- * Returns the lens unchanged as `body` with `watch: null` when no forward
- * signal is detected (or when splitting would leave no analysis behind).
- */
-export function splitLensWatch(lens: string | null | undefined): {
-  body: string;
-  watch: string | null;
-} {
-  const text = (lens ?? "").trim();
-  if (!text) return { body: "", watch: null };
-
-  // Find a sentence that begins (at a sentence boundary) with "Watch …".
-  const m = text.match(/(^|[.!?]["')\]]?\s+)(Watch\b[\s\S]*)$/);
-  if (m && typeof m.index === "number") {
-    const body = text.slice(0, m.index + m[1].length).trim();
-    if (body) {
-      // Drop the redundant leading "Watch" cue — the paragraph is labelled.
-      let watch = m[2].trim().replace(/^Watch\b[:,]?\s*/i, "");
-      watch = watch.charAt(0).toUpperCase() + watch.slice(1);
-      return { body, watch };
-    }
-  }
-  return { body: text, watch: null };
 }
 
 /**
