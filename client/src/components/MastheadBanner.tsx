@@ -7,6 +7,7 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import ThemeToggle from "./ThemeToggle";
+import { trpc } from "@/lib/trpc";
 
 interface MastheadBannerProps {
   greeting?: string;
@@ -94,12 +95,22 @@ const NAV_ITEMS = [
 
 export default function MastheadBanner({
   greeting,
-  teaser = [],
+  teaser: teaserProp = [],
 }: MastheadBannerProps) {
   const [location] = useLocation();
   const band = useThemeBand();
   const isLightBand = band === "morning" || band === "midday";
   const bannerSrc = isLightBand ? BANNER_LIGHT : BANNER_DARK;
+
+  // The teaser ticker shows on every tab. The brief page passes its own teaser;
+  // other tabs (Trends/Archive/About) fall back to the latest brief's headlines.
+  const latest = trpc.n8n.getLatest.useQuery(undefined, {
+    enabled: teaserProp.length === 0,
+  });
+  const teaser =
+    teaserProp.length > 0
+      ? teaserProp
+      : ((latest.data?.brief?.teaser as string[] | undefined) ?? []);
   const [teaserIdx, setTeaserIdx] = useState(0);
   const [bannerOk, setBannerOk] = useState(true);
   const [salutation, setSalutation] = useState(timeOfDaySalutation);
