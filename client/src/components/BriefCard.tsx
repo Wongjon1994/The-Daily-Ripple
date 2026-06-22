@@ -6,7 +6,7 @@
 
 import { useState, useMemo, Fragment } from "react";
 import type { BriefSection, KeyMetric } from "@/lib/briefParser";
-import { partitionLensWatch } from "@/lib/trendsAnalysis";
+import { partitionLensWatch, isSynthesisSection } from "@/lib/trendsAnalysis";
 import { ChevronDown, Clock, ExternalLink, CheckCircle2, XCircle, HelpCircle, ShieldAlert, BookOpen, MapPin, ArrowRight, Eye } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { trpc } from "@/lib/trpc";
@@ -120,7 +120,7 @@ export default function BriefCard({ section, categoryColor, briefUrl, elevated }
 
   // The synthesis section (8) carries its "three signals to watch" inline in its
   // prose, not in a Singapore Lens — so for it we partition the paragraphs.
-  const isSystems = section.category === "systems";
+  const isSystems = isSynthesisSection(section);
 
   // Split the source into analysis + the forward-looking watch-signals it
   // carries. Uses the same extractor that feeds the Trends "Broader signals"

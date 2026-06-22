@@ -229,6 +229,17 @@ export function partitionLensWatch(
   return { body: body.join(" ").trim(), watch };
 }
 
+/**
+ * The synthesis section (section 8) is what carries the day's three forward
+ * signals in its prose. Generators have labelled it "systems", "synthesis", or
+ * "systems synthesis" at different times — treat all of them as the synthesis
+ * so its signals are pulled (and the card suppresses the lens box + metrics)
+ * regardless of the exact category string a future n8n brief sends.
+ */
+export function isSynthesisSection(section: { category?: string | null }): boolean {
+  return /system|synthesis/i.test(section.category || "");
+}
+
 export function buildWatchSignals(briefs: Record<string, DailyBrief>): WatchSignal[] {
   const out: WatchSignal[] = [];
   const seen = new Set<string>();
@@ -236,7 +247,7 @@ export function buildWatchSignals(briefs: Record<string, DailyBrief>): WatchSign
 
   for (const [slug, brief] of entries) {
     brief.sections.forEach((section, idx) => {
-      const isSystems = section.category === "systems";
+      const isSystems = isSynthesisSection(section);
       const text = isSystems ? section.paragraphs.join(" ") : section.singaporeLens || "";
       for (const sentence of partitionLensWatch(text, isSystems).watch) {
         const norm = sentence.toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 90);

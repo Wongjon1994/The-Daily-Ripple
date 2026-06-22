@@ -1,5 +1,15 @@
 import { describe, it, expect } from "vitest";
-import { partitionLensWatch } from "./trendsAnalysis";
+import { partitionLensWatch, isSynthesisSection } from "./trendsAnalysis";
+
+describe("isSynthesisSection", () => {
+  it("recognizes every synthesis label a brief might use", () => {
+    expect(isSynthesisSection({ category: "systems" })).toBe(true);
+    expect(isSynthesisSection({ category: "synthesis" })).toBe(true);
+    expect(isSynthesisSection({ category: "Systems Synthesis" })).toBe(true);
+    expect(isSynthesisSection({ category: "geopolitics" })).toBe(false);
+    expect(isSynthesisSection({ category: null })).toBe(false);
+  });
+});
 
 describe("partitionLensWatch", () => {
   it("pulls a watch-cued sentence out of the lens body", () => {
