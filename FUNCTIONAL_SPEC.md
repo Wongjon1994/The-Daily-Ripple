@@ -30,10 +30,10 @@ that, `/` goes straight to Today's Brief. The About tab remains reachable from
 the nav at any time. Explicit `/brief/:slug` links are unaffected.
 
 ### 1.3 Masthead (top of every tab)
-- A teaser ticker (Today's Brief only) cycling the first three headlines every 5s, with a live **SGT clock**.
+- A teaser ticker (Today's Brief only) cycling the first three headlines every 5s, with a live **SGT clock**. On **Sundays** (Singapore time) the ticker is hidden until Monday's fresh brief lands.
 - The banner artwork (falls back to a text masthead if the image fails to load); clicking it returns to `/`.
 - A **sticky navigation bar** that locks to the top of the viewport once the banner scrolls away. Tabs, left→right: **Today's Brief · Trends · Archive · About**. The active tab is highlighted in cyan.
-- A greeting line (Today's Brief only), time-of-day aware in Singapore time ("Good morning/afternoon/evening").
+- A greeting line (Today's Brief only), time-of-day aware in Singapore time ("Good morning/afternoon/evening"). On **Sundays**, the salutation is kept but the second sentence is replaced to invite the reader to review the week's briefs ("…This week's briefs are ready for your review — have a read. We'll see you next week.") rather than announce a daily brief.
 
 ### 1.4 Sticky layering
 Secondary bars stack beneath the nav (which defines `--nav-h`): the brief's date-picker row (Today's Brief) and each Trends section header pin directly below the nav as you scroll.
