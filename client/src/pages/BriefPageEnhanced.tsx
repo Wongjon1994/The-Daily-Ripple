@@ -9,7 +9,7 @@ import MastheadBanner from "@/components/MastheadBanner";
 import SwipeDemo from "@/components/SwipeDemo";
 import WeeklyBriefSelector from "@/components/WeeklyBriefSelector";
 import { trpc } from "@/lib/trpc";
-import { Loader2, HelpCircle, X, ExternalLink } from "lucide-react";
+import { Loader2, HelpCircle, X, ExternalLink, Send } from "lucide-react";
 
 function rowToBrief(row: any): DailyBrief {
   return {
@@ -114,6 +114,21 @@ export default function BriefPageEnhanced({ initialSlug, initialSectionIndex = 0
             />
           </div>
           <div className="flex items-center gap-3">
+            <a
+              href="https://t.me/TheDailyRipple"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 text-[13px] font-semibold rounded-lg px-3.5 py-2 transition-colors"
+              style={{
+                color: "var(--color-cyan)",
+                border: "1px solid color-mix(in oklab, var(--color-cyan) 45%, transparent)",
+                background: "color-mix(in oklab, var(--color-cyan) 10%, transparent)",
+              }}
+            >
+              <Send className="h-4 w-4" />
+              <span className="hidden sm:inline">For the latest updates</span>
+              <span className="sm:hidden">Telegram</span>
+            </a>
             {briefUrl && (
               <a
                 href={briefUrl}
