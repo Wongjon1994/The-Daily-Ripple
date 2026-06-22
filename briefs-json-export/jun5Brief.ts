@@ -349,31 +349,14 @@ export const jun5Brief: DailyBrief = {
       "id": "8",
       "emoji": "🔗",
       "category": "systems",
-      "headline": "The AI capex cycle is entering its validation phase; geopolitical de-escalation is the primary tailwind",
-      "summary": "Broadcom's miss signals uneven AI capex execution, but the structural cycle remains intact. Geopolitical de-escalation (House vote, Israel-Lebanon ceasefire) is easing energy risk premiums and benefiting Singapore.",
+      "headline": "Systems synthesis — AI infrastructure versus AI speculation",
+      "summary": "Today's stories share a structural theme: the gap between AI hype and AI delivery is starting to cost money — markets are separating AI as infrastructure from AI as speculation.",
       "paragraphs": [
-        "The AI capex cycle is entering its validation phase, but execution is uneven. Broadcom's guidance miss signals that not all semiconductor companies can keep pace with demand — a healthy sign of market maturation. SpaceX's IPO at $135/share and Lundbeck-Cradle's drug discovery partnership show that capital is flowing toward AI applications beyond chatbots: satellite internet, space infrastructure, and biotech drug discovery are the next frontiers. The cycle is real, but it is no longer a pure mega-cap AI story.",
-        "The primary tailwind for the next quarter is geopolitical de-escalation. The House vote constraining Trump's Iran war powers and the Israel-Lebanon ceasefire are both reducing energy risk premiums. Brent has retreated from $99 to $97, and if the ceasefire holds, further easing is possible. For Singapore, lower oil prices directly translate to lower electricity tariffs, reduced aviation fuel costs, and lower shipping insurance premiums. This is a genuine macro tailwind that offsets the Broadcom miss and the rotation away from mega-cap AI names.",
-        "Three forward signals worth tracking: First, if the Israel-Lebanon ceasefire holds for 30 days, Brent could ease toward $90, which would be a material tailwind for Singapore's energy-intensive sectors. Second, if SpaceX's IPO trades up significantly, it will validate the 'new frontiers' narrative and attract capital toward satellite internet, space tourism, and orbital manufacturing — all areas where Singapore has strategic interests through Temasek and GIC. Third, if A*STAR's tropical disease research initiative produces a dengue vaccine prototype within 18 months, it will demonstrate Singapore's ability to compete with global biotech hubs and attract talent and capital to our biomedical sector."
+        "Today's stories share a hidden structural theme: the gap between AI hype and AI delivery is starting to cost money in ways that matter. Broadcom's $1.2 billion guidance miss versus analyst expectations sent Asian tech markets down 1.4–2.6%, not because Broadcom's AI business is shrinking — Hock Tan reiterated $100 billion in long-run AI chip revenue — but because the market had priced in perfection and got merely very good. Ramp's $44 billion fintech raise, meanwhile, shows that private markets are still pricing AI narratives at a premium that public markets are beginning to question. The Lundbeck-Cradle deal suggests where durable AI value creation actually lies: not in selling picks-and-shovels to hyperscalers, but in compressing the most expensive parts of knowledge-work pipelines — drug discovery, protein engineering, complex procurement. SpaceX's $135-per-share IPO is being priced at a similar 'AI narrative plus hard infrastructure' premium: Starlink is the AI-era internet backbone, and investors are paying for that framing. The thread is this: markets are beginning to separate AI as infrastructure from AI as speculation — and the companies that can show both real cash flow and a credible AI moat are re-rating, while pure-play hype is leaking.",
+        "Three forward signals worth tracking: First, if SpaceX's IPO opens above $135 and trades up strongly next week, your S&P 500 and Nasdaq ETFs will eventually carry more SpaceX exposure once it qualifies for index inclusion — that's more satellite and space-economy weight in your portfolio without any action on your part, which is worth knowing before it happens. Second, if the Israel-Lebanon ceasefire holds through the weekend and Brent stays below $97, watch for a mild positive revision to Singapore Airlines' fuel-cost outlook — SIA's share price is meaningfully sensitive to jet fuel, which tracks Brent closely, and any durable crude decline is a tailwind for the stock. Third, if the US Senate fails to match the House's war-powers resolution, Trump retains full latitude on Iran strikes — and the tail-risk scenario of $110-plus oil returns, which would push EMA electricity tariffs up at the next quarterly review, adding directly to your household cost base."
       ],
-      "singaporeLens": "Geopolitical de-escalation is easing energy risk premiums, benefiting Singapore's energy-intensive sectors. SpaceX IPO validates new AI frontiers (satellite, space, biotech). A*STAR's tropical disease research could position Singapore as biotech hub. Watch ceasefire durability and energy price trajectory.",
-      "keyMetrics": [
-        {
-          "label": "AI Capex Cycle",
-          "value": "Validation phase",
-          "direction": "up"
-        },
-        {
-          "label": "Geopolitical De-escalation",
-          "value": "Primary tailwind",
-          "direction": "up"
-        },
-        {
-          "label": "Brent Crude",
-          "value": "$97 (easing)",
-          "direction": "down"
-        }
-      ],
+      "singaporeLens": null,
+      "keyMetrics": [],
       "readingTime": 5,
       "sources": [],
       "urgency": "high",

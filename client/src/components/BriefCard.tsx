@@ -309,8 +309,9 @@ export default function BriefCard({ section, categoryColor, briefUrl, elevated }
               drop cap, the promoted analyst's note, then the gold prose broken
               by a lifted pull-quote. */}
           <div className="pt-4 mb-4 max-w-[64ch]">
-            {/* By the numbers — metric strip (moved out of the collapsed face) */}
-            {metrics.length > 0 && (
+            {/* By the numbers — metric strip (moved out of the collapsed face).
+                Suppressed on the synthesis card, which is prose + signals only. */}
+            {!isSystems && metrics.length > 0 && (
               <div className="flex flex-wrap gap-2 mb-4">
                 {metrics.map((m: KeyMetric, i) => (
                   <div
@@ -403,8 +404,9 @@ export default function BriefCard({ section, categoryColor, briefUrl, elevated }
               </div>
             )}
 
-            {/* Singapore Lens — the local angle, closing out the full story */}
-            {showLens && (
+            {/* Singapore Lens — the local angle, closing out the full story.
+                Never on the synthesis card (it has its own signals block). */}
+            {!isSystems && showLens && (
               <div className="singapore-lens mt-5">
                 <div className="flex items-center gap-1.5 mb-1.5">
                   <MapPin className="h-3.5 w-3.5 shrink-0" style={{ color: "var(--color-cyan)" }} />

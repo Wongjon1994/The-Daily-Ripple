@@ -364,30 +364,14 @@ export const jun4Brief: DailyBrief = {
       "id": "8",
       "emoji": "🔗",
       "category": "systems",
-      "headline": "Three stories share a single hidden mechanism: the world is repricing the cost of long bets",
-      "summary": "Three stories in today's brief — Alphabet's $80 billion equity raise, the Hormuz ceasefire breakdown, and biotech breakthroughs — share a single hidden mechanism: the world is repricing the cost of long bets.",
+      "headline": "Systems synthesis — capital is rushing where humans aren't",
+      "summary": "Today's news shares a hidden spine: the widening gap between where capital is rushing and where humans — workers, voters, institutions — actually are.",
       "paragraphs": [
-        "Three stories in today's brief — Alphabet's $80 billion equity raise, the Hormuz ceasefire breakdown, and biotech breakthroughs — share a single hidden mechanism: the world is repricing the cost of long bets. Alphabet is raising outside capital for the first time in 20 years not because it lacks cash, but because its AI capex at $180–$190 billion per year now exceeds what internal cash flows can sustain without constraining other priorities — that is a structural signal that the AI infrastructure cycle is a decade-long commitment, not a 3-year product cycle. NASA's bioprinting experiments and China's genomic baseline are the same logic applied to medicine: capital is flowing to bets whose payoff horizon is measured in human decades. And the Hormuz breakdown — which sent gold to $4,556 and kept Brent above $93 — is the short-run disruption that is actually accelerating these long bets: energy insecurity is the single most powerful driver of capex into AI-powered efficiency and biotech research, because every government and every corporate CFO watching Hormuz is quietly stress-testing what happens if $90-plus oil is the new baseline for the 2030s. These stories are not parallel — they are causally linked.",
-        "Three forward signals worth tracking: First, if Iran and the US reach a named, documented Hormuz reopening agreement in the next two weeks, Brent falls toward $80 and SORA expectations shift toward mild easing — refinance that floating-rate HDB mortgage only after that confirmation, not before. Second, if Alphabet's at-the-market share programme executes at or above plan through Q3 2026, it will validate the AI infrastructure investment thesis to the point where Keppel DC REIT and Mapletree Industrial Trust — both of which you may already hold — re-rate upward as Singapore's hyperscaler-hub premium gets priced into their forward distributions; watch their next quarterly announcements for data-centre occupancy figures. Third, if the BTS comeback this June is paired with a Singapore concert announcement — which STB has been actively working toward — book accommodation early: K-pop concert weekends in Singapore now move hotel inventory faster than Formula 1 weekends do."
+        "Today's news shares a single hidden spine: the gap between where capital is rushing and where humans — workers, voters, institutions — actually are. Alphabet raises $80 billion for AI while Aon finds only 22% of APAC workers have customisable benefits. The Nikkei hits 68,000 on AI euphoria while Wall Street's smallest companies — the Russell 2000, which tracks firms with fewer AI resources — fall 1.3% in the same session. Goldman Sachs CEO David Solomon calls it a 'greed' market from the top of the pyramid, while Trump's Iowa endorsement fails from the bottom — a signal that the political coalition sustaining his trade policies is less durable than markets have assumed. Ukrainian drones burn an oil terminal in St. Petersburg not to win a battle but to destroy confidence in the Russian economy as an investment destination. In each case, the headline is euphoric; the subtext is a system under stress at its human edges.",
+        "Three forward signals worth tracking: First, if the Fed raises rates in response to persistent oil-driven inflation — now a live scenario with Brent near $99 — your floating-rate HDB mortgage reprices upward within months, and your REIT holdings face a double compression of higher discount rates and softer valuations. Second, if the AI IPO wave (Alphabet, OpenAI, Anthropic, SpaceX) overwhelms available market liquidity as Cramer warns, the Nasdaq-linked ETF in your portfolio will see choppiness before resuming its longer-term climb — that's a dip to add, not a reason to exit. Third, if Trump's primary coalition continues to fracture ahead of November's mid-terms, trade-policy continuity diminishes, which matters directly for Singapore's export-dependent blue chips and the companies in our STI that run global supply chains."
       ],
-      "singaporeLens": "Singapore's GIC, Temasek, and sovereign wealth positioning benefit from decade-long AI and biotech investment cycles. Keppel DC REIT and Mapletree Industrial Trust stand to re-rate as hyperscaler-hub premium prices in. K-pop tourism reactivation drives STB strategy. SORA expectations tied to Hormuz diplomacy affect HDB mortgage refinancing decisions.",
-      "keyMetrics": [
-        {
-          "label": "AI Capex Horizon",
-          "value": "Decade-long",
-          "direction": "neutral"
-        },
-        {
-          "label": "Biotech Investment",
-          "value": "Decade-horizon",
-          "direction": "up"
-        },
-        {
-          "label": "Energy Baseline",
-          "value": "$90+ oil",
-          "direction": "neutral"
-        }
-      ],
+      "singaporeLens": null,
+      "keyMetrics": [],
       "readingTime": 5,
       "sources": [],
       "urgency": "high",
