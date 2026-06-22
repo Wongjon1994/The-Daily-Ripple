@@ -41,4 +41,20 @@ describe("partitionLensWatch", () => {
     expect(partitionLensWatch(null)).toEqual({ body: "", watch: [] });
     expect(partitionLensWatch("")).toEqual({ body: "", watch: [] });
   });
+
+  it("extracts the synthesis section's three ordinal/if signals (isSystems)", () => {
+    const synthesis =
+      "Today's brief reveals a single tension: Singapore both benefits from and is exposed to the same forces. " +
+      "First: if Thursday's US PCE print comes in above 2.8% month-on-month, watch for the Fed to harden its tone. " +
+      "Second: if the Switzerland talks produce a durable Hormuz framework by Wednesday, Brent slips back below $80. " +
+      "Third: if Andy Burnham replaces Starmer before September, the UK-Singapore trade track slows materially.";
+    const { body, watch } = partitionLensWatch(synthesis, true);
+    expect(watch).toHaveLength(3);
+    expect(watch[0]).toMatch(/^If Thursday's US PCE/);
+    expect(watch[1]).toMatch(/^If the Switzerland talks/);
+    expect(watch[2]).toMatch(/^If Andy Burnham/);
+    // The thesis stays as the body; the three signals are removed from it.
+    expect(body).toMatch(/single tension/);
+    expect(body).not.toMatch(/PCE print/);
+  });
 });

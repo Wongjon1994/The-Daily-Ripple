@@ -118,12 +118,20 @@ export default function BriefCard({ section, categoryColor, briefUrl, elevated }
     return !body.includes(norm(section.singaporeLens).slice(0, 50));
   }, [section.singaporeLens, section.paragraphs]);
 
-  // Split the lens into analysis + the forward-looking watch-signals it carries.
-  // Uses the same extractor that feeds the Trends "Broader signals" list, so the
-  // card's signals match what surfaces in Trends 1-to-1.
+  // The synthesis section (8) carries its "three signals to watch" inline in its
+  // prose, not in a Singapore Lens — so for it we partition the paragraphs.
+  const isSystems = section.category === "systems";
+
+  // Split the source into analysis + the forward-looking watch-signals it
+  // carries. Uses the same extractor that feeds the Trends "Broader signals"
+  // list, so the card's signals match what surfaces in Trends 1-to-1.
   const lensParts = useMemo(
-    () => partitionLensWatch(section.singaporeLens, section.category === "systems"),
-    [section.singaporeLens, section.category]
+    () =>
+      partitionLensWatch(
+        isSystems ? section.paragraphs.join("\n\n") : section.singaporeLens,
+        isSystems
+      ),
+    [isSystems, section.paragraphs, section.singaporeLens]
   );
 
   // A short taste of the Singapore Lens, teased before expansion.
@@ -336,17 +344,19 @@ export default function BriefCard({ section, categoryColor, briefUrl, elevated }
               </div>
             )}
 
-            {section.paragraphs[0] && (
+            {(isSystems ? lensParts.body : section.paragraphs[0]) && (
               <p
                 className="lede-para text-base leading-7 mb-4"
                 style={{ color: "var(--color-mist)", ["--cap-color" as string]: color }}
               >
-                {section.paragraphs[0]}
+                {isSystems ? lensParts.body : section.paragraphs[0]}
               </p>
             )}
 
-            {/* Remaining paragraphs, with the pull-quote lifted inline */}
-            {bodyParas.length > 0 && (
+            {/* Remaining paragraphs, with the pull-quote lifted inline.
+                Skipped for the synthesis section — its lede already holds the
+                whole (signal-free) thesis, so re-rendering would duplicate it. */}
+            {!isSystems && bodyParas.length > 0 && (
               <div className="space-y-4">
                 {bodyParas.map((para, i) => {
                   const has = pullQuote && para.includes(pullQuote);
@@ -371,6 +381,25 @@ export default function BriefCard({ section, categoryColor, briefUrl, elevated }
                     </Fragment>
                   );
                 })}
+              </div>
+            )}
+
+            {/* Synthesis "signals to watch" — the three forward signals pulled
+                out of the systems prose as bullets (no Singapore Lens box). */}
+            {isSystems && lensParts.watch.length > 0 && (
+              <div className="lens-watch mt-5">
+                <div className="flex items-center gap-1.5 mb-2.5">
+                  <Eye className="h-3.5 w-3.5 shrink-0" style={{ color: "var(--color-gold-rich)" }} />
+                  <p className="lens-watch-label">Signals to watch</p>
+                </div>
+                <ol className="watch-list">
+                  {lensParts.watch.map((s, i) => (
+                    <li key={i} className="watch-item">
+                      <span className="watch-num">{i + 1}</span>
+                      <p className="singapore-lens-text">{s}</p>
+                    </li>
+                  ))}
+                </ol>
               </div>
             )}
 

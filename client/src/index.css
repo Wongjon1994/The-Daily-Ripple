@@ -437,6 +437,31 @@
     letter-spacing: 0.18em;
   }
 
+  /* Numbered "signals to watch" bullets (synthesis section). */
+  .watch-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+  }
+  .watch-item {
+    display: flex;
+    gap: 0.6rem;
+    align-items: baseline;
+  }
+  .watch-num {
+    flex-shrink: 0;
+    width: 1.25rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--color-gold-rich);
+    text-align: right;
+  }
+  .watch-item .singapore-lens-text {
+    flex: 1;
+    min-width: 0;
+  }
+
   /* Brief card — collapsed "deck" (standfirst) clamp + fade-to-more. */
   .deck-clamp {
     display: -webkit-box;
