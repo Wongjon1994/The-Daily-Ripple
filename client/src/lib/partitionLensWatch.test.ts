@@ -57,4 +57,30 @@ describe("partitionLensWatch", () => {
     expect(body).toMatch(/single tension/);
     expect(body).not.toMatch(/PCE print/);
   });
+
+  it("catches the first signal when it is merged with a 'signals worth tracking:' header", () => {
+    const synthesis =
+      "These stories are not parallel — they are causally linked. " +
+      "Three forward signals worth tracking: First, if Iran and the US reach a documented Hormuz reopening in two weeks, Brent falls toward $80 and SORA eases. " +
+      "Second, if Alphabet's raise closes above plan, the AI capex thesis is validated for Keppel DC REIT. " +
+      "Third, if the Fed hikes by Q3, floating-rate HDB mortgages reprice harder than the last cycle.";
+    const { body, watch } = partitionLensWatch(synthesis, true);
+    expect(watch).toHaveLength(3);
+    expect(watch[0]).toMatch(/^If Iran and the US/);
+    expect(body).not.toMatch(/signals worth tracking/);
+  });
+
+  it("catches an 'And if …' opener and drops the dangling intro line", () => {
+    const synthesis =
+      "Everything in today's brief is a symptom of that single chain. " +
+      "Here are the forward signals worth watching. " +
+      "And if the yen continues sliding towards the BoJ intervention threshold of 158–160, Tokyo gets pricier — check SGD/JPY. " +
+      "If US CPI on Wednesday comes in above 3.5%, the Fed December hike probability moves above 80% and our REIT yields reprice. " +
+      "If SpaceX prices at or above its $1.75 trillion target, it greenlights Nasdaq 100 exposure for the rest of the quarter.";
+    const { body, watch } = partitionLensWatch(synthesis, true);
+    expect(watch).toHaveLength(3);
+    expect(watch[0]).toMatch(/^If the yen/);
+    expect(body).not.toMatch(/signals worth watching/);
+    expect(body).toMatch(/single chain/);
+  });
 });

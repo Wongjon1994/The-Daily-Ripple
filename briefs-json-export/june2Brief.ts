@@ -199,22 +199,23 @@ export const june2Brief: DailyBrief = {
     },
     {
       id: "8",
-      category: "synthesis",
+      category: "systems",
       emoji: "🔗",
-      headline: "Systems Synthesis — Wealth Consolidation, AI Infrastructure, and Regional Rebalancing",
+      headline: "Systems synthesis — the premium on physical infrastructure",
       summary:
-        "Three structural shifts are crystallizing: Asian wealth consolidation (DBS expansion), AI infrastructure buildout (Nvidia, Anthropic), and regional economic rebalancing (Japan strength, US fiscal concerns). Together, they suggest a multi-year shift in capital flows and innovation hubs away from the West.",
-      singaporeLens:
-        "Singapore is positioned at the intersection of all three trends. Our banks benefit from wealth consolidation, our tech ecosystem benefits from AI infrastructure, and our regional position benefits from capital reallocation. The question is whether our policy framework can move fast enough to capture all three opportunities simultaneously.",
+        "The thread running through today's brief is the premium on physical infrastructure in an AI-saturated world: when everything is digital, the assets that generate tangible cash flows command the premium.",
+      singaporeLens: null,
       paragraphs: [
-        "DBS's $1bn wealth expansion is a bet that Asian wealth will stay in Asia. Goldman's TOPIX upgrade is a bet that Japanese equities will outperform. Nvidia's edge-AI chip is a bet that computing power will decentralize. All three bets point in the same direction: away from centralized Western financial and tech hubs, toward distributed Asian networks.",
-        "For Singapore, this is an opportunity to position ourselves as the hub that connects all three: wealth management (DBS), AI infrastructure (our tech ecosystem), and regional logistics (our port and Changi). But the window for policy coordination is narrow — the next 18 months will determine whether we're a passive beneficiary or an active orchestrator.",
+        "The thread running through today's brief is the premium on physical infrastructure in an AI-saturated world. Nvidia's new edge-AI chip drives laptop manufacturing that runs through Changi logistics; Goldman lifts Japan's TOPIX target because Japanese firms are delivering real earnings and real buybacks — physical capital allocation, not just model valuations; DBS is building 54 physical wealth centres because the richest Asians want a desk and a face, not just an app; and Barry Diller is bidding US$18bn for MGM Resorts — hotels, casinos, concert venues — because when everyone is online, being somewhere real commands a premium. The bond market's message (the US 10-year at 4.50%, global yields rising) says the same thing from another angle: capital is expensive now, and only assets that generate tangible cash flows justify their price tags. Singapore sits precisely at this intersection — a physical hub for logistics, wealth, and hospitality anchoring a region whose digital economy still needs bricks, ports, and people.",
+        "First, if Iran's suspension of US peace talks becomes a genuine Hormuz constraint rather than a negotiating posture, Brent moves above US$100, energy pass-through costs rise and SORA stays elevated — your floating-rate HDB mortgage payment won't fall this year.",
+        "Second, if Goldman's TOPIX upgrade catalyses further foreign inflows into Japan, the yen strengthens against the SGD, raising the practical cost for Singapore investors despite appealing local-currency valuations.",
+        "Third, if Anthropic's IPO proceeds at or above its US$61bn valuation, it reprices the entire AI sector upward — a short-term lift for Nasdaq-linked ETFs, but a valuation ceiling that leaves them vulnerable to future disappointments.",
       ],
       keyMetrics: [],
-      tags: ["Geopolitics", "Economics", "Technology", "Singapore Strategy"],
+      tags: ["Synthesis", "Infrastructure", "AI", "Singapore Strategy"],
       readingTime: 3,
       sources: [],
-      urgency: "high",
+      urgency: "medium",
     },
   ],
   systemsSynthesis: {

@@ -200,27 +200,22 @@ export const may31Brief: DailyBrief = {
     {
       id: "8",
       category: "systems",
-      emoji: "🏛️",
-      headline: "The Architecture of Trust Is Being Rebuilt",
+      emoji: "🔗",
+      headline: "Systems synthesis — the cost of credibility",
       summary:
-        "Across geopolitics, markets, and technology, the foundational systems that enable global commerce and security are being reconstructed. Singapore sits at the nexus of these changes.",
-      singaporeLens:
-        "Singapore's position as a trusted intermediary — in finance, logistics, and diplomacy — becomes more valuable as global trust architectures fragment and reconfigure. Our neutrality, rule-of-law framework, and strategic location position us uniquely to benefit from this realignment.",
+        "The week's underappreciated link isn't markets-versus-geopolitics but US fiscal deterioration and Asian strategic repositioning — and the shared mechanism is the cost of credibility.",
+      singaporeLens: null,
       paragraphs: [
-        "The Shangri-La Dialogue, the bond markets' repricing of US fiscal risk, the AI regulatory battles, and the music industry's expansion all reflect a world where old certainties are dissolving.",
-        "In this environment, Singapore's role as a trusted hub — where multiple powers can transact, where rule of law is predictable, where information flows freely — becomes a strategic asset.",
-        "The question for policymakers is whether we can maintain that trust while the world around us reorganises. The answer lies in staying ahead of these shifts, not reacting to them.",
+        "The week's most underappreciated connection isn't between markets and geopolitics — it's between US fiscal deterioration and Asian strategic repositioning, and the shared mechanism is the cost of credibility. US Treasury yields at multi-year highs (the 10-year near 4.7%, the 30-year at 5.2%) signal that bond markets doubt Washington's fiscal sustainability; Hegseth's omission of Taiwan at the Shangri-La Dialogue, paired with Trump calling the US$14bn arms package a 'negotiating chip', reveals softening security commitments; and the 20% monthly collapse in oil reflects not just Iran-peace optimism but Washington's need to trim overseas obligations. These are one mechanism, not three: a country refinancing US$39 trillion of debt at 5.2% cannot simultaneously underwrite every security guarantee it once did. For Singapore — a trusted intermediary in finance, logistics, and diplomacy — a world repricing the cost of credibility raises both the value of our neutrality and the stakes of misreading it.",
+        "First, if US yields hold above 4.5% through Q3, SGX-listed REITs stay under pressure — the Fed won't cut into a fiscal crisis, so a yield-driven re-rating is unlikely before year-end.",
+        "Second, if the Iran-peace signals prove durable and Brent settles in the US$65–70 range, Singapore Airlines becomes materially cheaper to run — watch its next quarterly fuel-cost disclosure for the read-through.",
+        "Third, if Hegseth's Taiwan silence hardens into formal US policy, Greater-China loan books face re-rating, and if US welfare cuts accelerate a consumer slowdown, our export-linked manufacturers and port volumes will feel it within two quarters.",
       ],
-      keyMetrics: [
-        { label: "Global Trust Index", value: "Declining", change: "—", direction: "down" },
-        { label: "Singapore's Position", value: "Strengthening", change: "—", direction: "up" },
-      ],
-      tags: ["Systems Thinking", "Geopolitics", "Finance", "Technology"],
+      keyMetrics: [],
+      tags: ["Synthesis", "Fiscal", "Geopolitics", "Singapore Strategy"],
       readingTime: 3,
-      sources: [
-        { outlet: "The Daily Ripple", title: "Systems Synthesis", url: "https://ripple.sg", date: "May 31, 2026" },
-      ],
-      urgency: "high",
+      sources: [],
+      urgency: "medium",
     },
   ],
   systemsSynthesis: {

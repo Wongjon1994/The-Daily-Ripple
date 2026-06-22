@@ -162,7 +162,15 @@ function matchSignalToMetric(label: string, text: string): { matches: boolean; t
 // ── watch-signal extraction ─────────────────────────────────────────────────────
 const WATCH = /\b(watch|monitor|keep an eye|look out|brace for|to watch|the tell)\b/i;
 const ORDINAL = /^(first|second|third|fourth|fifth|finally)\b[:,]?\s*/i;
+// A "…signals worth tracking:" lead-in that can prefix the first signal inline.
 const HEADER = /^[^:]*\bsignals?\b[^:]*:\s*/i;
+// "And if …" / "But if …" openers used for a follow-on signal in some briefs.
+const LEAD_CONJ = /^(and|but|also)\s+/i;
+// A whole sentence that is just the signals intro, e.g.
+// "Here are the forward signals worth watching." — dropped from the body so it
+// doesn't dangle once the signals are pulled out.
+const INTRO_ONLY =
+  /^(here are\s+|these are\s+|below are\s+)?(the\s+|a\s+)?(three\s+|several\s+|key\s+|forward\s+)*signals?\s+(worth\s+(watching|tracking|monitoring)|to\s+watch)\s*[.:]?$/i;
 
 function splitSentences(t: string): string[] {
   return (t || "")
@@ -172,18 +180,26 @@ function splitSentences(t: string): string[] {
     .filter(Boolean);
 }
 
-/** Is a single sentence a forward-looking watch-signal worth surfacing? */
-function isWatchSentence(raw: string, isSystems: boolean): boolean {
-  if (raw.length < 45) return false;
-  const conditional =
-    isSystems && (ORDINAL.test(raw) || /^if\b/i.test(raw) || /,\s*watch\b/i.test(raw));
-  if (!WATCH.test(raw) && !conditional) return false;
-  return raw.replace(ORDINAL, "").replace(HEADER, "").length >= 45;
+/** Reduce a sentence to its signal "core": strip a "…signals worth tracking:"
+ *  header, then a leading ordinal ("First,"), then a leading conjunction
+ *  ("And "/"But ") — so "Three signals…: First, if X" and "And if X" both
+ *  reduce to "if X". */
+function watchCore(raw: string): string {
+  return raw.replace(HEADER, "").replace(ORDINAL, "").replace(LEAD_CONJ, "").trim();
 }
 
-/** Normalise a watch sentence (strip ordinal/header lead-ins, capitalise). */
+/** Is a single sentence a forward-looking watch-signal worth surfacing? */
+function isWatchSentence(raw: string, isSystems: boolean): boolean {
+  const core = watchCore(raw);
+  if (core.length < 45) return false;
+  // In the synthesis, each "First/Second/Third/And if …" conditional is a signal.
+  const conditional = isSystems && /^if\b/i.test(core);
+  return WATCH.test(raw) || conditional;
+}
+
+/** Normalise a watch sentence (strip header/ordinal/conjunction, capitalise). */
 function cleanWatchSentence(raw: string): string {
-  const s = raw.replace(ORDINAL, "").replace(HEADER, "");
+  const s = watchCore(raw);
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
@@ -202,8 +218,13 @@ export function partitionLensWatch(
   const body: string[] = [];
   const watch: string[] = [];
   for (const raw of splitSentences(text || "")) {
-    if (isWatchSentence(raw, isSystems)) watch.push(cleanWatchSentence(raw));
-    else body.push(raw);
+    if (isWatchSentence(raw, isSystems)) {
+      watch.push(cleanWatchSentence(raw));
+    } else if (isSystems && INTRO_ONLY.test(raw)) {
+      // Drop a standalone "Here are the signals worth watching." lead-in.
+    } else {
+      body.push(raw);
+    }
   }
   return { body: body.join(" ").trim(), watch };
 }

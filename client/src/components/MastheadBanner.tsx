@@ -35,14 +35,9 @@ function useThemeBand(): string {
   return band;
 }
 
-/** Salutation by Singapore time-of-day. */
+/** Salutation by the reader's local time-of-day. */
 function timeOfDaySalutation(): string {
-  const hourStr = new Intl.DateTimeFormat("en-GB", {
-    timeZone: "Asia/Singapore",
-    hour: "numeric",
-    hour12: false,
-  }).format(new Date());
-  const hour = Number(hourStr) % 24;
+  const hour = new Date().getHours();
   if (hour >= 5 && hour < 12) return "Good morning";
   if (hour >= 12 && hour < 18) return "Good afternoon";
   return "Good evening";
@@ -61,25 +56,31 @@ function isSundaySGT(): boolean {
 const SUNDAY_SECOND_SENTENCE =
   "This week's briefs are ready for your review — have a read. We'll see you next week.";
 
-function SGTClock() {
+/** Clock in the reader's own timezone, labelled with their local tz (e.g.
+ *  "09:06 GMT+8", "21:06 PDT"). */
+function LocalClock() {
   const [time, setTime] = useState("");
   useEffect(() => {
-    const update = () =>
-      setTime(
-        new Date().toLocaleTimeString("en-SG", {
-          timeZone: "Asia/Singapore",
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: false,
-        })
-      );
+    const update = () => {
+      const now = new Date();
+      const t = now.toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+      });
+      const tz =
+        new Intl.DateTimeFormat([], { timeZoneName: "short" })
+          .formatToParts(now)
+          .find((p) => p.type === "timeZoneName")?.value ?? "";
+      setTime(`${t} ${tz}`);
+    };
     update();
     const id = setInterval(update, 10_000);
     return () => clearInterval(id);
   }, []);
   return (
     <span className="font-mono text-[11px] tracking-[0.15em]" style={{ color: "var(--color-mist-faint)" }}>
-      {time} SGT
+      {time}
     </span>
   );
 }
@@ -154,7 +155,7 @@ export default function MastheadBanner({
                 {teaser[teaserIdx]}
               </p>
             </div>
-            <SGTClock />
+            <LocalClock />
           </div>
         </div>
       )}
