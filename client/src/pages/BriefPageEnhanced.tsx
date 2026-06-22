@@ -144,7 +144,7 @@ export default function BriefPageEnhanced({ initialSlug, initialSectionIndex = 0
       </div>
 
       {/* Reading deck */}
-      <main className="container py-6">
+      <main className="container py-3">
         <SwipeDemo
           brief={brief}
           currentIndex={currentSectionIndex}

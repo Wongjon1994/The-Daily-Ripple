@@ -27,6 +27,19 @@ function timeOfDaySalutation(): string {
   return "Good evening";
 }
 
+/** True when it's Sunday in Singapore — the weekly "no fresh brief" day. */
+function isSundaySGT(): boolean {
+  const weekday = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Singapore",
+    weekday: "short",
+  }).format(new Date());
+  return weekday === "Sun";
+}
+
+/** Sunday greeting — points the reader at the week's briefs for review. */
+const SUNDAY_SECOND_SENTENCE =
+  "This week's briefs are ready for your review — have a read. We'll see you next week.";
+
 function SGTClock() {
   const [time, setTime] = useState("");
   useEffect(() => {
@@ -65,16 +78,29 @@ export default function MastheadBanner({
   const [teaserIdx, setTeaserIdx] = useState(0);
   const [bannerOk, setBannerOk] = useState(true);
   const [salutation, setSalutation] = useState(timeOfDaySalutation);
+  const [isSunday, setIsSunday] = useState(isSundaySGT);
 
   useEffect(() => {
-    const id = setInterval(() => setSalutation(timeOfDaySalutation()), 60_000);
+    const id = setInterval(() => {
+      setSalutation(timeOfDaySalutation());
+      setIsSunday(isSundaySGT());
+    }, 60_000);
     return () => clearInterval(id);
   }, []);
 
   // Swap the brief's stored salutation for one matching the reader's time of day.
-  const displayGreeting = greeting
+  let displayGreeting = greeting
     ? greeting.replace(/^good\s+(morning|afternoon|evening)/i, salutation)
     : greeting;
+
+  // On Sundays there's no fresh brief — keep the salutation but invite the
+  // reader to review the week's briefs instead of "Here is your daily brief".
+  if (displayGreeting && isSunday) {
+    displayGreeting = displayGreeting.replace(
+      /^([^.]*\.)\s*[\s\S]*$/,
+      `$1 ${SUNDAY_SECOND_SENTENCE}`
+    );
+  }
 
   useEffect(() => {
     if (teaser.length <= 1) return;
@@ -85,8 +111,8 @@ export default function MastheadBanner({
   return (
     <>
     <header className="border-b border-border/60 bg-background">
-      {/* Teaser ticker */}
-      {teaser.length > 0 && (
+      {/* Teaser ticker — hidden on Sundays until Monday's fresh brief lands. */}
+      {teaser.length > 0 && !isSunday && (
         <div className="border-b border-border/40">
           <div className="container flex items-center gap-3 py-1.5">
             <span
@@ -116,7 +142,7 @@ export default function MastheadBanner({
             src={BANNER_SRC}
             alt="The Daily Ripple — Your world, connected. Your Singapore, ahead."
             onError={() => setBannerOk(false)}
-            className="w-full h-auto block max-w-5xl mx-auto object-contain max-h-[150px] sm:max-h-[180px] lg:max-h-[210px]"
+            className="w-full h-auto block max-w-5xl mx-auto object-contain max-h-[110px] sm:max-h-[140px] lg:max-h-[160px]"
           />
         </Link>
       ) : (
