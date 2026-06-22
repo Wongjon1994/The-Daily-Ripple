@@ -84,7 +84,7 @@ Tapping "Read more" expands an inset panel containing, in order:
 1. **"By the numbers"** strip — key-metric chips (label, value, up/down colour-coded change), when the story carries metrics.
 2. **Lede paragraph** (story's first paragraph) — bright text with an editorial drop cap in the category colour.
 3. **Remaining paragraphs** — same bright typography as the lede; one punchy sentence may be lifted out as a large italic pull-quote to break the prose.
-4. **Singapore Lens · Analyst's note** — the local-angle commentary in **non-italic** serif, closing out the story after the paragraphs (cyan left-rule, pin icon). Suppressed when it would merely duplicate the body (e.g. Systems Synthesis).
+4. **Singapore Lens · Analyst's note** — the local-angle commentary in **non-italic** serif, closing out the story after the paragraphs (cyan left-rule, pin icon). Suppressed when it would merely duplicate the body (e.g. Systems Synthesis). Any forward-looking sentence carrying a watch cue (`watch`, `monitor`, `keep an eye`, …) is split out beneath the note as a gold-accented **"Signal(s) to watch"** block (eye icon). These signals come from the same extractor that feeds the Trends "Broader signals", so the two stay matched 1-to-1.
 5. **Sources** — a **two-line row** per source: status icon + outlet + date on the first line, the article title wrapping below. Each row is clickable (opens in a new tab) and carries a **link-status icon**:
    - ✓ verified (2xx–3xx), ⚠ blocked (the site refused the automated check — likely fine in a browser; 401/403/405/429/5xx), ✗ likely broken (404/410), ? unverified/timeout. A spinner shows while checks run.
    - When a story has no inline sources, a single "read the full brief" link is shown instead.

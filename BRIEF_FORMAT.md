@@ -55,6 +55,25 @@ BriefSection {
 - **`sources[].url` must be the real article URL.** Validate before publishing.
 - **`singaporeLens`** is a distilled 1–2 sentence callout, separate from the
   Singapore paragraph in `paragraphs` (the paragraph stays).
+- **Watch-signal cue (drives the "Signal to watch" note _and_ Trends "Broader
+  signals").** When a section's `singaporeLens` carries a forward-looking thing
+  to monitor, phrase it as its **own sentence containing a cue word** — one of
+  `watch`, `monitor`, `keep an eye`, `look out`, `brace for`, `to watch`,
+  `the tell`. That sentence (≥45 chars) is then pulled out of the lens and
+  surfaced two places from a **single extractor** (`partitionLensWatch` in
+  `client/src/lib/trendsAnalysis.ts`):
+  1. on the story card, as a gold "Signal to watch" block under the analyst's
+     note, and
+  2. in the Trends tab's "Broader signals · by theme".
+  A lens with **no** cue word simply shows as plain analysis in both places —
+  nothing breaks, the signal just isn't surfaced. So include a cue sentence in
+  every section where a signal is intended, e.g.
+  *"Watch Brent: if it clears \$90, pressure on MAS to tighten intensifies."*
+  Notes: the match is whole-word, so `watching`/`monitored` do **not** trigger;
+  and the `systems` section additionally treats `If …` / ordinal (`First, …`)
+  sentences as signals (that's how the synthesis bullets become Broader
+  signals). If the LLM ever emits a dedicated structured field for this, route
+  it through the same extractor so the two views stay matched 1-to-1.
 
 ## Recommended n8n architecture
 
