@@ -105,7 +105,7 @@ export default function BriefPageEnhanced({ initialSlug, initialSectionIndex = 0
         className="sticky z-30 border-b border-border/40 backdrop-blur-md"
         style={{ top: "var(--nav-h)", background: "color-mix(in oklab, var(--background) 93%, transparent)" }}
       >
-        <div className="container py-2.5 flex items-center justify-between gap-3">
+        <div className="container py-2.5 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
           <div className="max-w-[240px]">
             <WeeklyBriefSelector
               briefs={allBriefs}
@@ -118,7 +118,7 @@ export default function BriefPageEnhanced({ initialSlug, initialSectionIndex = 0
               href="https://t.me/TheDailyRipple"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 text-[13px] font-semibold rounded-lg px-3.5 py-2 transition-colors"
+              className="flex items-center gap-2 text-[13px] font-semibold rounded-lg px-3.5 py-2 transition-colors whitespace-nowrap shrink-0"
               style={{
                 color: "var(--color-cyan)",
                 border: "1px solid color-mix(in oklab, var(--color-cyan) 45%, transparent)",
@@ -134,7 +134,7 @@ export default function BriefPageEnhanced({ initialSlug, initialSectionIndex = 0
                 href={briefUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 text-[13px] font-semibold rounded-lg px-3.5 py-2 transition-colors"
+                className="flex items-center gap-2 text-[13px] font-semibold rounded-lg px-3.5 py-2 transition-colors whitespace-nowrap shrink-0"
                 style={{
                   color: "var(--color-cyan)",
                   border: "1px solid color-mix(in oklab, var(--color-cyan) 45%, transparent)",
