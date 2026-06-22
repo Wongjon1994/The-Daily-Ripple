@@ -100,6 +100,18 @@
   --radius: 0.5rem;
   /* Height of the sticky nav bar; other sticky bars stack beneath it. */
   --nav-h: 3rem;
+
+  /* Theme-aware background effects (overridden per time-of-day band).
+     Defaults below are the dark "night" baseline. */
+  --map-overlay-top: oklch(0.14 0.035 248 / 0.70);
+  --map-overlay-bottom: oklch(0.13 0.035 248 / 0.88);
+  --deck-glow: radial-gradient(70% 72% at 50% 42%,
+    oklch(0.37 0.08 244 / 0.62) 0%,
+    oklch(0.25 0.055 246 / 0.30) 46%,
+    transparent 74%);
+  --card-lift-edge: oklch(0.95 0.01 230 / 0.08);
+  --card-lift-border: oklch(0.5 0.03 244 / 0.6);
+
   --background: oklch(0.14 0.035 248);
   --foreground: oklch(0.95 0.008 230);
   --card: oklch(0.235 0.040 248);
@@ -134,6 +146,209 @@
   --sidebar-ring: oklch(0.74 0.115 205);
 }
 
+/* ──────────────────────────────────────────────────────────────────────────
+ * Time-of-day theme bands. A pre-paint script in index.html stamps
+ * data-theme on <html> from the reader's local hour (or a saved override):
+ *   06–12 morning · 12–18 midday · 18–24 evening · 00–06 night
+ * Each band overrides the semantic vars AND the hardcoded --color-* tokens
+ * (most components read those via var() in inline styles). Light bands flip
+ * the mist/parchment "text" tokens to dark and darken the cyan/gold/category
+ * accents so they keep contrast on a pale background.
+ * ────────────────────────────────────────────────────────────────────────── */
+
+/* ── MIDDAY · lightest, dark text ───────────────────────────────────────── */
+:root[data-theme="midday"] {
+  --background: oklch(0.965 0.006 232);
+  --foreground: oklch(0.23 0.030 250);
+  --card: oklch(0.995 0.002 230);
+  --card-foreground: oklch(0.23 0.030 250);
+  --popover: oklch(0.995 0.002 230);
+  --popover-foreground: oklch(0.23 0.030 250);
+  --primary: oklch(0.52 0.110 225);
+  --primary-foreground: oklch(0.98 0.004 230);
+  --secondary: oklch(0.93 0.008 235);
+  --secondary-foreground: oklch(0.30 0.028 250);
+  --muted: oklch(0.93 0.008 235);
+  --muted-foreground: oklch(0.46 0.022 248);
+  --accent: oklch(0.93 0.008 235);
+  --accent-foreground: oklch(0.25 0.028 250);
+  --destructive: oklch(0.55 0.175 25);
+  --destructive-foreground: oklch(0.98 0.006 230);
+  --border: oklch(0.88 0.010 235);
+  --input: oklch(0.88 0.010 235);
+  --ring: oklch(0.52 0.110 225);
+  --chart-1: oklch(0.52 0.110 225);
+  --chart-2: oklch(0.50 0.120 165);
+  --chart-3: oklch(0.50 0.130 265);
+  --chart-4: oklch(0.58 0.120 75);
+  --chart-5: oklch(0.55 0.150 35);
+
+  --color-ink: oklch(0.965 0.006 232);
+  --color-ink-raised: oklch(0.90 0.010 235);
+  --color-ink-well: oklch(0.93 0.008 235);
+  --color-mist: oklch(0.23 0.030 250);
+  --color-mist-dim: oklch(0.38 0.026 250);
+  --color-mist-faint: oklch(0.50 0.022 248);
+  --color-cyan: oklch(0.52 0.110 222);
+  --color-cyan-dim: oklch(0.52 0.110 222 / 0.55);
+  --color-gold-soft: oklch(0.52 0.100 70);
+  --color-gold-rich: oklch(0.48 0.120 66);
+  --color-parchment: oklch(0.25 0.028 250);
+  --color-parchment-dim: oklch(0.42 0.024 250);
+  --color-cat-geopolitics: oklch(0.52 0.175 25);
+  --color-cat-markets: oklch(0.48 0.120 165);
+  --color-cat-economics: oklch(0.56 0.120 72);
+  --color-cat-tech: oklch(0.50 0.110 220);
+  --color-cat-science: oklch(0.50 0.130 265);
+  --color-cat-culture: oklch(0.54 0.155 35);
+  --color-cat-singapore: oklch(0.48 0.120 165);
+
+  --map-overlay-top: oklch(0.97 0.005 232 / 0.86);
+  --map-overlay-bottom: oklch(0.95 0.006 232 / 0.93);
+  --deck-glow: radial-gradient(70% 72% at 50% 42%,
+    oklch(0.86 0.040 222 / 0.55) 0%,
+    oklch(0.92 0.020 230 / 0.30) 46%,
+    transparent 74%);
+  --card-lift-edge: oklch(0.30 0.02 250 / 0.06);
+  --card-lift-border: oklch(0.82 0.012 235);
+}
+
+/* ── MORNING · light, dark text (a touch softer than midday) ────────────── */
+:root[data-theme="morning"] {
+  --background: oklch(0.93 0.009 234);
+  --foreground: oklch(0.24 0.030 250);
+  --card: oklch(0.985 0.003 230);
+  --card-foreground: oklch(0.24 0.030 250);
+  --popover: oklch(0.985 0.003 230);
+  --popover-foreground: oklch(0.24 0.030 250);
+  --primary: oklch(0.52 0.110 225);
+  --primary-foreground: oklch(0.98 0.004 230);
+  --secondary: oklch(0.90 0.010 236);
+  --secondary-foreground: oklch(0.30 0.028 250);
+  --muted: oklch(0.90 0.010 236);
+  --muted-foreground: oklch(0.46 0.022 248);
+  --accent: oklch(0.90 0.010 236);
+  --accent-foreground: oklch(0.25 0.028 250);
+  --destructive: oklch(0.55 0.175 25);
+  --destructive-foreground: oklch(0.98 0.006 230);
+  --border: oklch(0.86 0.012 236);
+  --input: oklch(0.86 0.012 236);
+  --ring: oklch(0.52 0.110 225);
+  --chart-1: oklch(0.52 0.110 225);
+  --chart-2: oklch(0.50 0.120 165);
+  --chart-3: oklch(0.50 0.130 265);
+  --chart-4: oklch(0.58 0.120 75);
+  --chart-5: oklch(0.55 0.150 35);
+
+  --color-ink: oklch(0.93 0.009 234);
+  --color-ink-raised: oklch(0.88 0.012 236);
+  --color-ink-well: oklch(0.91 0.010 236);
+  --color-mist: oklch(0.24 0.030 250);
+  --color-mist-dim: oklch(0.39 0.026 250);
+  --color-mist-faint: oklch(0.50 0.022 248);
+  --color-cyan: oklch(0.52 0.110 222);
+  --color-cyan-dim: oklch(0.52 0.110 222 / 0.55);
+  --color-gold-soft: oklch(0.52 0.100 70);
+  --color-gold-rich: oklch(0.48 0.120 66);
+  --color-parchment: oklch(0.26 0.028 250);
+  --color-parchment-dim: oklch(0.42 0.024 250);
+  --color-cat-geopolitics: oklch(0.52 0.175 25);
+  --color-cat-markets: oklch(0.48 0.120 165);
+  --color-cat-economics: oklch(0.56 0.120 72);
+  --color-cat-tech: oklch(0.50 0.110 220);
+  --color-cat-science: oklch(0.50 0.130 265);
+  --color-cat-culture: oklch(0.54 0.155 35);
+  --color-cat-singapore: oklch(0.48 0.120 165);
+
+  --map-overlay-top: oklch(0.94 0.008 234 / 0.85);
+  --map-overlay-bottom: oklch(0.91 0.010 234 / 0.93);
+  --deck-glow: radial-gradient(70% 72% at 50% 42%,
+    oklch(0.82 0.045 222 / 0.50) 0%,
+    oklch(0.89 0.022 230 / 0.28) 46%,
+    transparent 74%);
+  --card-lift-edge: oklch(0.30 0.02 250 / 0.06);
+  --card-lift-border: oklch(0.80 0.014 236);
+}
+
+/* ── EVENING · dimmed dusk, light text (kept dark enough to dodge the
+ *    mid-tone readability valley) ───────────────────────────────────────── */
+:root[data-theme="evening"] {
+  --background: oklch(0.30 0.032 252);
+  --foreground: oklch(0.96 0.008 230);
+  --card: oklch(0.37 0.038 250);
+  --card-foreground: oklch(0.96 0.008 230);
+  --popover: oklch(0.37 0.038 250);
+  --popover-foreground: oklch(0.96 0.008 230);
+  --primary: oklch(0.80 0.120 205);
+  --primary-foreground: oklch(0.20 0.035 248);
+  --secondary: oklch(0.39 0.032 250);
+  --secondary-foreground: oklch(0.90 0.010 230);
+  --muted: oklch(0.39 0.032 250);
+  --muted-foreground: oklch(0.80 0.020 240);
+  --accent: oklch(0.39 0.032 250);
+  --accent-foreground: oklch(0.95 0.008 230);
+  --destructive: oklch(0.68 0.160 25);
+  --destructive-foreground: oklch(0.97 0.010 230);
+  --border: oklch(0.44 0.026 250);
+  --input: oklch(0.44 0.026 250);
+  --ring: oklch(0.80 0.120 205);
+  --chart-1: oklch(0.80 0.120 205);
+  --chart-2: oklch(0.74 0.130 165);
+  --chart-3: oklch(0.72 0.120 265);
+  --chart-4: oklch(0.82 0.130 80);
+  --chart-5: oklch(0.74 0.130 35);
+
+  --color-ink: oklch(0.30 0.032 252);
+  --color-ink-raised: oklch(0.37 0.038 250);
+  --color-ink-well: oklch(0.26 0.030 252);
+  --color-mist: oklch(0.96 0.008 230);
+  --color-mist-dim: oklch(0.86 0.016 230);
+  --color-mist-faint: oklch(0.74 0.022 240);
+  --color-cyan: oklch(0.80 0.120 205);
+  --color-cyan-dim: oklch(0.80 0.120 205 / 0.6);
+  --color-gold-soft: oklch(0.86 0.075 84);
+  --color-gold-rich: oklch(0.82 0.120 82);
+  --color-parchment: oklch(0.95 0.008 230);
+  --color-parchment-dim: oklch(0.78 0.018 230);
+  --color-cat-geopolitics: oklch(0.70 0.155 25);
+  --color-cat-markets: oklch(0.74 0.130 165);
+  --color-cat-economics: oklch(0.82 0.130 80);
+  --color-cat-tech: oklch(0.76 0.110 200);
+  --color-cat-science: oklch(0.72 0.120 265);
+  --color-cat-culture: oklch(0.74 0.130 35);
+  --color-cat-singapore: oklch(0.74 0.120 165);
+
+  --map-overlay-top: oklch(0.30 0.032 252 / 0.74);
+  --map-overlay-bottom: oklch(0.27 0.032 252 / 0.90);
+  --deck-glow: radial-gradient(70% 72% at 50% 42%,
+    oklch(0.50 0.075 244 / 0.55) 0%,
+    oklch(0.40 0.055 246 / 0.28) 46%,
+    transparent 74%);
+  --card-lift-edge: oklch(0.95 0.01 230 / 0.08);
+  --card-lift-border: oklch(0.58 0.03 244 / 0.6);
+}
+
+/* ── NIGHT · current dark baseline (explicit, for the manual toggle) ─────── */
+:root[data-theme="night"] {
+  --background: oklch(0.14 0.035 248);
+  --foreground: oklch(0.95 0.008 230);
+  --card: oklch(0.235 0.040 248);
+  --card-foreground: oklch(0.95 0.008 230);
+  --popover: oklch(0.235 0.040 248);
+  --popover-foreground: oklch(0.95 0.008 230);
+  --primary: oklch(0.74 0.115 205);
+  --primary-foreground: oklch(0.15 0.035 248);
+  --secondary: oklch(0.24 0.032 248);
+  --secondary-foreground: oklch(0.88 0.010 230);
+  --muted: oklch(0.24 0.032 248);
+  --muted-foreground: oklch(0.72 0.022 240);
+  --accent: oklch(0.24 0.032 248);
+  --accent-foreground: oklch(0.94 0.008 230);
+  --border: oklch(0.28 0.028 248);
+  --input: oklch(0.28 0.028 248);
+  --ring: oklch(0.74 0.115 205);
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -141,9 +356,11 @@
   body {
     @apply bg-background text-foreground;
     font-family: 'Source Sans 3', system-ui, sans-serif;
+    /* Soften the switch between time-of-day theme bands. */
+    transition: background-color 0.6s ease, color 0.6s ease;
   }
 
-  /* Faded geopolitical map behind the whole site (fixed, dark-overlaid). */
+  /* Faded geopolitical map behind the whole site (fixed, theme-overlaid). */
   body::before {
     content: "";
     position: fixed;
@@ -151,8 +368,9 @@
     z-index: -1;
     pointer-events: none;
     background:
-      linear-gradient(to bottom, oklch(0.14 0.035 248 / 0.70), oklch(0.13 0.035 248 / 0.88)),
+      linear-gradient(to bottom, var(--map-overlay-top), var(--map-overlay-bottom)),
       url("/hero-geopolitical-map.png") center top / cover no-repeat;
+    transition: background-color 0.6s ease;
   }
 
   /* Typography hierarchy */
@@ -322,12 +540,7 @@
   inset: -6% -12% -2%;
   z-index: 0;
   pointer-events: none;
-  background: radial-gradient(
-    70% 72% at 50% 42%,
-    oklch(0.37 0.08 244 / 0.62) 0%,
-    oklch(0.25 0.055 246 / 0.30) 46%,
-    transparent 74%
-  );
+  background: var(--deck-glow);
 }
 .brief-spotlight > * {
   position: relative;
@@ -338,8 +551,8 @@
   box-shadow:
     0 28px 56px -20px rgba(0, 0, 0, 0.9),
     0 6px 16px -8px rgba(0, 0, 0, 0.6),
-    inset 0 1px 0 0 oklch(0.95 0.01 230 / 0.08);
-  border-top-color: oklch(0.5 0.03 244 / 0.6);
+    inset 0 1px 0 0 var(--card-lift-edge);
+  border-top-color: var(--card-lift-border);
 }
 
 /* Sparkline hover points (Trends) */
@@ -425,6 +638,17 @@
   font-weight: 600;
   letter-spacing: 0.04em;
   color: var(--color-cyan);
+}
+
+/* On the light bands the dark photographic banner is given a soft frame so it
+   reads as an intentional plate rather than a dark slab pasted on pale paper. */
+:root[data-theme="morning"] .masthead-banner,
+:root[data-theme="midday"] .masthead-banner {
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  box-shadow: 0 10px 30px -20px rgba(20, 30, 50, 0.55);
+  margin-top: 10px;
+  margin-bottom: 4px;
 }
 
 /* Scrollbar styling */

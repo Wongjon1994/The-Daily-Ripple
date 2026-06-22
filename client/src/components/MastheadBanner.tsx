@@ -6,6 +6,7 @@
 
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
+import ThemeToggle from "./ThemeToggle";
 
 interface MastheadBannerProps {
   greeting?: string;
@@ -142,7 +143,7 @@ export default function MastheadBanner({
             src={BANNER_SRC}
             alt="The Daily Ripple — Your world, connected. Your Singapore, ahead."
             onError={() => setBannerOk(false)}
-            className="w-full h-auto block max-w-5xl mx-auto object-contain max-h-[110px] sm:max-h-[140px] lg:max-h-[160px]"
+            className="masthead-banner w-full h-auto block max-w-5xl mx-auto object-contain max-h-[110px] sm:max-h-[140px] lg:max-h-[160px]"
           />
         </Link>
       ) : (
@@ -174,7 +175,7 @@ export default function MastheadBanner({
         className="sticky top-0 z-40 border-y border-border/50 backdrop-blur-md"
         style={{ height: "var(--nav-h)", background: "color-mix(in oklab, var(--background) 93%, transparent)" }}
       >
-        <div className="container h-full flex items-center justify-center gap-4">
+        <div className="container h-full flex items-center justify-center gap-4 relative">
           <nav className="flex items-center gap-1 sm:gap-2">
             {NAV_ITEMS.map(({ href, label }) => {
               const active =
@@ -194,6 +195,9 @@ export default function MastheadBanner({
               );
             })}
           </nav>
+          <div className="absolute right-3 sm:right-6 top-1/2 -translate-y-1/2">
+            <ThemeToggle />
+          </div>
         </div>
       </div>
 

@@ -7,6 +7,29 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1" />
     <title>The Daily Ripple — Your World, Connected · Your Singapore, Ahead</title>
+    <script>
+      // Stamp the time-of-day theme before first paint to avoid a flash.
+      // Mode is "auto" (follow the reader's local hour), "light", or "dark".
+      (function () {
+        function bandFromHour(h) {
+          if (h >= 6 && h < 12) return "morning";
+          if (h >= 12 && h < 18) return "midday";
+          if (h >= 18 && h < 24) return "evening";
+          return "night";
+        }
+        function resolve(mode) {
+          if (mode === "light") return "midday";
+          if (mode === "dark") return "night";
+          return bandFromHour(new Date().getHours());
+        }
+        window.applyRippleTheme = function (mode) {
+          var m = mode || localStorage.getItem("ripple-theme-mode") || "auto";
+          document.documentElement.setAttribute("data-theme", resolve(m));
+          return m;
+        };
+        try { window.applyRippleTheme(); } catch (e) {}
+      })();
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
