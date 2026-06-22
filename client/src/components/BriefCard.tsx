@@ -6,7 +6,8 @@
 
 import { useState, useMemo, Fragment } from "react";
 import type { BriefSection, KeyMetric } from "@/lib/briefParser";
-import { ChevronDown, Clock, ExternalLink, CheckCircle2, XCircle, HelpCircle, ShieldAlert, BookOpen, MapPin, ArrowRight } from "lucide-react";
+import { splitLensWatch } from "@/lib/briefParser";
+import { ChevronDown, Clock, ExternalLink, CheckCircle2, XCircle, HelpCircle, ShieldAlert, BookOpen, MapPin, ArrowRight, Eye } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { trpc } from "@/lib/trpc";
 
@@ -116,6 +117,16 @@ export default function BriefCard({ section, categoryColor, briefUrl, elevated }
     const body = norm(section.paragraphs?.join(" ") ?? "");
     return !body.includes(norm(section.singaporeLens).slice(0, 50));
   }, [section.singaporeLens, section.paragraphs]);
+
+  // Split the lens into analysis + a forward-looking "Watch" signal. A
+  // structured section.watch (from n8n) wins; otherwise derive it from the text.
+  const lensParts = useMemo(() => {
+    if (!section.singaporeLens) return { body: "", watch: null as string | null };
+    if (section.watch && section.watch.trim()) {
+      return { body: section.singaporeLens.trim(), watch: section.watch.trim() };
+    }
+    return splitLensWatch(section.singaporeLens);
+  }, [section.singaporeLens, section.watch]);
 
   // A short taste of the Singapore Lens, teased before expansion.
   const lensTeaser = useMemo(() => {
@@ -372,7 +383,16 @@ export default function BriefCard({ section, categoryColor, briefUrl, elevated }
                   <MapPin className="h-3.5 w-3.5 shrink-0" style={{ color: "var(--color-cyan)" }} />
                   <p className="singapore-lens-label">Singapore Lens · Analyst's note</p>
                 </div>
-                <p className="singapore-lens-text">{section.singaporeLens}</p>
+                <p className="singapore-lens-text">{lensParts.body}</p>
+                {lensParts.watch && (
+                  <div className="lens-watch mt-3.5">
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <Eye className="h-3.5 w-3.5 shrink-0" style={{ color: "var(--color-gold-rich)" }} />
+                      <p className="lens-watch-label">Watch</p>
+                    </div>
+                    <p className="singapore-lens-text">{lensParts.watch}</p>
+                  </div>
+                )}
               </div>
             )}
           </div>

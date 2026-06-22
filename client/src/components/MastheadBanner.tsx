@@ -134,7 +134,7 @@ export default function MastheadBanner({
 
   return (
     <>
-    <header className="border-b border-border/60 bg-background">
+    <header className="border-b border-border/60" style={{ background: "var(--masthead-bg)" }}>
       {/* Teaser ticker — hidden on Sundays until Monday's fresh brief lands. */}
       {teaser.length > 0 && !isSunday && (
         <div className="border-b border-border/40">

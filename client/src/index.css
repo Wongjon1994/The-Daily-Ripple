@@ -112,6 +112,10 @@
     transparent 74%);
   --card-lift-edge: oklch(0.95 0.01 230 / 0.08);
   --card-lift-border: oklch(0.5 0.03 244 / 0.6);
+  /* Masthead band background — matches each banner artwork so it blends with
+     no visible "wrapper". Resolves to the active --background by default (the
+     dark banner sits on dark bg); light bands override to the banner's white. */
+  --masthead-bg: var(--background);
 
   --background: oklch(0.14 0.035 248);
   --foreground: oklch(0.95 0.008 230);
@@ -421,6 +425,18 @@
     color: oklch(0.88 0.012 220);
   }
 
+  /* Forward-looking "signal to watch", split out of the lens — gold-accented
+     to read as a distinct, scannable cue. */
+  .lens-watch {
+    padding-top: 0.75rem;
+    border-top: 1px solid color-mix(in oklab, var(--color-gold-faded) 45%, transparent);
+  }
+  .lens-watch-label {
+    @apply text-xs font-semibold uppercase;
+    color: var(--color-gold-rich);
+    letter-spacing: 0.18em;
+  }
+
   /* Brief card — collapsed "deck" (standfirst) clamp + fade-to-more. */
   .deck-clamp {
     display: -webkit-box;
@@ -644,12 +660,12 @@
   color: var(--color-cyan);
 }
 
-/* Light bands use a dedicated light banner (masthead-banner-light.png), so it
-   needs no frame; a hair of breathing room keeps it off the nav border. */
-:root[data-theme="morning"] .masthead-banner,
-:root[data-theme="midday"] .masthead-banner {
-  margin-top: 8px;
-  margin-bottom: 2px;
+/* Light bands: the white-backed banner merges into a white masthead band, so
+   there is no floating "wrapper" — and the letterboxed side gutters vanish
+   (white on white). The banner just sits edge-to-edge in its band. */
+:root[data-theme="morning"],
+:root[data-theme="midday"] {
+  --masthead-bg: oklch(1 0 0);
 }
 
 /* Singapore Lens — light-band treatment.
