@@ -13,7 +13,27 @@ interface MastheadBannerProps {
   teaser?: string[];
 }
 
-const BANNER_SRC = "/masthead-banner.png";
+const BANNER_DARK = "/masthead-banner.png";
+const BANNER_LIGHT = "/masthead-banner-light.png";
+
+/** Track the live data-theme band so the banner can swap with the theme. */
+function useThemeBand(): string {
+  const [band, setBand] = useState(
+    () =>
+      (typeof document !== "undefined" &&
+        document.documentElement.getAttribute("data-theme")) ||
+      "night"
+  );
+  useEffect(() => {
+    const el = document.documentElement;
+    const obs = new MutationObserver(() =>
+      setBand(el.getAttribute("data-theme") || "night")
+    );
+    obs.observe(el, { attributes: true, attributeFilter: ["data-theme"] });
+    return () => obs.disconnect();
+  }, []);
+  return band;
+}
 
 /** Salutation by Singapore time-of-day. */
 function timeOfDaySalutation(): string {
@@ -76,6 +96,9 @@ export default function MastheadBanner({
   teaser = [],
 }: MastheadBannerProps) {
   const [location] = useLocation();
+  const band = useThemeBand();
+  const isLightBand = band === "morning" || band === "midday";
+  const bannerSrc = isLightBand ? BANNER_LIGHT : BANNER_DARK;
   const [teaserIdx, setTeaserIdx] = useState(0);
   const [bannerOk, setBannerOk] = useState(true);
   const [salutation, setSalutation] = useState(timeOfDaySalutation);
@@ -140,7 +163,7 @@ export default function MastheadBanner({
       {bannerOk ? (
         <Link href="/" className="block">
           <img
-            src={BANNER_SRC}
+            src={bannerSrc}
             alt="The Daily Ripple — Your world, connected. Your Singapore, ahead."
             onError={() => setBannerOk(false)}
             className="masthead-banner w-full h-auto block max-w-5xl mx-auto object-contain max-h-[110px] sm:max-h-[140px] lg:max-h-[160px]"

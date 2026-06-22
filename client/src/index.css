@@ -69,6 +69,7 @@
   /* Editorial gold — warm prose tone (cool/warm duotone with cyan) */
   --color-gold-soft: oklch(0.845 0.072 84);   /* readable body prose */
   --color-gold-rich: oklch(0.80 0.120 82);    /* labels, greeting */
+  --color-gold-faded: oklch(0.80 0.080 84);   /* soft merlion-cream accent (tints, edges) */
 
   /* Category voices — distinct but harmonized to the cool scheme */
   --color-cat-geopolitics: oklch(0.66 0.155 25);   /* warm red */
@@ -191,8 +192,9 @@
   --color-mist-faint: oklch(0.50 0.022 248);
   --color-cyan: oklch(0.52 0.110 222);
   --color-cyan-dim: oklch(0.52 0.110 222 / 0.55);
-  --color-gold-soft: oklch(0.52 0.100 70);
-  --color-gold-rich: oklch(0.48 0.120 66);
+  --color-gold-soft: oklch(0.54 0.095 78);
+  --color-gold-rich: oklch(0.50 0.115 80);
+  --color-gold-faded: oklch(0.86 0.060 84);
   --color-parchment: oklch(0.25 0.028 250);
   --color-parchment-dim: oklch(0.42 0.024 250);
   --color-cat-geopolitics: oklch(0.52 0.175 25);
@@ -248,8 +250,9 @@
   --color-mist-faint: oklch(0.50 0.022 248);
   --color-cyan: oklch(0.52 0.110 222);
   --color-cyan-dim: oklch(0.52 0.110 222 / 0.55);
-  --color-gold-soft: oklch(0.52 0.100 70);
-  --color-gold-rich: oklch(0.48 0.120 66);
+  --color-gold-soft: oklch(0.54 0.095 78);
+  --color-gold-rich: oklch(0.50 0.115 80);
+  --color-gold-faded: oklch(0.85 0.062 84);
   --color-parchment: oklch(0.26 0.028 250);
   --color-parchment-dim: oklch(0.42 0.024 250);
   --color-cat-geopolitics: oklch(0.52 0.175 25);
@@ -308,6 +311,7 @@
   --color-cyan-dim: oklch(0.80 0.120 205 / 0.6);
   --color-gold-soft: oklch(0.86 0.075 84);
   --color-gold-rich: oklch(0.82 0.120 82);
+  --color-gold-faded: oklch(0.82 0.080 84);
   --color-parchment: oklch(0.95 0.008 230);
   --color-parchment-dim: oklch(0.78 0.018 230);
   --color-cat-geopolitics: oklch(0.70 0.155 25);
@@ -640,15 +644,27 @@
   color: var(--color-cyan);
 }
 
-/* On the light bands the dark photographic banner is given a soft frame so it
-   reads as an intentional plate rather than a dark slab pasted on pale paper. */
+/* Light bands use a dedicated light banner (masthead-banner-light.png), so it
+   needs no frame; a hair of breathing room keeps it off the nav border. */
 :root[data-theme="morning"] .masthead-banner,
 :root[data-theme="midday"] .masthead-banner {
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  box-shadow: 0 10px 30px -20px rgba(20, 30, 50, 0.55);
-  margin-top: 10px;
-  margin-bottom: 4px;
+  margin-top: 8px;
+  margin-bottom: 2px;
+}
+
+/* Singapore Lens — light-band treatment.
+   The default box is a translucent dark teal with light serif text, which on a
+   pale background turns muddy and the text fades. On light bands we flip it to
+   a soft teal wash with a warm merlion-cream edge and dark, fully-opaque text. */
+:root[data-theme="morning"] .singapore-lens,
+:root[data-theme="midday"] .singapore-lens {
+  background: color-mix(in oklab, var(--color-cyan) 9%, var(--color-card));
+  border-left-color: var(--color-cyan);
+  box-shadow: inset 3px 0 0 -1px color-mix(in oklab, var(--color-gold-faded) 60%, transparent);
+}
+:root[data-theme="morning"] .singapore-lens-text,
+:root[data-theme="midday"] .singapore-lens-text {
+  color: var(--color-mist-dim);
 }
 
 /* Scrollbar styling */
