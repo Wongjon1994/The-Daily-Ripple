@@ -30,6 +30,19 @@ in the Archive all deep-link into the specific story behind them
 
 - **First visit** → redirected to About (flag stored in `localStorage`);
   thereafter `/` goes straight to the latest brief.
+- **"At a glance" bento** — above the deck, an editorial magazine-style summary
+  of all eight sections: a "Lead Story" hero cell, two mediums, a four-across
+  strip, and a full-width System Synthesis footer. Each cell distills its section
+  to a topic line (clean word-boundary truncation, no mid-word cuts) plus its
+  most telling figure — a key-metric chip and/or gold numerals in the dek — not
+  just a repeated headline. The grid is the default at every width: 2 columns on
+  narrow, the 4-column magazine grid from `sm` up; cells size to content.
+- **Focused reading** — clicking a bento cell hides the summary, scrolls the deck
+  to the top, and locks the view on that story so the reader can swipe left/right
+  without distraction; a "Back to summary" CTA returns to the top and restores
+  the bento. Deep links (`?story=N`, e.g. from Trends signals) open in focused
+  reading too. Without clicking a cell, the reader can simply scroll down from the
+  summary to the deck.
 - **Deck navigation** works by swipe/drag, arrow keys, prev/next arrows, the
   progress dots, and (on desktop ≥1024px) clickable "peek" previews of the
   neighbouring cards.
@@ -146,6 +159,27 @@ See **[BRIEF_FORMAT.md](BRIEF_FORMAT.md)** for the brief schema and the
 Newest first. Append an entry here for every change.
 
 ### 2026-06-23
+- **Typography pass across all four tabs** — normalised the heading scale and
+  eyebrow letter-spacing so the tabs feel like one system: Trends section headers
+  bumped `text-xl → text-2xl` to match Calendar/About; uppercase eyebrow kickers
+  unified at `tracking-[0.14em]` (About hero, Calendar weekdays); the bento "at a
+  glance" label bumped to `text-base`/bold. Playfair headings, the gold/cyan
+  duotone, and the mono "data voice" (dates, counts, metric values) are kept.
+- **"At a glance" bento summary** — new `BriefBento` above the reading deck: an
+  editorial magazine grid (lead-story hero + two mediums + four-across strip +
+  full-width System Synthesis footer) summarising all eight sections, each cell
+  linking into the deck. Section 1 is labelled "Lead Story"; cells show the
+  headline's lead clause word-boundary–truncated (no mid-word cuts or dangling
+  connectives), a key-metric chip when the section carries structured metrics, and
+  a dek with figures emphasised in gold. The bento grid is the default at every
+  width — a 2-column bento on narrow screens, the 4-column magazine grid from `sm`
+  up — cells size to content, and it never collapses to a single stack. Driven
+  entirely from section data, so it applies to every brief and any future n8n
+  brief automatically.
+- **Focused reading mode** — clicking a bento cell hides the summary, scrolls the
+  deck to the top, and locks the view on that story for distraction-free swiping;
+  a "Back to summary" CTA restores the bento and returns to the top. Deep links
+  (`?story=N`) open focused too.
 - **Trends metric de-duplication** — label variants of the same series now
   group together (e.g. "US 10-Year Treasury Yield", "US 10Y Yield" and
   "10-Year Yield" → one card) via a stronger `normalizeLabel`.

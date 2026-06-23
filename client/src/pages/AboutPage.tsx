@@ -60,7 +60,7 @@ export default function AboutPage() {
       <main className="container py-10 sm:py-14">
         <article className="max-w-2xl mx-auto">
           {/* ── Hero ───────────────────────────────────────────────────────── */}
-          <p className="text-[11px] font-semibold tracking-[0.22em] uppercase mb-3" style={{ color: "var(--color-cyan)" }}>
+          <p className="text-[11px] font-semibold tracking-[0.14em] uppercase mb-3" style={{ color: "var(--color-cyan)" }}>
             About
           </p>
           <h1 className="text-4xl sm:text-5xl font-bold leading-[1.05] mb-4" style={{ fontFamily: SERIF, color: "var(--color-mist)" }}>

@@ -124,7 +124,7 @@ export default function CalendarPage() {
               {/* Weekday headers */}
               <div className="grid grid-cols-7 mb-2">
                 {WEEKDAYS.map((day) => (
-                  <div key={day} className="text-center text-[11px] font-semibold tracking-[0.15em] uppercase py-2" style={{ color: "var(--color-mist-dim)" }}>
+                  <div key={day} className="text-center text-[11px] font-semibold tracking-[0.14em] uppercase py-2" style={{ color: "var(--color-mist-dim)" }}>
                     {day}
                   </div>
                 ))}

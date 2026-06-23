@@ -7,9 +7,10 @@ import { useState, useCallback, useMemo } from "react";
 import type { DailyBrief } from "@/lib/briefParser";
 import MastheadBanner from "@/components/MastheadBanner";
 import SwipeDemo from "@/components/SwipeDemo";
+import BriefBento from "@/components/BriefBento";
 import WeeklyBriefSelector from "@/components/WeeklyBriefSelector";
 import { trpc } from "@/lib/trpc";
-import { Loader2, HelpCircle, X, ExternalLink, Send } from "lucide-react";
+import { Loader2, HelpCircle, X, ExternalLink, Send, ArrowUp } from "lucide-react";
 
 function rowToBrief(row: any): DailyBrief {
   return {
@@ -30,6 +31,9 @@ export default function BriefPageEnhanced({ initialSlug, initialSectionIndex = 0
   const [selectedSlug, setSelectedSlug] = useState<string | null>(initialSlug ?? null);
   const [currentSectionIndex, setCurrentSectionIndex] = useState(initialSectionIndex);
   const [showUserGuide, setShowUserGuide] = useState(false);
+  // Focused reading: a bento click hides the summary and locks the view on the deck;
+  // "Back to summary" returns to the top. Deep links (?story=N) open focused too.
+  const [focusedReading, setFocusedReading] = useState(initialSectionIndex > 0);
 
   const { data: allRes, isLoading } = trpc.n8n.getAll.useQuery();
   const dbRows = allRes?.briefs ?? [];
@@ -58,6 +62,21 @@ export default function BriefPageEnhanced({ initialSlug, initialSectionIndex = 0
   const handleSelectBrief = useCallback((slug: string) => {
     setSelectedSlug(slug);
     setCurrentSectionIndex(0);
+    setFocusedReading(false);
+  }, []);
+
+  // Bento cell → jump to that story and enter focused reading (summary hidden, deck locked).
+  const handleBentoSelect = useCallback((index: number) => {
+    setCurrentSectionIndex(index);
+    setFocusedReading(true);
+    requestAnimationFrame(() => {
+      document.getElementById("reading-deck")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }, []);
+
+  const handleBackToSummary = useCallback(() => {
+    setFocusedReading(false);
+    requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "smooth" }));
   }, []);
 
   const handlePreviousSection = useCallback(() => {
@@ -158,15 +177,38 @@ export default function BriefPageEnhanced({ initialSlug, initialSectionIndex = 0
         </div>
       </div>
 
-      {/* Reading deck */}
+      {/* At-a-glance bento summary, then the reading deck */}
       <main className="container py-3">
-        <SwipeDemo
-          brief={brief}
-          currentIndex={currentSectionIndex}
-          onPrevious={handlePreviousSection}
-          onNext={handleNextSection}
-          briefUrl={briefUrl}
-        />
+        {!focusedReading && (
+          <div className="mb-4">
+            <BriefBento brief={brief} onSelectSection={handleBentoSelect} />
+          </div>
+        )}
+        <div id="reading-deck" style={{ scrollMarginTop: "calc(var(--nav-h) + 56px)" }}>
+          {focusedReading && (
+            <div className="mb-2 flex justify-center">
+              <button
+                onClick={handleBackToSummary}
+                className="flex items-center gap-2 text-[13px] font-semibold rounded-lg px-3.5 py-2 transition-colors"
+                style={{
+                  color: "var(--color-gold-rich)",
+                  border: "1px solid color-mix(in oklab, var(--color-gold-rich) 45%, transparent)",
+                  background: "color-mix(in oklab, var(--color-gold-rich) 10%, transparent)",
+                }}
+              >
+                <ArrowUp className="h-4 w-4" />
+                Back to summary
+              </button>
+            </div>
+          )}
+          <SwipeDemo
+            brief={brief}
+            currentIndex={currentSectionIndex}
+            onPrevious={handlePreviousSection}
+            onNext={handleNextSection}
+            briefUrl={briefUrl}
+          />
+        </div>
       </main>
 
       {/* User guide modal */}

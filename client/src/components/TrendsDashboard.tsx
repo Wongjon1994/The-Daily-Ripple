@@ -272,7 +272,7 @@ export default function TrendsDashboard({ briefs }: { briefs: Record<string, Dai
             className="sticky z-20 flex items-baseline justify-between mb-4 py-2 backdrop-blur-md border-b border-border/40"
             style={{ top: "var(--nav-h)", background: "color-mix(in oklab, var(--background) 93%, transparent)" }}
           >
-            <h2 className="text-xl font-bold" style={{ fontFamily: "'Playfair Display', Georgia, serif", color: "var(--color-gold-rich)" }}>
+            <h2 className="text-2xl font-bold" style={{ fontFamily: "'Playfair Display', Georgia, serif", color: "var(--color-gold-rich)" }}>
               Tracked metrics
             </h2>
             <span className="hidden sm:inline text-[11px] font-mono whitespace-nowrap" style={{ color: "var(--color-mist-dim)" }}>
@@ -297,7 +297,7 @@ export default function TrendsDashboard({ briefs }: { briefs: Record<string, Dai
             style={{ top: "var(--nav-h)", background: "color-mix(in oklab, var(--background) 93%, transparent)" }}
           >
             <Telescope className="h-4 w-4" style={{ color: "var(--color-cyan)" }} />
-            <h2 className="text-xl font-bold" style={{ fontFamily: "'Playfair Display', Georgia, serif", color: "var(--color-cyan)" }}>
+            <h2 className="text-2xl font-bold" style={{ fontFamily: "'Playfair Display', Georgia, serif", color: "var(--color-cyan)" }}>
               Broader signals · by theme
             </h2>
           </div>
