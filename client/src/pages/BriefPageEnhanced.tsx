@@ -125,13 +125,28 @@ export default function BriefPageEnhanced({ initialSlug, initialSectionIndex = 0
         style={{ top: "var(--nav-h)", background: "color-mix(in oklab, var(--background) 93%, transparent)" }}
       >
         <div className="container py-2.5 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
-          <div className="max-w-[240px]">
-            <WeeklyBriefSelector
-              briefs={allBriefs}
-              selectedBriefKey={activeBriefSlug ?? ""}
-              onSelectBrief={handleSelectBrief}
-            />
-          </div>
+          {focusedReading ? (
+            <button
+              onClick={handleBackToSummary}
+              className="flex items-center gap-2 text-[13px] font-semibold rounded-lg px-3.5 py-2 transition-colors whitespace-nowrap shrink-0"
+              style={{
+                color: "var(--color-gold-rich)",
+                border: "1px solid color-mix(in oklab, var(--color-gold-rich) 45%, transparent)",
+                background: "color-mix(in oklab, var(--color-gold-rich) 10%, transparent)",
+              }}
+            >
+              <ArrowUp className="h-4 w-4" />
+              Back to summary
+            </button>
+          ) : (
+            <div className="max-w-[240px]">
+              <WeeklyBriefSelector
+                briefs={allBriefs}
+                selectedBriefKey={activeBriefSlug ?? ""}
+                onSelectBrief={handleSelectBrief}
+              />
+            </div>
+          )}
           <div className="flex items-center gap-3">
             <a
               href="https://t.me/TheDailyRipple"
@@ -185,22 +200,6 @@ export default function BriefPageEnhanced({ initialSlug, initialSectionIndex = 0
           </div>
         )}
         <div id="reading-deck" style={{ scrollMarginTop: "calc(var(--nav-h) + 56px)" }}>
-          {focusedReading && (
-            <div className="mb-2 flex justify-center">
-              <button
-                onClick={handleBackToSummary}
-                className="flex items-center gap-2 text-[13px] font-semibold rounded-lg px-3.5 py-2 transition-colors"
-                style={{
-                  color: "var(--color-gold-rich)",
-                  border: "1px solid color-mix(in oklab, var(--color-gold-rich) 45%, transparent)",
-                  background: "color-mix(in oklab, var(--color-gold-rich) 10%, transparent)",
-                }}
-              >
-                <ArrowUp className="h-4 w-4" />
-                Back to summary
-              </button>
-            </div>
-          )}
           <SwipeDemo
             brief={brief}
             currentIndex={currentSectionIndex}

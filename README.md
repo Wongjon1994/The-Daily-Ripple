@@ -178,8 +178,9 @@ Newest first. Append an entry here for every change.
   brief automatically.
 - **Focused reading mode** — clicking a bento cell hides the summary, scrolls the
   deck to the top, and locks the view on that story for distraction-free swiping;
-  a "Back to summary" CTA restores the bento and returns to the top. Deep links
-  (`?story=N`) open focused too.
+  a "Back to summary" CTA (in the sticky toolbar, so it stays visible while
+  scrolling) restores the bento and returns to the top. Deep links (`?story=N`)
+  open focused too.
 - **Trends metric de-duplication** — label variants of the same series now
   group together (e.g. "US 10-Year Treasury Yield", "US 10Y Yield" and
   "10-Year Yield" → one card) via a stronger `normalizeLabel`.
