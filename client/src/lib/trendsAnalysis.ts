@@ -83,8 +83,20 @@ export function parseNumeric(value: string): number | null {
   return m ? parseFloat(m[0]) : null;
 }
 
+// Canonicalise a metric label so variants of the same thing group together,
+// e.g. "US 10-Year Treasury Yield", "US 10Y Yield" and "10-Year Yield" all
+// become "10 year yield". We flatten punctuation, normalise "10y"/"10yr" to
+// "10 year", and drop identity-neutral words (country prefix, "treasury").
+const LABEL_FILLER = /\b(treasury|the|us|u s|united states)\b/g;
 export function normalizeLabel(label: string): string {
-  return label.toLowerCase().replace(/\s+/g, " ").trim();
+  return label
+    .toLowerCase()
+    .replace(/\bu\.?\s?s\.?(?:a\.?)?\b/g, "us") // U.S. / U.S.A. → us
+    .replace(/[-/.]/g, " ")
+    .replace(/\b(\d+)\s*y(?:r|ear)?s?\b/g, "$1 year") // 10y / 10yr → 10 year
+    .replace(LABEL_FILLER, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function daysBetween(a: string, b: string): number {
