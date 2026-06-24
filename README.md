@@ -159,6 +159,13 @@ See **[BRIEF_FORMAT.md](BRIEF_FORMAT.md)** for the brief schema and the
 Newest first. Append an entry here for every change.
 
 ### 2026-06-24
+- **Manual metric corrections (23–24 Jun)** — a one-off, idempotent startup patch
+  (`patchManualMetricFixes` in `server/seed.ts`) corrects hallucinated index levels
+  on the runtime-published briefs: 23 Jun S&P 500 `~5,560 → 7,429.79` and Nikkei 225
+  `~38,900 → 72,353.96`; 24 Jun S&P 500 `~5,570 → 7,365.46`. Keyed off the known-wrong
+  value so it applies once and never overwrites a later correct figure (once Alpha
+  Vantage market data flows in). Flows through Trends, the bento chips, and the card
+  metric strip. Remove once upstream market data is trusted.
 - **Story card formatting fixes** — (1) the expanded "by the numbers" strip now
   hides metrics with no real value (an unreported `—`, e.g. STI / Hang Seng on a
   quiet day) instead of rendering empty placeholder boxes; (2) removed the

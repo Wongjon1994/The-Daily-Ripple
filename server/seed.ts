@@ -3,7 +3,7 @@
  * Only runs when the briefs table is empty — safe to call on every startup.
  */
 
-import { countBriefs, upsertBrief, setTelegraphUrl } from "./db.js";
+import { countBriefs, upsertBrief, setTelegraphUrl, getBriefBySlug, updateBriefSections } from "./db.js";
 
 // ─── Brief data ───────────────────────────────────────────────────────────────
 // These imports strip the `import type` at runtime so briefParser is not needed.
@@ -79,4 +79,40 @@ export async function seedBriefs(): Promise<void> {
     });
   }
   console.log("[seed] Done.");
+}
+
+// ─── One-off manual metric corrections ──────────────────────────────────────────
+// The 23–24 Jun 2026 briefs (published at runtime via /api/publish, so not in the
+// bundled set above) shipped with hallucinated S&P 500 / Nikkei 225 levels. Each
+// fix is keyed off the known-wrong value, so it applies exactly once, lands on the
+// right brief regardless of slug, and never overwrites a later correct figure (e.g.
+// once Alpha Vantage market data flows in). Safe no-op where absent. Remove once
+// upstream market data is trusted.
+const MANUAL_METRIC_SCAN_SLUGS = ["june-22-2026", "june-23-2026", "june-24-2026"];
+const MANUAL_METRIC_FIXES: Array<{ metric: RegExp; wrong: RegExp; value: string }> = [
+  { metric: /s&p\s*500/i, wrong: /5[.,]?560/, value: "7,429.79" }, // 23 Jun
+  { metric: /nikkei/i, wrong: /38[.,]?900/, value: "72,353.96" }, // 23 Jun
+  { metric: /s&p\s*500/i, wrong: /5[.,]?570/, value: "7,365.46" }, // 24 Jun
+];
+
+export async function patchManualMetricFixes(): Promise<void> {
+  for (const slug of MANUAL_METRIC_SCAN_SLUGS) {
+    const row = await getBriefBySlug(slug);
+    if (!row || !Array.isArray(row.sections)) continue;
+    let changed = false;
+    const sections = (row.sections as any[]).map((sec) => {
+      if (!Array.isArray(sec?.keyMetrics)) return sec;
+      const keyMetrics = sec.keyMetrics.map((m: any) => {
+        const fix = MANUAL_METRIC_FIXES.find(
+          (f) => f.metric.test(String(m?.label ?? "")) && f.wrong.test(String(m?.value ?? ""))
+        );
+        if (!fix) return m;
+        changed = true;
+        console.log(`[patch] ${slug} ${m.label}: "${m.value}" → "${fix.value}"`);
+        return { ...m, value: fix.value };
+      });
+      return { ...sec, keyMetrics };
+    });
+    if (changed) await updateBriefSections(slug, sections);
+  }
 }

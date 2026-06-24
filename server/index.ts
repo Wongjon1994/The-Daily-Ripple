@@ -6,7 +6,7 @@ import { fileURLToPath } from "url";
 import { appRouter } from "./routers.js";
 import { createContext } from "./trpc.js";
 import { initDb } from "./db.js";
-import { seedBriefs } from "./seed.js";
+import { seedBriefs, patchManualMetricFixes } from "./seed.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -15,6 +15,7 @@ async function startServer() {
   // Ensure Postgres tables exist, then seed sample data if empty
   await initDb();
   await seedBriefs();
+  await patchManualMetricFixes();
 
   const app = express();
   const server = createServer(app);

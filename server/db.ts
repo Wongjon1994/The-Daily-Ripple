@@ -103,6 +103,15 @@ export async function setTelegraphUrl(dateSlug: string, url: string): Promise<vo
     .where(eq(schema.briefs.dateSlug, dateSlug));
 }
 
+/** Replace just the sections payload for a slug (used by one-off data patches). */
+export async function updateBriefSections(dateSlug: string, sections: unknown): Promise<void> {
+  const db = getDb();
+  await db
+    .update(schema.briefs)
+    .set({ sections: sections as any, updatedAt: Date.now() })
+    .where(eq(schema.briefs.dateSlug, dateSlug));
+}
+
 export async function getBriefBySlug(dateSlug: string) {
   const db = getDb();
   const results = await db
