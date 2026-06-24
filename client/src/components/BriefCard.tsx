@@ -78,7 +78,7 @@ function LinkStatusIcon({ status }: { status: LinkStatus }) {
   if (status === "ok")
     return <CheckCircle2 className="h-3 w-3 text-sage shrink-0" aria-label={STATUS_TITLE.ok} />;
   if (status === "broken")
-    return <XCircle className="h-3 w-3 text-crimson/70 shrink-0" aria-label={STATUS_TITLE.broken} />;
+    return <XCircle className="h-3 w-3 text-muted-foreground/45 shrink-0" aria-label={STATUS_TITLE.broken} />;
   if (status === "blocked")
     return <ShieldAlert className="h-3 w-3 text-muted-foreground/40 shrink-0" aria-label={STATUS_TITLE.blocked} />;
   return <HelpCircle className="h-3 w-3 text-muted-foreground/30 shrink-0" aria-label={STATUS_TITLE.unknown} />;
@@ -123,30 +123,34 @@ export default function BriefCard({ section, categoryColor, briefUrl, elevated }
   // prose, not in a Singapore Lens — so for it we partition the paragraphs.
   const isSystems = isSynthesisSection(section);
 
+  // The Singapore Lens for a story (§1–7). By the brief's authoring convention the
+  // 3rd paragraph IS the lens, so we fall back to paragraphs[2] when the dedicated
+  // `singaporeLens` field is empty (some runtime-published briefs leave it blank).
+  const lensSource = useMemo(() => {
+    const field = section.singaporeLens?.trim();
+    if (field) return field;
+    if (isSystems) return "";
+    return section.paragraphs?.[2]?.trim() ?? "";
+  }, [section.singaporeLens, section.paragraphs, isSystems]);
+
   // Show the Singapore Lens box whenever a (non-synthesis) section carries a lens.
-  // If the lens text is also duplicated in the body (some n8n briefs do this),
-  // that paragraph is stripped in `bodyParas` so the lens still appears only once.
-  const showLens = useMemo(
-    () => !isSystems && !!section.singaporeLens?.trim(),
-    [isSystems, section.singaporeLens]
-  );
+  // If the lens text is also present in the body (when it came from paragraphs[2],
+  // or a brief duplicates it), that paragraph is stripped in `bodyParas` so the
+  // lens still appears only once — in its box.
+  const showLens = useMemo(() => !isSystems && !!lensSource, [isSystems, lensSource]);
 
   // Split the source into analysis + the forward-looking watch-signals it
   // carries. Uses the same extractor that feeds the Trends "Broader signals"
   // list, so the card's signals match what surfaces in Trends 1-to-1.
   const lensParts = useMemo(
-    () =>
-      partitionLensWatch(
-        isSystems ? section.paragraphs.join("\n\n") : section.singaporeLens,
-        isSystems
-      ),
-    [isSystems, section.paragraphs, section.singaporeLens]
+    () => partitionLensWatch(isSystems ? section.paragraphs.join("\n\n") : lensSource, isSystems),
+    [isSystems, section.paragraphs, lensSource]
   );
 
   // A short taste of the Singapore Lens, teased before expansion.
   const lensTeaser = useMemo(() => {
     if (!showLens) return "";
-    const words = section.singaporeLens!.replace(/^Singapore'?s?\s+/i, "").split(" ");
+    const words = lensSource.replace(/^Singapore'?s?\s+/i, "").split(" ");
     return words.slice(0, 16).join(" ") + (words.length > 16 ? "…" : "");
   }, [showLens, section.singaporeLens]);
 
@@ -171,13 +175,13 @@ export default function BriefCard({ section, categoryColor, briefUrl, elevated }
   // Lens is dropped so the lens shows once — in its own box, not as loose prose.
   const bodyParas = useMemo(() => {
     const paras = section.paragraphs?.slice(1) ?? [];
-    const lensKey = normText(section.singaporeLens ?? "");
+    const lensKey = normText(lensSource);
     if (!lensKey) return paras;
     return paras.filter((p) => {
       const pn = normText(p);
       return !(pn.includes(lensKey.slice(0, 50)) || lensKey.includes(pn.slice(0, 50)));
     });
-  }, [section.paragraphs, section.singaporeLens]);
+  }, [section.paragraphs, lensSource]);
 
   return (
     <div
@@ -433,9 +437,10 @@ export default function BriefCard({ section, categoryColor, briefUrl, elevated }
               <div className="space-y-1.5">
                 {section.sources.map((source, i) => {
                   const status = getStatus(source.url);
-                  // Every link stays clickable — a server bot-check is not a
-                  // browser, so we annotate rather than block.
-                  const flagged = status === "broken";
+                  // Every link stays clickable, and the row styling stays neutral —
+                  // a server-side fetch check (which often 404s/blocks real articles
+                  // that load fine in a browser) shouldn't alarm. The status icon +
+                  // hover tooltip carry the signal without a loud red box.
                   return (
                     <a
                       key={i}
@@ -445,10 +450,7 @@ export default function BriefCard({ section, categoryColor, briefUrl, elevated }
                       title={status !== "loading" ? STATUS_TITLE[status] : undefined}
                       className={cn(
                         "flex items-start gap-2.5 px-2.5 py-2 rounded-lg text-xs cursor-pointer",
-                        "border transition-all hover:bg-white/5",
-                        flagged
-                          ? "border-crimson/20 bg-crimson/5 hover:border-crimson/35"
-                          : "border-border/20 hover:border-border/40"
+                        "border border-border/20 transition-all hover:bg-white/5 hover:border-border/40"
                       )}
                     >
                       <span className="shrink-0 mt-0.5">

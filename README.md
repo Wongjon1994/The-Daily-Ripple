@@ -159,6 +159,15 @@ See **[BRIEF_FORMAT.md](BRIEF_FORMAT.md)** for the brief schema and the
 Newest first. Append an entry here for every change.
 
 ### 2026-06-24
+- **Singapore Lens from the 3rd paragraph** — by the brief's authoring convention
+  the 3rd paragraph of a story (§1–7) is the Singapore Lens, so the card now falls
+  back to `paragraphs[2]` when the dedicated `singaporeLens` field is empty. The
+  lens box populates for every brief (incl. runtime-published ones) with no
+  per-brief data fix, and the duplicated body paragraph is de-duped either way.
+- **Calmer source link flags** — a source that fails the server-side link check no
+  longer gets a loud crimson box + red ✕ (the fetch often 404s/blocks real
+  articles that load fine in a browser). The row stays neutral with a muted status
+  icon + hover tooltip, consistent with the "annotate, don't alarm" treatment.
 - **Manual metric corrections (23–24 Jun)** — a one-off, idempotent startup patch
   (`patchManualMetricFixes` in `server/seed.ts`) corrects hallucinated index levels
   on the runtime-published briefs: 23 Jun S&P 500 `~5,560 → 7,429.79` and Nikkei 225
