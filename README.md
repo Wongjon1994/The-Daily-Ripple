@@ -158,6 +158,18 @@ See **[BRIEF_FORMAT.md](BRIEF_FORMAT.md)** for the brief schema and the
 
 Newest first. Append an entry here for every change.
 
+### 2026-06-24
+- **Story card formatting fixes** — (1) the expanded "by the numbers" strip now
+  hides metrics with no real value (an unreported `—`, e.g. STI / Hang Seng on a
+  quiet day) instead of rendering empty placeholder boxes; (2) removed the
+  pull-quote feature, which lifted a "sentence" from a body paragraph — abbrev­
+  iations like `Ltd.` caused false sentence breaks, producing an incomplete quote
+  and orphaning the rest of the paragraph; body prose now renders intact and in
+  order; (3) the Singapore Lens box now shows whenever a section carries a lens,
+  and any body paragraph that merely repeats the lens is stripped, so the lens
+  always lands in its own template box (not as loose prose) even when an incoming
+  brief duplicates it across `paragraphs` and `singaporeLens`.
+
 ### 2026-06-23
 - **Typography pass across all four tabs** — normalised the heading scale and
   eyebrow letter-spacing so the tabs feel like one system: Trends section headers

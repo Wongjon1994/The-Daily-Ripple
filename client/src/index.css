@@ -474,18 +474,6 @@
     mask-image: linear-gradient(to bottom, black 48%, transparent 100%);
   }
 
-  /* Brief card — pull-quote lifted out of the expanded body. */
-  .pull-quote {
-    font-family: 'Playfair Display', Georgia, serif;
-    font-style: italic;
-    font-size: 1.15rem;
-    line-height: 1.45;
-    color: var(--color-mist);
-    border-left: 3px solid var(--cap-color, var(--color-cyan));
-    padding: 0.15rem 0 0.15rem 1rem;
-    margin: 1.4rem 0;
-  }
-
   /* Brief card — expanded lede paragraph with an editorial drop cap. */
   .lede-para::first-letter {
     font-family: 'Playfair Display', Georgia, serif;

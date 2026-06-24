@@ -4,7 +4,7 @@
  * Enhanced design: navy/amber palette, source link validation on expand.
  */
 
-import { useState, useMemo, Fragment } from "react";
+import { useState, useMemo } from "react";
 import type { BriefSection, KeyMetric } from "@/lib/briefParser";
 import { partitionLensWatch, isSynthesisSection } from "@/lib/trendsAnalysis";
 import { ChevronDown, Clock, ExternalLink, CheckCircle2, XCircle, HelpCircle, ShieldAlert, BookOpen, MapPin, ArrowRight, Eye } from "lucide-react";
@@ -39,6 +39,17 @@ const CATEGORY_COLORS: Record<string, string> = {
 
 function getCategoryColor(category: string): string {
   return CATEGORY_COLORS[category.toLowerCase()] ?? "oklch(0.62 0.010 260)";
+}
+
+/** Normalised text for loose duplicate comparison (lens vs. body paragraph). */
+function normText(s: string): string {
+  return (s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+/** A metric is worth showing only when it carries a real value, not an "—" placeholder. */
+function hasMetricValue(m: KeyMetric): boolean {
+  const v = (m.value ?? "").trim();
+  return v !== "" && v !== "—" && v !== "–" && v !== "-";
 }
 
 function UrgencyDot({ urgency }: { urgency: BriefSection["urgency"] }) {
@@ -108,19 +119,17 @@ export default function BriefCard({ section, categoryColor, briefUrl, elevated }
   const restSummary = sw.slice(4).join(" ");
   const longDeck = summary.length > 120;
 
-  // Only treat the lens as a distinct "voice" when it isn't already echoed by
-  // the body — systems-synthesis sections derive the lens from the same prose,
-  // so showing both would just duplicate text.
-  const showLens = useMemo(() => {
-    if (!section.singaporeLens) return false;
-    const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
-    const body = norm(section.paragraphs?.join(" ") ?? "");
-    return !body.includes(norm(section.singaporeLens).slice(0, 50));
-  }, [section.singaporeLens, section.paragraphs]);
-
   // The synthesis section (8) carries its "three signals to watch" inline in its
   // prose, not in a Singapore Lens — so for it we partition the paragraphs.
   const isSystems = isSynthesisSection(section);
+
+  // Show the Singapore Lens box whenever a (non-synthesis) section carries a lens.
+  // If the lens text is also duplicated in the body (some n8n briefs do this),
+  // that paragraph is stripped in `bodyParas` so the lens still appears only once.
+  const showLens = useMemo(
+    () => !isSystems && !!section.singaporeLens?.trim(),
+    [isSystems, section.singaporeLens]
+  );
 
   // Split the source into analysis + the forward-looking watch-signals it
   // carries. Uses the same extractor that feeds the Trends "Broader signals"
@@ -150,25 +159,25 @@ export default function BriefCard({ section, categoryColor, briefUrl, elevated }
     return bits.join("  ·  ");
   }, [showLens, section.sources]);
 
-  // Metrics live inside the expanded read (a "by the numbers" strip), keeping
-  // the collapsed face flowing headline → deck → lens → CTA without a break.
-  const metrics = section.keyMetrics?.slice(0, 4) ?? [];
+  // Metrics live inside the expanded read (a "by the numbers" strip). Drop any
+  // metric without a real value (e.g. an unreported "—" for STI / Hang Seng) so
+  // the strip never shows empty placeholder boxes.
+  const metrics = useMemo(
+    () => (section.keyMetrics ?? []).filter(hasMetricValue).slice(0, 4),
+    [section.keyMetrics]
+  );
 
-  // Body paragraphs after the lede, plus one punchy line lifted out as a
-  // pull-quote to break the prose wall (removed from inline flow, not repeated).
-  const bodyParas = useMemo(() => section.paragraphs?.slice(1) ?? [], [section.paragraphs]);
-  const pullQuote = useMemo(() => {
-    // Lift one punchy line from a body paragraph that keeps ≥1 other sentence,
-    // so removing it for the quote doesn't gut the paragraph.
-    for (const para of bodyParas) {
-      const sentences = para.split(/(?<=[.!?])\s+/).map((s) => s.trim()).filter(Boolean);
-      if (sentences.length < 2) continue;
-      const cands = sentences.filter((s) => s.length >= 55 && s.length <= 160);
-      if (!cands.length) continue;
-      return cands.find((s) => /\d|\bwill\b|\bcould\b|risk|watch|the tell/i.test(s)) ?? cands[0];
-    }
-    return null;
-  }, [bodyParas]);
+  // Body paragraphs after the lede. A paragraph that merely repeats the Singapore
+  // Lens is dropped so the lens shows once — in its own box, not as loose prose.
+  const bodyParas = useMemo(() => {
+    const paras = section.paragraphs?.slice(1) ?? [];
+    const lensKey = normText(section.singaporeLens ?? "");
+    if (!lensKey) return paras;
+    return paras.filter((p) => {
+      const pn = normText(p);
+      return !(pn.includes(lensKey.slice(0, 50)) || lensKey.includes(pn.slice(0, 50)));
+    });
+  }, [section.paragraphs, section.singaporeLens]);
 
   return (
     <div
@@ -306,8 +315,7 @@ export default function BriefCard({ section, categoryColor, briefUrl, elevated }
       {isExpanded && (
         <div className="border-t-2 border-[var(--color-cyan)]/30 bg-[var(--color-ink-well)] px-4 lg:px-5 pb-5 max-h-[500px] overflow-y-auto">
           {/* Editorial body — a "by the numbers" strip, a bright lede with a
-              drop cap, the promoted analyst's note, then the gold prose broken
-              by a lifted pull-quote. */}
+              drop cap, the body prose, then the Singapore Lens analyst's note. */}
           <div className="pt-4 mb-4 max-w-[64ch]">
             {/* By the numbers — metric strip (moved out of the collapsed face).
                 Suppressed on the synthesis card, which is prose + signals only. */}
@@ -354,34 +362,16 @@ export default function BriefCard({ section, categoryColor, briefUrl, elevated }
               </p>
             )}
 
-            {/* Remaining paragraphs, with the pull-quote lifted inline.
+            {/* Remaining body paragraphs, rendered intact and in order.
                 Skipped for the synthesis section — its lede already holds the
                 whole (signal-free) thesis, so re-rendering would duplicate it. */}
             {!isSystems && bodyParas.length > 0 && (
               <div className="space-y-4">
-                {bodyParas.map((para, i) => {
-                  const has = pullQuote && para.includes(pullQuote);
-                  const text = has
-                    ? para.replace(pullQuote!, "").replace(/\s{2,}/g, " ").trim()
-                    : para;
-                  return (
-                    <Fragment key={i}>
-                      {text && (
-                        <p className="text-base leading-7" style={{ color: "var(--color-mist)" }}>
-                          {text}
-                        </p>
-                      )}
-                      {has && (
-                        <blockquote
-                          className="pull-quote"
-                          style={{ ["--cap-color" as string]: color }}
-                        >
-                          {pullQuote}
-                        </blockquote>
-                      )}
-                    </Fragment>
-                  );
-                })}
+                {bodyParas.map((para, i) => (
+                  <p key={i} className="text-base leading-7" style={{ color: "var(--color-mist)" }}>
+                    {para}
+                  </p>
+                ))}
               </div>
             )}
 
