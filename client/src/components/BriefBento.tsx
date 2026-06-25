@@ -28,7 +28,6 @@ import {
   Landmark,
   HeartPulse,
   Newspaper,
-  Star,
   Link2,
   ChevronDown,
   ChevronUp,
@@ -44,7 +43,7 @@ interface BriefBentoProps {
 
 // Category → line icon, mirroring the print brief's iconography.
 const CATEGORY_ICON: Record<string, LucideIcon> = {
-  geopolitics: Globe,
+  geopolitics: Scale,
   economics: CandlestickChart,
   markets: CandlestickChart,
   business: Briefcase,
@@ -190,7 +189,7 @@ interface CellProps {
 }
 
 function BentoCell({ section, index, variant, isLead, onSelect }: CellProps) {
-  const Icon = isLead ? Star : iconFor(section.category);
+  const Icon = isLead ? Globe : iconFor(section.category);
   const metric = variant === "small" ? null : leadMetric(section.keyMetrics);
   const headlineSize =
     variant === "hero"

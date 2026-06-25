@@ -88,11 +88,12 @@ export async function seedBriefs(): Promise<void> {
 // right brief regardless of slug, and never overwrites a later correct figure (e.g.
 // once Alpha Vantage market data flows in). Safe no-op where absent. Remove once
 // upstream market data is trusted.
-const MANUAL_METRIC_SCAN_SLUGS = ["june-22-2026", "june-23-2026", "june-24-2026"];
+const MANUAL_METRIC_SCAN_SLUGS = ["june-22-2026", "june-23-2026", "june-24-2026", "june-25-2026"];
 const MANUAL_METRIC_FIXES: Array<{ metric: RegExp; wrong: RegExp; value: string }> = [
   { metric: /s&p\s*500/i, wrong: /5[.,]?560/, value: "7,429.79" }, // 23 Jun
   { metric: /nikkei/i, wrong: /38[.,]?900/, value: "72,353.96" }, // 23 Jun
   { metric: /s&p\s*500/i, wrong: /5[.,]?570/, value: "7,365.46" }, // 24 Jun
+  { metric: /s&p\s*500/i, wrong: /5[.,]?383/, value: "7,358.22" }, // 25 Jun
 ];
 
 export async function patchManualMetricFixes(): Promise<void> {
