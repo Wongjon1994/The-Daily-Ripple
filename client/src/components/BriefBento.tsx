@@ -28,6 +28,7 @@ import {
   Landmark,
   HeartPulse,
   Newspaper,
+  Star,
   Link2,
   ChevronDown,
   ChevronUp,
@@ -189,7 +190,7 @@ interface CellProps {
 }
 
 function BentoCell({ section, index, variant, isLead, onSelect }: CellProps) {
-  const Icon = iconFor(section.category);
+  const Icon = isLead ? Star : iconFor(section.category);
   const metric = variant === "small" ? null : leadMetric(section.keyMetrics);
   const headlineSize =
     variant === "hero"
