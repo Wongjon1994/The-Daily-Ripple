@@ -6,7 +6,7 @@
 
 import { useState, useMemo } from "react";
 import type { BriefSection, KeyMetric } from "@/lib/briefParser";
-import { partitionLensWatch, isSynthesisSection } from "@/lib/trendsAnalysis";
+import { partitionLensWatch, partitionSynthesis, isSynthesisSection } from "@/lib/trendsAnalysis";
 import { ChevronDown, Clock, ExternalLink, CheckCircle2, XCircle, HelpCircle, ShieldAlert, BookOpen, MapPin, ArrowRight, Eye } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { trpc } from "@/lib/trpc";
@@ -143,7 +143,7 @@ export default function BriefCard({ section, categoryColor, briefUrl, elevated }
   // carries. Uses the same extractor that feeds the Trends "Broader signals"
   // list, so the card's signals match what surfaces in Trends 1-to-1.
   const lensParts = useMemo(
-    () => partitionLensWatch(isSystems ? section.paragraphs.join("\n\n") : lensSource, isSystems),
+    () => (isSystems ? partitionSynthesis(section.paragraphs) : partitionLensWatch(lensSource, false)),
     [isSystems, section.paragraphs, lensSource]
   );
 

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { partitionLensWatch, isSynthesisSection } from "./trendsAnalysis";
+import { partitionLensWatch, partitionSynthesis, isSynthesisSection } from "./trendsAnalysis";
 
 describe("isSynthesisSection", () => {
   it("recognizes every synthesis label a brief might use", () => {
@@ -92,5 +92,28 @@ describe("partitionLensWatch", () => {
     expect(watch[0]).toMatch(/^If the yen/);
     expect(body).not.toMatch(/signals worth watching/);
     expect(body).toMatch(/single chain/);
+  });
+});
+
+describe("partitionSynthesis", () => {
+  it("pulls watch signals only from the 2nd paragraph; thesis stays in body", () => {
+    const thesis = "Today's brief has a single hidden spine: the cost of human judgement is being repriced everywhere at once.";
+    const signals =
+      "If SK Hynix's Nasdaq ADR closes above its filing valuation and Micron guides upward again, watch for Temasek and GIC to increase their technology sector exposure disclosures above 3% in the ADR. " +
+      "Separately, if the US RAISE US coalition's state pilot programs show measurable re-employment rates within 18 months, expect MOM and SkillsFuture Singapore to adopt the employer-commitment model rather than the individual-voucher model. " +
+      "The question for you, sitting in both worlds, is whether your employer's next AI productivity announcement comes before or after your skills gap does.";
+    const { body, watch } = partitionSynthesis([thesis, signals]);
+    expect(watch).toHaveLength(2);
+    expect(watch[0]).toMatch(/^If SK Hynix/);
+    expect(watch[1]).toMatch(/^If the US RAISE/); // "Separately," stripped
+    expect(body).toMatch(/single hidden spine/);
+    expect(body).toMatch(/The question for you/); // closing line folds into body
+  });
+
+  it("handles the ordinal 'First/Second/Third' shape and missing 2nd paragraph", () => {
+    const signals = "Three signals to watch. First, if oil holds above $90 the import bill bites. Second, if the Fed hikes in December REIT yields reprice.";
+    expect(partitionSynthesis(["Thesis here.", signals]).watch).toHaveLength(2);
+    expect(partitionSynthesis(["Only a thesis, no signals paragraph."]).watch).toEqual([]);
+    expect(partitionSynthesis([])).toEqual({ body: "", watch: [] });
   });
 });
