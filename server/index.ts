@@ -78,6 +78,19 @@ async function startServer() {
     }
   });
 
+  // Market data — server fetches Yahoo via the IPRoyal residential proxy and
+  // serves it same-origin (browsers can't read Yahoo directly: CORS). Cached.
+  app.get("/api/markets", async (req, res) => {
+    try {
+      const { getMarkets } = await import("./markets.js");
+      const range = typeof req.query.range === "string" ? req.query.range : "1mo";
+      const data = await getMarkets(range);
+      res.json({ ok: true, range, data });
+    } catch (err) {
+      res.status(500).json({ error: String(err) });
+    }
+  });
+
   // Lightweight health check — used by the host's health probe and the
   // keep-warm cron ping (avoids serving the full SPA HTML on every poll).
   app.get("/healthz", (_req, res) => {

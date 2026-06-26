@@ -33,3 +33,7 @@ services:
       # Twelve Data key for the equity-index refresh. Set in the dashboard.
       - key: TWELVEDATA_API_KEY
         sync: false
+      # IPRoyal residential proxy URL for the Yahoo market fetch. Set in the
+      # dashboard: http://user:pass@host:port
+      - key: IPROYAL_PROXY
+        sync: false

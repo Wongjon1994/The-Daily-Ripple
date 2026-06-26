@@ -159,6 +159,15 @@ See **[BRIEF_FORMAT.md](BRIEF_FORMAT.md)** for the brief schema and the
 Newest first. Append an entry here for every change.
 
 ### 2026-06-26
+- **Markets via server-side Yahoo through an IPRoyal residential proxy** — the
+  client-side Yahoo fetch was a dead end (Yahoo's `/v8/finance/chart` sends no CORS
+  header, so browsers can't read it — confirmed on a fresh cellular IP; the Manus
+  reference actually fetches server-side). Now the browser calls our own
+  `GET /api/markets?range=X`; the server (`server/markets.ts`) fetches all 12
+  instruments from Yahoo through the IPRoyal residential proxy (`IPROYAL_PROXY`),
+  sidestepping Render's datacenter 429, and caches results 30 min so visitors
+  collapse to a few upstream calls (keeps proxy bandwidth tiny). Same-origin → no CORS. One source covers
+  everything including the four Asian indices, with full sparkline history.
 - **Markets via client-side Yahoo Finance** — the Trends "Tracked metrics" section
   is replaced by a new `MarketsSection` (12 instruments: 6 indices, 3 FX, 10Y
   yield, Brent, Gold). Yahoo is fetched **in the visitor's browser** (residential

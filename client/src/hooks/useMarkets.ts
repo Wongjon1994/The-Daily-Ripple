@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
 import { INSTRUMENTS, type InstrumentDef } from "@/lib/instruments";
-import { fetchInstrument } from "@/lib/yahooFinance";
 
 export type MarketInstrument = InstrumentDef & {
   currentPrice: number;
@@ -31,6 +30,7 @@ function blank(def: InstrumentDef): MarketInstrument {
   };
 }
 
+/** Fetches our own /api/markets (server fetches Yahoo via the residential proxy). */
 export function useMarkets(range: string) {
   const [instruments, setInstruments] = useState<MarketInstrument[]>(INSTRUMENTS.map(blank));
   const [loading, setLoading] = useState(true);
@@ -38,30 +38,19 @@ export function useMarkets(range: string) {
 
   const load = useCallback(async () => {
     setFetching(true);
-    const results = await Promise.allSettled(INSTRUMENTS.map((def) => fetchInstrument(def.symbol, range)));
-    setInstruments(
-      INSTRUMENTS.map((def, i) => {
-        const r = results[i];
-        if (r.status === "rejected") return { ...blank(def), error: true };
-        const { quote, chart } = r.value;
-        const firstClose = chart[0]?.v ?? quote.regularMarketPreviousClose;
-        const lastClose = chart[chart.length - 1]?.v ?? quote.regularMarketPrice;
-        const rangeChangePct = firstClose ? ((lastClose - firstClose) / firstClose) * 100 : 0;
-        return {
-          ...def,
-          currentPrice: quote.regularMarketPrice,
-          prevClose: quote.regularMarketPreviousClose,
-          dayChange: quote.regularMarketChange,
-          dayChangePct: quote.regularMarketChangePercent,
-          rangeChangePct,
-          fiftyTwoWeekHigh: quote.fiftyTwoWeekHigh,
-          fiftyTwoWeekLow: quote.fiftyTwoWeekLow,
-          regularMarketVolume: quote.regularMarketVolume,
-          series: chart,
-          error: false,
-        };
-      })
-    );
+    try {
+      const res = await fetch(`/api/markets?range=${encodeURIComponent(range)}`);
+      const json = await res.json();
+      const data: Record<string, Omit<MarketInstrument, keyof InstrumentDef | "error"> | null> = json?.data ?? {};
+      setInstruments(
+        INSTRUMENTS.map((def) => {
+          const d = data[def.symbol];
+          return d ? { ...def, ...d, error: false } : { ...blank(def), error: true };
+        })
+      );
+    } catch {
+      setInstruments(INSTRUMENTS.map((def) => ({ ...blank(def), error: true })));
+    }
     setLoading(false);
     setFetching(false);
   }, [range]);
