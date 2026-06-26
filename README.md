@@ -159,6 +159,15 @@ See **[BRIEF_FORMAT.md](BRIEF_FORMAT.md)** for the brief schema and the
 Newest first. Append an entry here for every change.
 
 ### 2026-06-26
+- **Markets via client-side Yahoo Finance** — the Trends "Tracked metrics" section
+  is replaced by a new `MarketsSection` (12 instruments: 6 indices, 3 FX, 10Y
+  yield, Brent, Gold). Yahoo is fetched **in the visitor's browser** (residential
+  IP), which sidesteps the datacenter 429 that blocked the server-side Yahoo/Twelve
+  Data path — no key, no server, no schedule. Range tabs (1D–5Y), sparklines,
+  day/range change, volume/prev-close, 52-week bar; themed to the dashboard's navy
+  palette. Cards degrade to "Data unavailable" on fetch failure. (The server-side
+  `market_metrics` build remains as a fallback; the old brief-derived MetricCard is
+  now dead code pending confirmation of this approach.)
 - **Indices scoped to US (SPY/DIA) on Twelve Data free** — TD's free tier has no
   raw indices and only resolves US-listed symbols, so S&P 500 and Dow source from
   the SPY/DIA ETFs (≈index ÷10 and ÷100; scale at display). The four Asian indices

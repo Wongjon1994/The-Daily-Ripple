@@ -12,13 +12,16 @@ import { Link } from "wouter";
 import type { DailyBrief } from "@/lib/briefParser";
 import {
   buildWatchSignals,
-  buildTrackedMetrics,
   groupBroaderSignals,
   type TrackedMetric,
   type BoundSignal,
   type Threshold,
   type MetricPoint,
 } from "@/lib/trendsAnalysis";
+import MarketsSection from "@/components/MarketsSection";
+// NOTE: MetricCard + its helpers below are now unused — MarketsSection replaced the
+// brief-derived "Tracked metrics". Kept dead pending confirmation of the client-side
+// Yahoo approach (vs the server-side market_metrics build); remove once confirmed.
 import {
   ChevronDown, TrendingUp, TrendingDown, Minus, Telescope, ArrowUpRight,
   CircleCheck, Eye, Flame, Landmark, Cpu, Shield, Sparkles,
@@ -242,52 +245,16 @@ function MoreList<T>({
 }
 
 export default function TrendsDashboard({ briefs }: { briefs: Record<string, DailyBrief> }) {
-  const [expanded, setExpanded] = useState<string | null>(null);
   const [openThemes, setOpenThemes] = useState<Set<string>>(new Set());
 
-  const { metrics, themes } = useMemo(() => {
-    const signals = buildWatchSignals(briefs);
-    const claimed = new Set<(typeof signals)[number]>();
-    const metrics = buildTrackedMetrics(briefs, signals, claimed);
-    const themes = groupBroaderSignals(signals.filter((s) => !claimed.has(s)), briefs);
-    return { metrics, themes };
-  }, [briefs]);
-
-  const totalRealised = metrics.reduce((n, m) => n + m.realisedCount, 0);
-
-  if (metrics.length === 0 && themes.length === 0) {
-    return (
-      <p className="text-sm py-12 text-center" style={{ color: "var(--color-mist-faint)" }}>
-        No metrics to track yet — trends appear as briefs accumulate.
-      </p>
-    );
-  }
+  // Broader signals (Part 2 will persist these). Show all for now — the Markets
+  // grid no longer binds/claims signals the way the old brief-derived metrics did.
+  const themes = useMemo(() => groupBroaderSignals(buildWatchSignals(briefs), briefs), [briefs]);
 
   return (
     <div className="space-y-10">
-      {/* ── Tracked metrics ──────────────────────────────────────────────── */}
-      {metrics.length > 0 && (
-        <section>
-          <div
-            className="sticky z-20 flex items-baseline justify-between mb-4 py-2 backdrop-blur-md border-b border-border/40"
-            style={{ top: "var(--nav-h)", background: "color-mix(in oklab, var(--background) 93%, transparent)" }}
-          >
-            <h2 className="text-2xl font-bold" style={{ fontFamily: "'Playfair Display', Georgia, serif", color: "var(--color-gold-rich)" }}>
-              Tracked metrics
-            </h2>
-            <span className="hidden sm:inline text-[11px] font-mono whitespace-nowrap" style={{ color: "var(--color-mist-dim)" }}>
-              {metrics.length} reported ≥2× · {totalRealised} signal{totalRealised === 1 ? "" : "s"} realised
-            </span>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            {metrics.map((m) => (
-              <MetricCard key={m.label} m={m} isExpanded={expanded === m.label}
-                onToggle={() => setExpanded(expanded === m.label ? null : m.label)} />
-            ))}
-          </div>
-        </section>
-      )}
+      {/* ── Markets — client-side Yahoo data, themed to the dashboard ─────── */}
+      <MarketsSection />
 
       {/* ── Broader signals, grouped by theme ────────────────────────────── */}
       {themes.length > 0 && (
