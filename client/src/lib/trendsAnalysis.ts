@@ -243,24 +243,6 @@ export function partitionLensWatch(
 }
 
 /**
- * Partition a systems-synthesis section using its paragraph structure: by the
- * brief's authoring convention the forward "watch signals" always live in the
- * 2nd paragraph, with the 1st (and any later) paragraph being the thesis. Pulling
- * signals only from paragraph 2 keeps the thesis intact and stops a stray
- * conditional in the thesis from being mis-read as a signal — and vice versa.
- * Any non-signal prose left in paragraph 2 (e.g. a closing line) folds into body.
- */
-export function partitionSynthesis(paragraphs: string[] | null | undefined): { body: string; watch: string[] } {
-  const paras = (paragraphs ?? []).map((p) => (p || "").trim()).filter(Boolean);
-  if (paras.length === 0) return { body: "", watch: [] };
-  const signalsPara = paras.length > 1 ? paras[1] : "";
-  const { body: leftover, watch } = partitionLensWatch(signalsPara, true);
-  const bodyParas = paras.filter((_, i) => i !== 1);
-  if (leftover) bodyParas.push(leftover);
-  return { body: bodyParas.join("\n\n").trim(), watch };
-}
-
-/**
  * The synthesis section (section 8) is what carries the day's three forward
  * signals in its prose. Generators have labelled it "systems", "synthesis", or
  * "systems synthesis" at different times — treat all of them as the synthesis
@@ -279,10 +261,8 @@ export function buildWatchSignals(briefs: Record<string, DailyBrief>): WatchSign
   for (const [slug, brief] of entries) {
     brief.sections.forEach((section, idx) => {
       const isSystems = isSynthesisSection(section);
-      const parts = isSystems
-        ? partitionSynthesis(section.paragraphs)
-        : partitionLensWatch(section.singaporeLens || "", false);
-      for (const sentence of parts.watch) {
+      const text = isSystems ? section.paragraphs.join(" ") : section.singaporeLens || "";
+      for (const sentence of partitionLensWatch(text, isSystems).watch) {
         const norm = sentence.toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 90);
         if (seen.has(norm)) continue;
         seen.add(norm);
