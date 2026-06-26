@@ -1,4 +1,4 @@
-import { bigint, jsonb, pgTable, serial, text } from "drizzle-orm/pg-core";
+import { bigint, doublePrecision, jsonb, pgTable, serial, text, unique } from "drizzle-orm/pg-core";
 
 /**
  * Canonical briefs table — replaces both dailyBriefs and n8nBriefs.
@@ -37,6 +37,36 @@ export const marketTicker = pgTable("market_ticker", {
   tickerData: jsonb("ticker_data").notNull().$type<TickerItem[]>(),
   fetchedAt: bigint("fetched_at", { mode: "number" }).notNull().$defaultFn(() => Date.now()),
 });
+
+/**
+ * Persistent daily market time series — one row per (symbol, date), sourced
+ * directly from Yahoo Finance / Alpha Vantage / MAS (no n8n, no LLM). Stores full
+ * OHLCV because every API call returns it for free; only `close` renders today.
+ */
+export const marketMetrics = pgTable(
+  "market_metrics",
+  {
+    id: serial("id").primaryKey(),
+    /** Provider symbol, e.g. "^GSPC", "BRENT", "USDSGD" */
+    symbol: text("symbol").notNull(),
+    /** Display label, e.g. "S&P 500" */
+    label: text("label").notNull(),
+    /** Trading day, ISO "YYYY-MM-DD" */
+    date: text("date").notNull(),
+    open: doublePrecision("open"),
+    high: doublePrecision("high"),
+    low: doublePrecision("low"),
+    close: doublePrecision("close"),
+    /** Nullable — not all sources report volume (indices generally don't) */
+    volume: bigint("volume", { mode: "number" }),
+    /** "yahoo" | "alphavantage" | "mas" */
+    source: text("source").notNull(),
+    fetchedAt: bigint("fetched_at", { mode: "number" }).notNull().$defaultFn(() => Date.now()),
+  },
+  (t) => ({
+    uniqSymbolDate: unique("uniq_market_symbol_date").on(t.symbol, t.date),
+  })
+);
 
 // ─── Shared sub-types ────────────────────────────────────────────────────────
 
@@ -79,3 +109,5 @@ export interface TickerItem {
 export type Brief = typeof briefs.$inferSelect;
 export type InsertBrief = typeof briefs.$inferInsert;
 export type MarketTicker = typeof marketTicker.$inferSelect;
+export type MarketMetric = typeof marketMetrics.$inferSelect;
+export type InsertMarketMetric = typeof marketMetrics.$inferInsert;

@@ -59,6 +59,23 @@ async function startServer() {
     }
   });
 
+  // Refresh market metrics — direct Yahoo/Alpha Vantage/MAS fetch, no n8n.
+  // Triggered by an external scheduler (see README) at 7:30am SGT on weekdays.
+  // `?range=5y` does a one-time history backfill for the chart windows.
+  app.post("/api/scheduled/refresh-metrics", async (req, res) => {
+    if (!authorized(req)) return res.status(401).json({ error: "Unauthorized" });
+    try {
+      const { fetchAllMetrics } = await import("./marketData.js");
+      const { upsertMarketMetrics } = await import("./db.js");
+      const range = typeof req.query.range === "string" ? req.query.range : "5d";
+      const { rows, results } = await fetchAllMetrics(range);
+      const stored = await upsertMarketMetrics(rows);
+      res.json({ ok: true, stored, results });
+    } catch (err) {
+      res.status(500).json({ error: String(err) });
+    }
+  });
+
   // Lightweight health check — used by the host's health probe and the
   // keep-warm cron ping (avoids serving the full SPA HTML on every poll).
   app.get("/healthz", (_req, res) => {

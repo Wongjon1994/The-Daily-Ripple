@@ -158,6 +158,17 @@ See **[BRIEF_FORMAT.md](BRIEF_FORMAT.md)** for the brief schema and the
 
 Newest first. Append an entry here for every change.
 
+### 2026-06-26
+- **Market data, Part 1 (data layer)** — new `market_metrics` table (persistent
+  daily OHLCV time series, unique on symbol+date) plus a direct fetch service
+  (`server/marketData.ts`): Yahoo Finance for the six equity indices (S&P 500,
+  Dow, STI, Nikkei, Hang Seng, KOSPI), Alpha Vantage for Brent / Gold / 10Y yield
+  / FX (USD·JPY·EUR/SGD), MAS for 3-month SORA — no n8n, no LLM. Authed endpoint
+  `POST /api/scheduled/refresh-metrics` (`X-Api-Key`) fetches all, staggers the AV
+  calls, upserts idempotently; `?range=5y` does a one-time history backfill. Needs
+  `ALPHAVANTAGE_API_KEY`. Gold + SORA parsers log their raw response and parse
+  defensively pending first-run verification. (Trends repoint + card redesign next.)
+
 ### 2026-06-24
 - **Singapore Lens from the 3rd paragraph** — by the brief's authoring convention
   the 3rd paragraph of a story (§1–7) is the Singapore Lens, so the card now falls

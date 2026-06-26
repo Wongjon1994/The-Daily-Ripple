@@ -1,8 +1,8 @@
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
-import { desc, eq, gte, lte, and } from "drizzle-orm";
+import { desc, eq, gte, lte, and, sql } from "drizzle-orm";
 import * as schema from "../drizzle/schema.js";
-import type { InsertBrief } from "../drizzle/schema.js";
+import type { InsertBrief, InsertMarketMetric } from "../drizzle/schema.js";
 
 const connectionString = process.env.DATABASE_URL;
 
@@ -59,6 +59,22 @@ export async function initDb(): Promise<void> {
       ticker_data JSONB   NOT NULL,
       fetched_at  BIGINT  NOT NULL
     );
+
+    CREATE TABLE IF NOT EXISTS market_metrics (
+      id          SERIAL  PRIMARY KEY,
+      symbol      TEXT    NOT NULL,
+      label       TEXT    NOT NULL,
+      date        TEXT    NOT NULL,
+      open        DOUBLE PRECISION,
+      high        DOUBLE PRECISION,
+      low         DOUBLE PRECISION,
+      close       DOUBLE PRECISION,
+      volume      BIGINT,
+      source      TEXT    NOT NULL,
+      fetched_at  BIGINT  NOT NULL,
+      CONSTRAINT uniq_market_symbol_date UNIQUE (symbol, date)
+    );
+    CREATE INDEX IF NOT EXISTS idx_market_metrics_symbol_date ON market_metrics(symbol, date);
   `);
 }
 
@@ -195,4 +211,48 @@ export async function getLatestMarketTicker() {
     .orderBy(desc(schema.marketTicker.fetchedAt))
     .limit(1);
   return results[0] ?? null;
+}
+
+// ─── Market Metrics (persistent OHLCV time series) ───────────────────────────
+
+/** Upsert daily rows, idempotent on (symbol, date) so a re-run never duplicates. */
+export async function upsertMarketMetrics(rows: InsertMarketMetric[]): Promise<number> {
+  if (rows.length === 0) return 0;
+  const db = getDb();
+  await db
+    .insert(schema.marketMetrics)
+    .values(rows)
+    .onConflictDoUpdate({
+      target: [schema.marketMetrics.symbol, schema.marketMetrics.date],
+      set: {
+        label: sql`excluded.label`,
+        open: sql`excluded.open`,
+        high: sql`excluded.high`,
+        low: sql`excluded.low`,
+        close: sql`excluded.close`,
+        volume: sql`excluded.volume`,
+        source: sql`excluded.source`,
+        fetchedAt: sql`excluded.fetched_at`,
+      },
+    });
+  return rows.length;
+}
+
+/** Latest row per symbol — the headline number on each card. */
+export async function getLatestMetrics() {
+  const db = getDb();
+  return db
+    .selectDistinctOn([schema.marketMetrics.symbol])
+    .from(schema.marketMetrics)
+    .orderBy(schema.marketMetrics.symbol, desc(schema.marketMetrics.date));
+}
+
+/** Full daily history for one symbol from `fromDate` (ISO) forward, oldest first. */
+export async function getMetricHistory(symbol: string, fromDate: string) {
+  const db = getDb();
+  return db
+    .select()
+    .from(schema.marketMetrics)
+    .where(and(eq(schema.marketMetrics.symbol, symbol), gte(schema.marketMetrics.date, fromDate)))
+    .orderBy(schema.marketMetrics.date);
 }
