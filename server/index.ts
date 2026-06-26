@@ -69,7 +69,7 @@ async function startServer() {
       const { upsertMarketMetrics } = await import("./db.js");
       const range = typeof req.query.range === "string" ? req.query.range : "5d";
       const sources =
-        typeof req.query.sources === "string" ? req.query.sources.split(",").map((s) => s.trim()) : ["yahoo", "av", "mas"];
+        typeof req.query.sources === "string" ? req.query.sources.split(",").map((s) => s.trim()) : ["indices", "av"];
       const { rows, results } = await fetchAllMetrics(range, sources);
       const stored = await upsertMarketMetrics(rows);
       res.json({ ok: true, stored, results });

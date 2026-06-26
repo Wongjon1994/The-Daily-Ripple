@@ -159,6 +159,12 @@ See **[BRIEF_FORMAT.md](BRIEF_FORMAT.md)** for the brief schema and the
 Newest first. Append an entry here for every change.
 
 ### 2026-06-26
+- **Market data: indices via Twelve Data, SORA dropped** — the first prod run
+  showed Yahoo is IP-blocked from Render (429) and Stooq is behind a JS anti-bot
+  wall, so the six equity indices now source from Twelve Data (`TWELVEDATA_API_KEY`,
+  free 800/day, datacenter-friendly). MAS's SORA endpoint is in maintenance, so
+  SORA is dropped per the spec's decision rule. Refresh endpoint groups are now
+  `?sources=indices,av`.
 - **Market data, Part 1 (data layer)** — new `market_metrics` table (persistent
   daily OHLCV time series, unique on symbol+date) plus a direct fetch service
   (`server/marketData.ts`): Yahoo Finance for the six equity indices (S&P 500,

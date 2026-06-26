@@ -11,9 +11,6 @@
 import axios from "axios";
 import type { InsertMarketMetric } from "../drizzle/schema.js";
 
-const BROWSER_UA =
-  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36";
-
 type Row = Omit<InsertMarketMetric, "id" | "fetchedAt">;
 
 export interface FetchResult {
@@ -31,47 +28,55 @@ const num = (v: unknown): number | null => {
   return Number.isFinite(n) ? n : null;
 };
 
-// ─── Yahoo Finance — equity indices (unofficial; robots.txt disallows; UA req'd) ──
-const YAHOO_INDICES: Array<{ symbol: string; label: string }> = [
-  { symbol: "^GSPC", label: "S&P 500" },
-  { symbol: "^DJI", label: "Dow Jones" },
-  { symbol: "^STI", label: "STI" },
-  { symbol: "^N225", label: "Nikkei 225" },
-  { symbol: "^HSI", label: "Hang Seng" },
-  { symbol: "^KS11", label: "KOSPI" },
+// ─── Twelve Data — equity indices (keyed; datacenter-friendly; Yahoo/Stooq are
+// both blocked from the server, see git history). Stores a provider-agnostic
+// canonical symbol ("^GSPC") and calls Twelve Data with its own symbol. The TD
+// symbols below are best-effort; the first real run reports any that don't
+// resolve so we can correct them. ──
+const TD = "https://api.twelvedata.com/time_series";
+const tdKey = () => process.env.TWELVEDATA_API_KEY ?? "";
+
+const TD_INDICES: Array<{ symbol: string; label: string; td: string }> = [
+  { symbol: "^GSPC", label: "S&P 500", td: "SPX" },
+  { symbol: "^DJI", label: "Dow Jones", td: "DJI" },
+  { symbol: "^STI", label: "STI", td: "STI" },
+  { symbol: "^N225", label: "Nikkei 225", td: "N225" },
+  { symbol: "^HSI", label: "Hang Seng", td: "HSI" },
+  { symbol: "^KS11", label: "KOSPI", td: "KS11" },
 ];
 
-async function fetchYahoo(symbol: string, label: string, range: string): Promise<Row[]> {
-  const url = `https://query2.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}`;
-  const res = await axios.get(url, {
-    params: { range, interval: "1d" },
-    headers: {
-      "User-Agent": BROWSER_UA,
-      Accept: "application/json,text/plain,*/*",
-      "Accept-Language": "en-US,en;q=0.9",
-    },
+/** Map a chart range ("5d", "1m", "5y") to a Twelve Data outputsize (trading days). */
+function rangeToOutputsize(range: string): number {
+  const m = /^(\d+)\s*([dmy])$/i.exec(range.trim());
+  if (!m) return 30;
+  const n = parseInt(m[1], 10);
+  const u = m[2].toLowerCase();
+  const pts = u === "d" ? n + 2 : u === "m" ? n * 23 : n * 260;
+  return Math.min(5000, Math.max(5, pts));
+}
+
+async function fetchTwelveData(cfg: (typeof TD_INDICES)[number], range: string): Promise<Row[]> {
+  const res = await axios.get(TD, {
+    params: { symbol: cfg.td, interval: "1day", outputsize: rangeToOutputsize(range), apikey: tdKey(), format: "JSON" },
     timeout: 12000,
   });
-  const result = res.data?.chart?.result?.[0];
-  const ts: number[] = result?.timestamp ?? [];
-  const q = result?.indicators?.quote?.[0] ?? {};
-  const rows: Row[] = [];
-  for (let i = 0; i < ts.length; i++) {
-    const close = num(q.close?.[i]);
-    if (close == null) continue; // skip incomplete sessions
-    rows.push({
-      symbol,
-      label,
-      date: new Date(ts[i] * 1000).toISOString().slice(0, 10),
-      open: num(q.open?.[i]),
-      high: num(q.high?.[i]),
-      low: num(q.low?.[i]),
-      close,
-      volume: num(q.volume?.[i]),
-      source: "yahoo",
-    });
+  const d = res.data;
+  if (d?.status === "error" || !Array.isArray(d?.values)) {
+    throw new Error(d?.message || "no values");
   }
-  return rows;
+  return (d.values as any[])
+    .map((v): Row => ({
+      symbol: cfg.symbol,
+      label: cfg.label,
+      date: v.datetime, // "YYYY-MM-DD"
+      open: num(v.open),
+      high: num(v.high),
+      low: num(v.low),
+      close: num(v.close),
+      volume: num(v.volume),
+      source: "twelvedata",
+    }))
+    .filter((r) => r.close != null);
 }
 
 // ─── Alpha Vantage ────────────────────────────────────────────────────────────
@@ -161,28 +166,15 @@ async function fetchAvGold(): Promise<Row[]> {
   throw new Error("unrecognised GOLD_SILVER_SPOT shape — see logged raw");
 }
 
-// ─── MAS SORA — try once; if Cloudflare-blocked, caller drops it ─────────────────
-async function fetchMasSora(): Promise<Row[]> {
-  const res = await axios.get("https://eservices.mas.gov.sg/api/action/datastore/search.json", {
-    params: { resource_id: "9a0bf149-308c-4bd2-832d-76c8e6cb47ed", limit: 1, sort: "end_of_day desc", fields: "end_of_day,comp_sora_1m,comp_sora_3m,comp_sora_6m" },
-    headers: { "User-Agent": BROWSER_UA },
-    timeout: 15000,
-  });
-  console.log("[marketData] MAS SORA raw:", JSON.stringify(res.data)?.slice(0, 500));
-  const rec = res.data?.result?.records?.[0];
-  const close = num(rec?.comp_sora_3m);
-  if (!rec || close == null) throw new Error("no SORA record");
-  return [{ symbol: "SORA3M", label: "3-Month SORA", date: rec.end_of_day, open: null, high: null, low: null, close, volume: null, source: "mas" }];
-}
-
 /**
- * Fetch everything, stagger the Alpha Vantage calls (free tier ~5/min), and return
- * normalised rows plus a per-source summary. `range` controls the Yahoo lookback
- * ("5d" for the daily job, e.g. "5y" for a one-time history backfill).
+ * Fetch everything and return normalised rows plus a per-source summary. `range`
+ * controls the index lookback ("5d" for the daily job, "5y" for a one-time history
+ * backfill). `sources` selects which groups run ("indices" | "av") so we can test
+ * one provider without spending the other's quota.
  */
 export async function fetchAllMetrics(
   range = "5d",
-  sources: string[] = ["yahoo", "av", "mas"]
+  sources: string[] = ["indices", "av"]
 ): Promise<{ rows: Row[]; results: FetchResult[] }> {
   const rows: Row[] = [];
   const results: FetchResult[] = [];
@@ -199,11 +191,11 @@ export async function fetchAllMetrics(
     }
   };
 
-  // Yahoo — staggered, not parallel: a burst of 6 trips a 429 from datacenter IPs.
-  if (run("yahoo")) {
-    for (const c of YAHOO_INDICES) {
-      await record(c.symbol, c.label, () => fetchYahoo(c.symbol, c.label, range));
-      await sleep(400);
+  // Equity indices via Twelve Data — staggered (free tier ~8 credits/min).
+  if (run("indices")) {
+    for (const c of TD_INDICES) {
+      await record(c.symbol, c.label, () => fetchTwelveData(c, range));
+      await sleep(1000);
     }
   }
 
@@ -219,11 +211,6 @@ export async function fetchAllMetrics(
       await record(symbol, label, fn);
       await sleep(1500);
     }
-  }
-
-  // MAS SORA — single probe; dropped automatically if it errors (e.g. Cloudflare).
-  if (run("mas")) {
-    await record("SORA3M", "3-Month SORA", fetchMasSora);
   }
 
   return { rows, results };

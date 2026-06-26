@@ -30,3 +30,6 @@ services:
       # Render dashboard (sync:false keeps the secret out of the repo).
       - key: ALPHAVANTAGE_API_KEY
         sync: false
+      # Twelve Data key for the equity-index refresh. Set in the dashboard.
+      - key: TWELVEDATA_API_KEY
+        sync: false

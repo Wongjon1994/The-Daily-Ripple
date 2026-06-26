@@ -59,7 +59,7 @@ export const marketMetrics = pgTable(
     close: doublePrecision("close"),
     /** Nullable — not all sources report volume (indices generally don't) */
     volume: bigint("volume", { mode: "number" }),
-    /** "yahoo" | "alphavantage" | "mas" */
+    /** "twelvedata" | "alphavantage" */
     source: text("source").notNull(),
     fetchedAt: bigint("fetched_at", { mode: "number" }).notNull().$defaultFn(() => Date.now()),
   },
