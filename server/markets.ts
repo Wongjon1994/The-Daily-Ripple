@@ -19,6 +19,8 @@ export interface MarketData {
   fiftyTwoWeekLow: number;
   regularMarketVolume: number;
   series: { ts: number; v: number }[];
+  /** Last ~120 daily closes (ISO date) for signal-realisation, view-range-independent. */
+  recent: { date: string; v: number }[];
 }
 
 type Source = "td" | "av";
@@ -131,6 +133,7 @@ function build(raw: RawSeries, rangeKey: string): MarketData {
     fiftyTwoWeekLow: yearWin.length ? Math.min(...yearWin.map((p) => p.v)) : current,
     regularMarketVolume: raw.volume,
     series: win,
+    recent: full.slice(-120).map((p) => ({ date: new Date(p.ts * 1000).toISOString().slice(0, 10), v: p.v })),
   };
 }
 

@@ -159,6 +159,16 @@ See **[BRIEF_FORMAT.md](BRIEF_FORMAT.md)** for the brief schema and the
 Newest first. Append an entry here for every change.
 
 ### 2026-06-27
+- **Quantitative signal realisation on the Markets cards** — each card binds the
+  briefs' forward threshold-signals ("watch oil below $75") to its live series and
+  resolves them against real prices: a dashed reference line on the sparkline
+  (green = realised, amber = watching) plus a one-line callout ("Flagged below $75
+  → hit $74.20 (+2d)", linking to the source brief). Realisation is the **first**
+  crossing after the signal's brief date, so a signal realises exactly once and
+  never re-realises on a later crossing (`marketThresholdSignals`, reusing the
+  existing `findThresholdSignals` against `/api/markets` `recent` data; tested).
+- **Markets footer** now reads "Twelve Data & Alpha Vantage · daily close · cached
+  server-side" (was the stale Yahoo/browser line).
 - **Markets: free, on-demand, server-side TD + Alpha Vantage** — the Trends
   "Tracked metrics" section is now a `MarketsSection` of 8 instruments fetched on
   demand (no cron) via our own `GET /api/markets?range=X`. `server/markets.ts`

@@ -253,8 +253,8 @@ export default function TrendsDashboard({ briefs }: { briefs: Record<string, Dai
 
   return (
     <div className="space-y-10">
-      {/* ── Markets — client-side Yahoo data, themed to the dashboard ─────── */}
-      <MarketsSection />
+      {/* ── Markets — TD + AV data with brief signal-realisation ─────────── */}
+      <MarketsSection briefs={briefs} />
 
       {/* ── Broader signals, grouped by theme ────────────────────────────── */}
       {themes.length > 0 && (

@@ -340,6 +340,24 @@ function findThresholdSignals(
   return out.sort((a, b) => (b.status === "realised" ? 1 : 0) - (a.status === "realised" ? 1 : 0));
 }
 
+/**
+ * Bind brief threshold-signals to a live market series (from /api/markets) and
+ * resolve them against the real prices. Realisation is the FIRST crossing after
+ * the signal's brief date — so a signal realises exactly once and never again on
+ * a later crossing. `label` should be keyword-matchable (e.g. "Treasury Yield"
+ * for the 10Y card).
+ */
+export function marketThresholdSignals(
+  label: string,
+  series: { date: string; v: number }[],
+  briefs: Record<string, DailyBrief>
+): BoundSignal[] {
+  const readings = series
+    .filter((p) => Number.isFinite(p.v))
+    .map((p) => ({ date: p.date, numeric: p.v, value: String(p.v) }));
+  return findThresholdSignals(label, readings, briefs);
+}
+
 // ── tracked metrics (≥2 readings, quant or qual) ───────────────────────────────
 export function buildTrackedMetrics(
   briefs: Record<string, DailyBrief>,

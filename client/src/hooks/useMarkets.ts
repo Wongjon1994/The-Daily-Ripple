@@ -11,6 +11,7 @@ export type MarketInstrument = InstrumentDef & {
   fiftyTwoWeekLow: number;
   regularMarketVolume: number;
   series: { ts: number; v: number }[];
+  recent: { date: string; v: number }[];
   error: boolean;
 };
 
@@ -26,6 +27,7 @@ function blank(def: InstrumentDef): MarketInstrument {
     fiftyTwoWeekLow: 0,
     regularMarketVolume: 0,
     series: [],
+    recent: [],
     error: false,
   };
 }

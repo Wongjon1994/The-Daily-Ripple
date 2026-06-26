@@ -1,13 +1,25 @@
 /**
- * Markets grid — client-side Yahoo data, themed to the Daily Ripple dashboard.
- * Drop-in for the Trends page; replaces the old brief-derived "Tracked metrics".
+ * Markets grid — TD + Alpha Vantage data (server-fetched, cached), themed to the
+ * dashboard. Each card resolves the briefs' threshold signals against its live
+ * series (realised once on first crossing).
  */
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { RefreshCw } from "lucide-react";
 import { useMarkets } from "@/hooks/useMarkets";
 import { MarketCard, MarketCardSkeleton } from "@/components/MarketCard";
+import { marketThresholdSignals, type BoundSignal } from "@/lib/trendsAnalysis";
+import type { DailyBrief } from "@/lib/briefParser";
 import { cn } from "@/lib/utils";
+
+// Keyword-matchable label per symbol for signal binding (e.g. "US 10Y" → yield).
+const MATCH_LABEL: Record<string, string> = {
+  "^GSPC": "S&P 500",
+  "^DJI": "Dow Jones",
+  BRENT: "Brent Crude",
+  GOLD: "Gold",
+  US10Y: "Treasury Yield",
+};
 
 const RANGES = [
   { value: "1d", label: "1D" },
@@ -20,9 +32,20 @@ const RANGES = [
   { value: "5y", label: "5Y" },
 ];
 
-export default function MarketsSection() {
+export default function MarketsSection({ briefs }: { briefs: Record<string, DailyBrief> }) {
   const [range, setRange] = useState("1mo");
   const { instruments, loading, fetching, refetch } = useMarkets(range);
+
+  // Bind brief threshold-signals to each instrument's live series, range-independent.
+  const signalsBySymbol = useMemo(() => {
+    const m: Record<string, BoundSignal[]> = {};
+    for (const inst of instruments) {
+      m[inst.symbol] = inst.recent?.length
+        ? marketThresholdSignals(MATCH_LABEL[inst.symbol] ?? inst.label, inst.recent, briefs)
+        : [];
+    }
+    return m;
+  }, [instruments, briefs]);
 
   return (
     <section>
@@ -71,11 +94,13 @@ export default function MarketsSection() {
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
         {loading
           ? Array.from({ length: 12 }).map((_, i) => <MarketCardSkeleton key={i} />)
-          : instruments.map((inst) => <MarketCard key={inst.symbol} data={inst} range={range} />)}
+          : instruments.map((inst) => (
+              <MarketCard key={inst.symbol} data={inst} range={range} signals={signalsBySymbol[inst.symbol] ?? []} />
+            ))}
       </div>
 
       <p className="text-[10px] font-mono mt-4 text-right" style={{ color: "var(--color-mist-faint)" }}>
-        Data via Yahoo Finance · 15–20 min delayed · fetched in your browser
+        Data via Twelve Data &amp; Alpha Vantage · daily close · cached server-side
       </p>
     </section>
   );

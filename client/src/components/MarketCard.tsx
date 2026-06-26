@@ -5,14 +5,17 @@
  */
 
 import { useMemo } from "react";
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
-import { TrendingUp, TrendingDown, Minus, AlertCircle } from "lucide-react";
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from "recharts";
+import { TrendingUp, TrendingDown, Minus, AlertCircle, CircleCheck, Eye } from "lucide-react";
+import { Link } from "wouter";
 import type { MarketInstrument } from "@/hooks/useMarkets";
+import type { BoundSignal } from "@/lib/trendsAnalysis";
 import { formatPrice, formatVolume, formatTick, exchangeLabel } from "@/lib/marketFormat";
 
 const UP = "var(--color-sage)";
 const DOWN = "var(--color-crimson)";
 const FLAT = "var(--color-mist-faint)";
+const AMBER = "var(--color-gold-rich)";
 
 const statLabel = "text-[9px] uppercase tracking-[0.12em] mb-0.5";
 
@@ -39,7 +42,7 @@ export function MarketCardSkeleton() {
   );
 }
 
-export function MarketCard({ data, range }: { data: MarketInstrument; range: string }) {
+export function MarketCard({ data, range, signals = [] }: { data: MarketInstrument; range: string; signals?: BoundSignal[] }) {
   const isFlat = Math.abs(data.dayChangePct) < 0.01;
   const isUp = data.dayChangePct >= 0;
   const trend = isFlat ? FLAT : isUp ? UP : DOWN;
@@ -48,6 +51,22 @@ export function MarketCard({ data, range }: { data: MarketInstrument; range: str
   const minV = useMemo(() => (series.length ? Math.min(...series.map((p) => p.v)) : 0), [series]);
   const maxV = useMemo(() => (series.length ? Math.max(...series.map((p) => p.v)) : 1), [series]);
   const pad = (maxV - minV) * 0.15 || 1;
+
+  // Unique threshold lines + the headline bound signal (realised float to the top).
+  const thresholds = useMemo(() => {
+    const seen = new Set<string>();
+    return signals.filter((s) => {
+      if (!s.threshold || !Number.isFinite(s.threshold.value)) return false;
+      const k = `${s.threshold.value}|${s.threshold.direction}`;
+      if (seen.has(k)) return false;
+      seen.add(k);
+      return true;
+    });
+  }, [signals]);
+  const thrVals = thresholds.map((s) => s.threshold!.value);
+  const yLo = thrVals.length ? Math.min(minV, ...thrVals) - pad : minV - pad;
+  const yHi = thrVals.length ? Math.max(maxV, ...thrVals) + pad : maxV + pad;
+  const topSignal = signals[0];
 
   const rangePos =
     data.fiftyTwoWeekHigh > data.fiftyTwoWeekLow
@@ -114,7 +133,16 @@ export function MarketCard({ data, range }: { data: MarketInstrument; range: str
               interval="preserveStartEnd"
               minTickGap={40}
             />
-            <YAxis domain={[minV - pad, maxV + pad]} hide />
+            <YAxis domain={[yLo, yHi]} hide />
+            {thresholds.map((s, i) => (
+              <ReferenceLine
+                key={i}
+                y={s.threshold!.value}
+                stroke={s.status === "realised" ? UP : AMBER}
+                strokeDasharray="4 3"
+                strokeOpacity={0.85}
+              />
+            ))}
             <Tooltip
               content={({ active, payload }) => {
                 if (!active || !payload?.length) return null;
@@ -175,6 +203,41 @@ export function MarketCard({ data, range }: { data: MarketInstrument; range: str
             <div className="absolute top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full" style={{ left: `calc(${Math.max(2, Math.min(98, rangePos))}% - 3px)`, background: data.color }} />
           </div>
         </div>
+      )}
+
+      {/* Realised / watching signal — bound from the briefs, resolved on this series */}
+      {topSignal?.threshold && (
+        <Link
+          href={`/brief/${topSignal.signal.slug}?story=${topSignal.signal.storyIndex + 1}`}
+          className="block rounded-md px-2 py-1.5 border transition-colors hover:brightness-110"
+          style={{
+            borderColor: `color-mix(in oklab, ${topSignal.status === "realised" ? UP : AMBER} 32%, transparent)`,
+            background: `color-mix(in oklab, ${topSignal.status === "realised" ? UP : AMBER} 8%, transparent)`,
+          }}
+          title={topSignal.signal.text}
+        >
+          <div className="flex items-start gap-1.5 text-[10px] leading-snug" style={{ color: "var(--color-mist-dim)" }}>
+            {topSignal.status === "realised" ? (
+              <CircleCheck className="w-3 h-3 shrink-0 mt-px" style={{ color: UP }} />
+            ) : (
+              <Eye className="w-3 h-3 shrink-0 mt-px" style={{ color: AMBER }} />
+            )}
+            <span>
+              {topSignal.status === "realised" ? (
+                <>
+                  Flagged {topSignal.threshold.direction} {formatPrice(topSignal.threshold.value, data)} → hit{" "}
+                  <span style={{ color: UP }}>{formatPrice(parseFloat(topSignal.realisation!.value), data)}</span> (+
+                  {topSignal.realisation!.lagDays}d)
+                </>
+              ) : (
+                <>
+                  Watching {topSignal.threshold.direction} {formatPrice(topSignal.threshold.value, data)}
+                </>
+              )}
+              {signals.length > 1 && <span style={{ color: "var(--color-mist-faint)" }}> · +{signals.length - 1} more</span>}
+            </span>
+          </div>
+        </Link>
       )}
     </div>
   );
