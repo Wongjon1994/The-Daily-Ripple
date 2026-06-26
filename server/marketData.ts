@@ -28,21 +28,17 @@ const num = (v: unknown): number | null => {
   return Number.isFinite(n) ? n : null;
 };
 
-// ─── Twelve Data — equity indices (keyed; datacenter-friendly; Yahoo/Stooq are
-// both blocked from the server, see git history). Stores a provider-agnostic
-// canonical symbol ("^GSPC") and calls Twelve Data with its own symbol. The TD
-// symbols below are best-effort; the first real run reports any that don't
-// resolve so we can correct them. ──
+// ─── Twelve Data — US equity indices via ETF proxies (free tier has no raw
+// indices and only resolves US-listed symbols; Yahoo/Stooq are both blocked from
+// the server, see git history). SPY≈S&P500/10 and DIA≈Dow/100 — tight trackers,
+// scaled to the index level at display time. Stores a provider-agnostic canonical
+// symbol ("^GSPC"). The four Asian indices need a paid source — omitted for now. ──
 const TD = "https://api.twelvedata.com/time_series";
 const tdKey = () => process.env.TWELVEDATA_API_KEY ?? "";
 
 const TD_INDICES: Array<{ symbol: string; label: string; td: string }> = [
-  { symbol: "^GSPC", label: "S&P 500", td: "SPX" },
-  { symbol: "^DJI", label: "Dow Jones", td: "DJI" },
-  { symbol: "^STI", label: "STI", td: "STI" },
-  { symbol: "^N225", label: "Nikkei 225", td: "N225" },
-  { symbol: "^HSI", label: "Hang Seng", td: "HSI" },
-  { symbol: "^KS11", label: "KOSPI", td: "KS11" },
+  { symbol: "^GSPC", label: "S&P 500", td: "SPY" },
+  { symbol: "^DJI", label: "Dow Jones", td: "DIA" },
 ];
 
 /** Map a chart range ("5d", "1m", "5y") to a Twelve Data outputsize (trading days). */
@@ -184,8 +180,9 @@ export async function fetchAllMetrics(
     try {
       const r = await fn();
       rows.push(...r);
-      const last = r[r.length - 1];
-      results.push({ symbol, label, ok: true, count: r.length, latest: last ? `${last.date}: ${last.close}` : undefined });
+      // Sources differ in order (TD newest-first, AV oldest-first) — pick by max date.
+      const newest = r.reduce<Row | null>((a, b) => (a && a.date > b.date ? a : b), null);
+      results.push({ symbol, label, ok: true, count: r.length, latest: newest ? `${newest.date}: ${newest.close}` : undefined });
     } catch (e: any) {
       results.push({ symbol, label, ok: false, count: 0, error: e?.message ?? String(e) });
     }

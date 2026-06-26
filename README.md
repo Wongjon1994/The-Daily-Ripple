@@ -159,6 +159,10 @@ See **[BRIEF_FORMAT.md](BRIEF_FORMAT.md)** for the brief schema and the
 Newest first. Append an entry here for every change.
 
 ### 2026-06-26
+- **Indices scoped to US (SPY/DIA) on Twelve Data free** — TD's free tier has no
+  raw indices and only resolves US-listed symbols, so S&P 500 and Dow source from
+  the SPY/DIA ETFs (≈index ÷10 and ÷100; scale at display). The four Asian indices
+  (STI/Nikkei/Hang Seng/KOSPI) need a paid tier and are omitted for now.
 - **Market data: indices via Twelve Data, SORA dropped** — the first prod run
   showed Yahoo is IP-blocked from Render (429) and Stooq is behind a JS anti-bot
   wall, so the six equity indices now source from Twelve Data (`TWELVEDATA_API_KEY`,
