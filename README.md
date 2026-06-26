@@ -158,25 +158,22 @@ See **[BRIEF_FORMAT.md](BRIEF_FORMAT.md)** for the brief schema and the
 
 Newest first. Append an entry here for every change.
 
+### 2026-06-27
+- **Markets: free, on-demand, server-side TD + Alpha Vantage** — the Trends
+  "Tracked metrics" section is now a `MarketsSection` of 8 instruments fetched on
+  demand (no cron) via our own `GET /api/markets?range=X`. `server/markets.ts`
+  sources S&P 500 + Dow from Twelve Data (SPY/DIA ETFs, scaled ×10/×100), Gold from
+  TD `XAU/USD`, and Brent / 10Y yield / SGD-FX from Alpha Vantage. One fetch per
+  symbol returns the full daily series; range tabs (1D–5Y) just re-slice the cache,
+  so no extra calls. Per-symbol cache (TD 30 min, AV 6 h) keeps AV within its 25/day
+  free quota (≤20/day) and collapses all visitors onto a few upstream calls. Themed
+  to the navy palette: sparklines, day/range change, volume/prev-close, 52-week bar.
+  Cost: $0. (Supersedes the abandoned Yahoo client-side / Yahoo-via-IPRoyal-proxy
+  attempts — Yahoo blocks both datacenter IPs and its residential-proxy pool; the
+  Asian indices need a paid tier and are omitted. Removed `server/marketData.ts`,
+  the `/api/scheduled/refresh-metrics` endpoint, and the `https-proxy-agent` dep.)
+
 ### 2026-06-26
-- **Markets via server-side Yahoo through an IPRoyal residential proxy** — the
-  client-side Yahoo fetch was a dead end (Yahoo's `/v8/finance/chart` sends no CORS
-  header, so browsers can't read it — confirmed on a fresh cellular IP; the Manus
-  reference actually fetches server-side). Now the browser calls our own
-  `GET /api/markets?range=X`; the server (`server/markets.ts`) fetches all 12
-  instruments from Yahoo through the IPRoyal residential proxy (`IPROYAL_PROXY`),
-  sidestepping Render's datacenter 429, and caches results 30 min so visitors
-  collapse to a few upstream calls (keeps proxy bandwidth tiny). Same-origin → no CORS. One source covers
-  everything including the four Asian indices, with full sparkline history.
-- **Markets via client-side Yahoo Finance** — the Trends "Tracked metrics" section
-  is replaced by a new `MarketsSection` (12 instruments: 6 indices, 3 FX, 10Y
-  yield, Brent, Gold). Yahoo is fetched **in the visitor's browser** (residential
-  IP), which sidesteps the datacenter 429 that blocked the server-side Yahoo/Twelve
-  Data path — no key, no server, no schedule. Range tabs (1D–5Y), sparklines,
-  day/range change, volume/prev-close, 52-week bar; themed to the dashboard's navy
-  palette. Cards degrade to "Data unavailable" on fetch failure. (The server-side
-  `market_metrics` build remains as a fallback; the old brief-derived MetricCard is
-  now dead code pending confirmation of this approach.)
 - **Indices scoped to US (SPY/DIA) on Twelve Data free** — TD's free tier has no
   raw indices and only resolves US-listed symbols, so S&P 500 and Dow source from
   the SPY/DIA ETFs (≈index ÷10 and ÷100; scale at display). The four Asian indices

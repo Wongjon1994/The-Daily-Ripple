@@ -1,31 +1,13 @@
 /**
- * Server-side market data — fetches Yahoo Finance through the IPRoyal residential
- * proxy so the request exits on a residential IP (Yahoo blocks Render's datacenter
- * IP with 429; CORS blocks browser fetches entirely). A shared in-memory cache
- * (10-min TTL) means N visitors collapse to a handful of upstream calls.
- *
- * Set IPROYAL_PROXY to the full proxy URL: http://user:pass@host:port
+ * Server-side market data, free tier, fetched on demand (no cron). Twelve Data
+ * for US indices via the SPY/DIA ETFs (scaled to index level), Alpha Vantage for
+ * Brent / Gold / 10Y yield / SGD FX. One fetch per symbol returns the full daily
+ * series; range tabs just re-slice the cache, so no extra API calls. A per-symbol
+ * cache (TD 30 min, AV 6 h) keeps AV within its tight 25/day free quota and
+ * collapses all visitors onto a few upstream calls. Browser reads /api/markets.
  */
 
 import axios from "axios";
-import { HttpsProxyAgent } from "https-proxy-agent";
-
-const BROWSER_UA =
-  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36";
-
-// Our range keys → Yahoo chart params.
-const RANGE_MAP: Record<string, { range: string; interval: string }> = {
-  "1d": { range: "1d", interval: "5m" },
-  "5d": { range: "5d", interval: "15m" },
-  "1mo": { range: "1mo", interval: "1d" },
-  "3mo": { range: "3mo", interval: "1d" },
-  "6mo": { range: "6mo", interval: "1wk" },
-  ytd: { range: "ytd", interval: "1wk" },
-  "1y": { range: "1y", interval: "1wk" },
-  "5y": { range: "5y", interval: "1mo" },
-};
-
-const SYMBOLS = ["^STI", "^GSPC", "^DJI", "^N225", "^HSI", "^KS11", "JPY=X", "SGD=X", "EUR=X", "^TNX", "BZ=F", "GC=F"];
 
 export interface MarketData {
   currentPrice: number;
@@ -39,65 +21,137 @@ export interface MarketData {
   series: { ts: number; v: number }[];
 }
 
-function proxyAgent(): HttpsProxyAgent<string> | undefined {
-  const url = process.env.IPROYAL_PROXY;
-  return url ? new HttpsProxyAgent(url) : undefined;
+type Source = "td" | "av";
+interface Inst {
+  symbol: string;
+  label: string;
+  source: Source;
+  td?: { sym: string; scale: number };
+  av?: { kind: "series" | "fx"; fn?: string; params?: Record<string, string>; from?: string; to?: string };
 }
 
-async function fetchSymbol(symbol: string, rangeKey: string): Promise<MarketData> {
-  const { range, interval } = RANGE_MAP[rangeKey] ?? RANGE_MAP["1mo"];
-  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=${interval}&range=${range}`;
-  const res = await axios.get(url, {
-    httpsAgent: proxyAgent(),
-    proxy: false,
-    timeout: 12000,
-    headers: { "User-Agent": BROWSER_UA, Accept: "application/json" },
-  });
-  const result = res.data?.chart?.result?.[0];
-  const meta = result?.meta ?? {};
-  const ts: number[] = result?.timestamp ?? [];
-  const closes: (number | null)[] = result?.indicators?.quote?.[0]?.close ?? [];
-  const series = ts.map((t, i) => ({ ts: t, v: closes[i] })).filter((p): p is { ts: number; v: number } => p.v != null);
+const INSTRUMENTS: Inst[] = [
+  { symbol: "^GSPC", label: "S&P 500", source: "td", td: { sym: "SPY", scale: 10 } },
+  { symbol: "^DJI", label: "Dow Jones", source: "td", td: { sym: "DIA", scale: 100 } },
+  { symbol: "BRENT", label: "Brent Crude", source: "av", av: { kind: "series", fn: "BRENT" } },
+  { symbol: "GOLD", label: "Gold", source: "td", td: { sym: "XAU/USD", scale: 1 } },
+  { symbol: "US10Y", label: "US 10Y", source: "av", av: { kind: "series", fn: "TREASURY_YIELD", params: { maturity: "10year" } } },
+  { symbol: "USDSGD", label: "USD/SGD", source: "av", av: { kind: "fx", from: "USD", to: "SGD" } },
+  { symbol: "JPYSGD", label: "JPY/SGD", source: "av", av: { kind: "fx", from: "JPY", to: "SGD" } },
+  { symbol: "EURSGD", label: "EUR/SGD", source: "av", av: { kind: "fx", from: "EUR", to: "SGD" } },
+];
 
-  const price = meta.regularMarketPrice ?? series[series.length - 1]?.v ?? 0;
-  const prev = meta.chartPreviousClose ?? meta.previousClose ?? price;
-  const first = series[0]?.v ?? prev;
-  const last = series[series.length - 1]?.v ?? price;
+const AV = "https://www.alphavantage.co/query";
+const TD = "https://api.twelvedata.com/time_series";
+const avKey = () => process.env.ALPHAVANTAGE_API_KEY ?? "";
+const tdKey = () => process.env.TWELVEDATA_API_KEY ?? "";
+const num = (v: unknown): number => {
+  const n = typeof v === "string" ? parseFloat(v) : typeof v === "number" ? v : NaN;
+  return Number.isFinite(n) ? n : NaN;
+};
+const toTs = (date: string) => Math.floor(new Date(date).getTime() / 1000);
+
+interface RawSeries {
+  series: { ts: number; v: number }[]; // oldest first
+  volume: number;
+}
+
+async function fetchTD(td: { sym: string; scale: number }): Promise<RawSeries> {
+  const res = await axios.get(TD, {
+    params: { symbol: td.sym, interval: "1day", outputsize: 1500, apikey: tdKey(), format: "JSON" },
+    timeout: 15000,
+  });
+  const d = res.data;
+  if (d?.status === "error" || !Array.isArray(d?.values)) throw new Error(d?.message || "TD no values");
+  const vals = [...d.values].reverse(); // API is newest-first
+  const series = vals.map((v: any) => ({ ts: toTs(v.datetime), v: num(v.close) * td.scale })).filter((p) => Number.isFinite(p.v));
+  return { series, volume: num(vals[vals.length - 1]?.volume) || 0 };
+}
+
+async function fetchAvSeries(fn: string, params: Record<string, string>): Promise<RawSeries> {
+  const res = await axios.get(AV, { params: { function: fn, interval: "daily", apikey: avKey(), ...params }, timeout: 15000 });
+  const data = res.data?.data;
+  if (!Array.isArray(data)) throw new Error(res.data?.Information || res.data?.Note || "AV no data");
+  const series = [...data]
+    .reverse()
+    .map((d: any) => ({ ts: toTs(d.date), v: num(d.value) }))
+    .filter((p) => Number.isFinite(p.v));
+  return { series, volume: 0 };
+}
+
+async function fetchAvFx(from: string, to: string): Promise<RawSeries> {
+  const res = await axios.get(AV, { params: { function: "FX_DAILY", from_symbol: from, to_symbol: to, outputsize: "full", apikey: avKey() }, timeout: 15000 });
+  const s = res.data?.["Time Series FX (Daily)"];
+  if (!s || typeof s !== "object") throw new Error(res.data?.Information || res.data?.Note || "AV no FX series");
+  const series = Object.entries(s)
+    .map(([date, v]: [string, any]) => ({ ts: toTs(date), v: num(v["4. close"]) }))
+    .filter((p) => Number.isFinite(p.v))
+    .sort((a, b) => a.ts - b.ts);
+  return { series, volume: 0 };
+}
+
+function fetchInst(inst: Inst): Promise<RawSeries> {
+  if (inst.source === "td") return fetchTD(inst.td!);
+  const av = inst.av!;
+  if (av.kind === "fx") return fetchAvFx(av.from!, av.to!);
+  return fetchAvSeries(av.fn!, av.params ?? {});
+}
+
+// ── per-symbol cache (survives within a warm instance) ──────────────────────────
+const TTL = { td: 30 * 60 * 1000, av: 6 * 60 * 60 * 1000 };
+const cache = new Map<string, { raw: RawSeries; ts: number }>();
+
+const RANGE_DAYS: Record<string, number> = { "1d": 2, "5d": 7, "1mo": 31, "3mo": 93, "6mo": 186, "1y": 366, "5y": 1830 };
+
+function sliceRange(series: { ts: number; v: number }[], rangeKey: string): { ts: number; v: number }[] {
+  if (series.length <= 2) return series;
+  const lastTs = series[series.length - 1].ts;
+  let cutoff: number;
+  if (rangeKey === "ytd") cutoff = Math.floor(new Date(new Date().getUTCFullYear(), 0, 1).getTime() / 1000);
+  else cutoff = lastTs - (RANGE_DAYS[rangeKey] ?? 31) * 86400;
+  const win = series.filter((p) => p.ts >= cutoff);
+  return win.length >= 2 ? win : series.slice(-2);
+}
+
+function build(raw: RawSeries, rangeKey: string): MarketData {
+  const full = raw.series;
+  const current = full[full.length - 1]?.v ?? 0;
+  const prev = full[full.length - 2]?.v ?? current;
+  const yearAgo = full[full.length - 1].ts - 366 * 86400;
+  const yearWin = full.filter((p) => p.ts >= yearAgo);
+  const win = sliceRange(full, rangeKey);
+  const first = win[0]?.v ?? current;
   return {
-    currentPrice: price,
+    currentPrice: current,
     prevClose: prev,
-    dayChange: price - prev,
-    dayChangePct: prev ? ((price - prev) / prev) * 100 : 0,
-    rangeChangePct: first ? ((last - first) / first) * 100 : 0,
-    fiftyTwoWeekHigh: meta.fiftyTwoWeekHigh ?? 0,
-    fiftyTwoWeekLow: meta.fiftyTwoWeekLow ?? 0,
-    regularMarketVolume: meta.regularMarketVolume ?? 0,
-    series,
+    dayChange: current - prev,
+    dayChangePct: prev ? ((current - prev) / prev) * 100 : 0,
+    rangeChangePct: first ? ((current - first) / first) * 100 : 0,
+    fiftyTwoWeekHigh: yearWin.length ? Math.max(...yearWin.map((p) => p.v)) : current,
+    fiftyTwoWeekLow: yearWin.length ? Math.min(...yearWin.map((p) => p.v)) : current,
+    regularMarketVolume: raw.volume,
+    series: win,
   };
 }
 
-const cache = new Map<string, { data: MarketData; ts: number }>();
-const TTL_MS = 30 * 60 * 1000; // 30 min — collapses bursts onto one warm, stretches proxy GB
-
-/** All 12 instruments for a range, served from cache; stale/missing entries refetch. */
+/** All instruments for a range; per-symbol cache, AV staggered to respect 5/min. */
 export async function getMarkets(rangeKey: string): Promise<Record<string, MarketData | null>> {
   const out: Record<string, MarketData | null> = {};
-  await Promise.all(
-    SYMBOLS.map(async (symbol) => {
-      const key = `${symbol}:${rangeKey}`;
-      const hit = cache.get(key);
-      if (hit && Date.now() - hit.ts < TTL_MS) {
-        out[symbol] = hit.data;
-        return;
-      }
+  // Refresh only the symbols whose cache is stale; stagger AV to stay under 5/min.
+  for (const inst of INSTRUMENTS) {
+    const hit = cache.get(inst.symbol);
+    const fresh = hit && Date.now() - hit.ts < TTL[inst.source];
+    if (!fresh) {
       try {
-        const data = await fetchSymbol(symbol, rangeKey);
-        cache.set(key, { data, ts: Date.now() });
-        out[symbol] = data;
-      } catch {
-        out[symbol] = hit?.data ?? null; // serve stale on error, else signal "unavailable"
+        const raw = await fetchInst(inst);
+        cache.set(inst.symbol, { raw, ts: Date.now() });
+        if (inst.source === "av") await new Promise((r) => setTimeout(r, 1300)); // AV: stay under 1 req/sec
+      } catch (e: any) {
+        console.log(`[markets] ${inst.symbol} fetch failed: ${e?.message ?? e}`);
       }
-    })
-  );
+    }
+    const cached = cache.get(inst.symbol);
+    out[inst.symbol] = cached ? build(cached.raw, rangeKey) : null;
+  }
   return out;
 }

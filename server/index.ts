@@ -59,27 +59,8 @@ async function startServer() {
     }
   });
 
-  // Refresh market metrics — direct Yahoo/Alpha Vantage/MAS fetch, no n8n.
-  // Triggered by an external scheduler (see README) at 7:30am SGT on weekdays.
-  // `?range=5y` does a one-time history backfill for the chart windows.
-  app.post("/api/scheduled/refresh-metrics", async (req, res) => {
-    if (!authorized(req)) return res.status(401).json({ error: "Unauthorized" });
-    try {
-      const { fetchAllMetrics } = await import("./marketData.js");
-      const { upsertMarketMetrics } = await import("./db.js");
-      const range = typeof req.query.range === "string" ? req.query.range : "5d";
-      const sources =
-        typeof req.query.sources === "string" ? req.query.sources.split(",").map((s) => s.trim()) : ["indices", "av"];
-      const { rows, results } = await fetchAllMetrics(range, sources);
-      const stored = await upsertMarketMetrics(rows);
-      res.json({ ok: true, stored, results });
-    } catch (err) {
-      res.status(500).json({ error: String(err) });
-    }
-  });
-
-  // Market data — server fetches Yahoo via the IPRoyal residential proxy and
-  // serves it same-origin (browsers can't read Yahoo directly: CORS). Cached.
+  // Market data — server fetches Twelve Data (SPY/DIA) + Alpha Vantage on demand
+  // and serves it same-origin, cached. Free tier, no cron, no proxy.
   app.get("/api/markets", async (req, res) => {
     try {
       const { getMarkets } = await import("./markets.js");
