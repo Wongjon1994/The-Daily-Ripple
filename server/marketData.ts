@@ -42,11 +42,15 @@ const YAHOO_INDICES: Array<{ symbol: string; label: string }> = [
 ];
 
 async function fetchYahoo(symbol: string, label: string, range: string): Promise<Row[]> {
-  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}`;
+  const url = `https://query2.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}`;
   const res = await axios.get(url, {
     params: { range, interval: "1d" },
-    headers: { "User-Agent": BROWSER_UA },
-    timeout: 10000,
+    headers: {
+      "User-Agent": BROWSER_UA,
+      Accept: "application/json,text/plain,*/*",
+      "Accept-Language": "en-US,en;q=0.9",
+    },
+    timeout: 12000,
   });
   const result = res.data?.chart?.result?.[0];
   const ts: number[] = result?.timestamp ?? [];
@@ -162,7 +166,7 @@ async function fetchMasSora(): Promise<Row[]> {
   const res = await axios.get("https://eservices.mas.gov.sg/api/action/datastore/search.json", {
     params: { resource_id: "9a0bf149-308c-4bd2-832d-76c8e6cb47ed", limit: 1, sort: "end_of_day desc", fields: "end_of_day,comp_sora_1m,comp_sora_3m,comp_sora_6m" },
     headers: { "User-Agent": BROWSER_UA },
-    timeout: 10000,
+    timeout: 15000,
   });
   console.log("[marketData] MAS SORA raw:", JSON.stringify(res.data)?.slice(0, 500));
   const rec = res.data?.result?.records?.[0];
@@ -176,9 +180,13 @@ async function fetchMasSora(): Promise<Row[]> {
  * normalised rows plus a per-source summary. `range` controls the Yahoo lookback
  * ("5d" for the daily job, e.g. "5y" for a one-time history backfill).
  */
-export async function fetchAllMetrics(range = "5d"): Promise<{ rows: Row[]; results: FetchResult[] }> {
+export async function fetchAllMetrics(
+  range = "5d",
+  sources: string[] = ["yahoo", "av", "mas"]
+): Promise<{ rows: Row[]; results: FetchResult[] }> {
   const rows: Row[] = [];
   const results: FetchResult[] = [];
+  const run = (group: string) => sources.includes(group);
 
   const record = async (symbol: string, label: string, fn: () => Promise<Row[]>) => {
     try {
@@ -191,23 +199,32 @@ export async function fetchAllMetrics(range = "5d"): Promise<{ rows: Row[]; resu
     }
   };
 
-  // Yahoo — independent host, safe to run in parallel.
-  await Promise.all(YAHOO_INDICES.map((c) => record(c.symbol, c.label, () => fetchYahoo(c.symbol, c.label, range))));
+  // Yahoo — staggered, not parallel: a burst of 6 trips a 429 from datacenter IPs.
+  if (run("yahoo")) {
+    for (const c of YAHOO_INDICES) {
+      await record(c.symbol, c.label, () => fetchYahoo(c.symbol, c.label, range));
+      await sleep(400);
+    }
+  }
 
-  // Alpha Vantage — staggered to respect the per-minute cap.
-  const avJobs: Array<[string, string, () => Promise<Row[]>]> = [
-    ["BRENT", "Brent Crude", () => fetchAvSeries("BRENT", {}, "BRENT", "Brent Crude")],
-    ["GOLD", "Gold", () => fetchAvGold()],
-    ["US10Y", "US 10-Year Yield", () => fetchAvSeries("TREASURY_YIELD", { maturity: "10year" }, "US10Y", "US 10-Year Yield")],
-    ...AV_FX.map((c) => [c.symbol, c.label, () => fetchAvFx(c)] as [string, string, () => Promise<Row[]>]),
-  ];
-  for (const [symbol, label, fn] of avJobs) {
-    await record(symbol, label, fn);
-    await sleep(1500);
+  // Alpha Vantage — staggered to respect the per-minute cap (and a tight 25/day).
+  if (run("av")) {
+    const avJobs: Array<[string, string, () => Promise<Row[]>]> = [
+      ["BRENT", "Brent Crude", () => fetchAvSeries("BRENT", {}, "BRENT", "Brent Crude")],
+      ["GOLD", "Gold", () => fetchAvGold()],
+      ["US10Y", "US 10-Year Yield", () => fetchAvSeries("TREASURY_YIELD", { maturity: "10year" }, "US10Y", "US 10-Year Yield")],
+      ...AV_FX.map((c) => [c.symbol, c.label, () => fetchAvFx(c)] as [string, string, () => Promise<Row[]>]),
+    ];
+    for (const [symbol, label, fn] of avJobs) {
+      await record(symbol, label, fn);
+      await sleep(1500);
+    }
   }
 
   // MAS SORA — single probe; dropped automatically if it errors (e.g. Cloudflare).
-  await record("SORA3M", "3-Month SORA", fetchMasSora);
+  if (run("mas")) {
+    await record("SORA3M", "3-Month SORA", fetchMasSora);
+  }
 
   return { rows, results };
 }
