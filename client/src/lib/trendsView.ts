@@ -63,7 +63,9 @@ export function buildTrendsView(
   insights = insights ?? [];
   windowDates = windowDates ?? [];
   const windowSet = new Set(windowDates);
-  const recent = Array.from(new Set(windowDates)).sort().slice(-7); // last ≤7 briefs, asc
+  // Recency strip = one publishing week. Briefs run Mon–Sat, so a full week is
+  // 6 briefs, not 7 (matches the "N of 6" denominator at week's end).
+  const recent = Array.from(new Set(windowDates)).sort().slice(-6);
   const totalBriefs = new Set(windowDates).size;
   const inWindow = signals.filter((s) => windowSet.has(s.surfacedDate));
   const insightByTheme = new Map(insights.map((i) => [i.theme, i]));

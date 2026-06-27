@@ -159,6 +159,11 @@ See **[BRIEF_FORMAT.md](BRIEF_FORMAT.md)** for the brief schema and the
 Newest first. Append an entry here for every change.
 
 ### 2026-06-28
+- **Trends 1W window = 6 briefs (Mon–Sat), not 7** — briefs publish Mon–Sat, so a
+  publishing week is 6 briefs. The 1W window and persistence strip now use the last
+  6 briefs, so the hero/cards read "N of 6" (e.g. "6 of 6") at week's end instead of
+  pulling in the prior Saturday for a misleading "of 7". (1M/3M are date-range based
+  and already counted only real briefs.)
 - **Trends: explainer tooltip + collapsed-card height fix** — an info popover next
   to "Intelligence signals" explains how signals, themes, and realisation work
   (tap-friendly on mobile). Collapsed theme cards no longer over-reserve vertical

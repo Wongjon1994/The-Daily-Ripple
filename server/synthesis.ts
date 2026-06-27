@@ -36,13 +36,14 @@ export interface SynthesisInputs {
   windowEnd: string;
 }
 
-/** Most-recent briefs for a window: last 7 for 1W, within 30/90 days for 1M/3M. */
+/** Most-recent briefs for a window: last 6 (one Mon–Sat publishing week) for 1W,
+ *  within 30/90 days for 1M/3M. */
 function selectWindow(briefs: any[], window: Window): any[] {
   const dated = briefs
     .map((b) => ({ b, iso: iso(b?.briefDate || b?.date || "") }))
     .filter((x) => x.iso)
     .sort((a, z) => (a.iso < z.iso ? 1 : -1)); // newest first
-  if (window === "1W") return dated.slice(0, 7).map((x) => x.b);
+  if (window === "1W") return dated.slice(0, 6).map((x) => x.b);
   const days = window === "1M" ? 30 : 90;
   const newest = dated[0]?.iso;
   if (!newest) return [];

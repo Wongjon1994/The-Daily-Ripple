@@ -61,7 +61,8 @@ const shortIso = (s: string) => {
 /** Distinct brief dates (ISO) within the selected window. */
 function windowDatesFor(briefs: Record<string, DailyBrief>, window: TrendsWindow): string[] {
   const all = Array.from(new Set(Object.values(briefs).map((b) => iso(b.date)).filter(Boolean))).sort();
-  if (window === "1W") return all.slice(-7);
+  // Briefs publish Mon–Sat, so one publishing week is 6 briefs (not 7).
+  if (window === "1W") return all.slice(-6);
   const days = window === "1M" ? 30 : 90;
   const newest = all[all.length - 1];
   if (!newest) return [];
