@@ -23,13 +23,22 @@ services:
       # Render dashboard (sync:false keeps the secret out of the repo).
       - key: DATABASE_URL
         sync: false
-      # Set only if n8n will publish briefs to /api/publish:
-      # - key: PUBLISH_API_KEY
-      #   generateValue: true
+      # Guards /api/publish, /api/realise and /api/synthesize. Set in the
+      # dashboard; n8n sends it as the X-Api-Key header.
+      - key: PUBLISH_API_KEY
+        sync: false
       # Alpha Vantage key for the market-data refresh job. Set the value in the
       # Render dashboard (sync:false keeps the secret out of the repo).
       - key: ALPHAVANTAGE_API_KEY
         sync: false
       # Twelve Data key for the equity-index refresh. Set in the dashboard.
       - key: TWELVEDATA_API_KEY
+        sync: false
+      # Anthropic key — Sonnet synthesis (Addendum B) + Haiku realisation verdicts
+      # (Addendum A). Without it those jobs no-op gracefully. Set in the dashboard.
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      # Tavily key — web search for the weekly realisation sweep (Addendum A).
+      # Without it the sweep runs the expiry pass only. Set in the dashboard.
+      - key: TAVILY_API_KEY
         sync: false

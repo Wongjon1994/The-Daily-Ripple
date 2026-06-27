@@ -547,6 +547,15 @@
   animation: fade-in 0.4s ease-out forwards;
 }
 
+/* Markets carousel — directional slide-in on subsection change. */
+@keyframes mkt-in-right { from { opacity: 0; transform: translateX(26px); } to { opacity: 1; transform: none; } }
+@keyframes mkt-in-left  { from { opacity: 0; transform: translateX(-26px); } to { opacity: 1; transform: none; } }
+.mkt-slide-next { animation: mkt-in-right 0.28s cubic-bezier(0.23, 1, 0.32, 1); }
+.mkt-slide-prev { animation: mkt-in-left 0.28s cubic-bezier(0.23, 1, 0.32, 1); }
+@media (prefers-reduced-motion: reduce) {
+  .mkt-slide-next, .mkt-slide-prev { animation: none; }
+}
+
 /* Stagger delays */
 .stagger-1 { animation-delay: 60ms; }
 .stagger-2 { animation-delay: 120ms; }

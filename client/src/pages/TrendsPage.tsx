@@ -1,13 +1,14 @@
 /**
- * Trends Page — metric-first dashboard across all briefs.
+ * Trends Page — live markets + the Part 2 qualitative intelligence layer.
+ * Fetches the persisted signal ledger and synthesis prose; TrendsDashboard renders.
  */
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import type { DailyBrief } from "@/lib/briefParser";
 import MastheadBanner from "@/components/MastheadBanner";
-import TrendsDashboard from "@/components/TrendsDashboard";
+import TrendsDashboard, { type TrendsWindow } from "@/components/TrendsDashboard";
 
 function rowToBrief(row: any): DailyBrief {
   return {
@@ -20,7 +21,10 @@ function rowToBrief(row: any): DailyBrief {
 }
 
 export default function TrendsPage() {
+  const [window, setWindow] = useState<TrendsWindow>("1W");
   const { data, isLoading } = trpc.n8n.getAll.useQuery();
+  const { data: signalsData } = trpc.n8n.getSignals.useQuery();
+  const { data: insightsData } = trpc.n8n.getThemeInsights.useQuery({ window });
 
   const allBriefs = useMemo<Record<string, DailyBrief>>(() => {
     const map: Record<string, DailyBrief> = {};
@@ -39,7 +43,13 @@ export default function TrendsPage() {
             <Loader2 className="h-6 w-6 animate-spin" style={{ color: "var(--color-cyan-dim)" }} />
           </div>
         ) : (
-          <TrendsDashboard briefs={allBriefs} />
+          <TrendsDashboard
+            briefs={allBriefs}
+            signals={signalsData?.signals ?? []}
+            insights={insightsData?.insights ?? []}
+            window={window}
+            onWindowChange={setWindow}
+          />
         )}
       </main>
     </div>

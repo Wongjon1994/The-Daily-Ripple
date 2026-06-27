@@ -16,6 +16,13 @@ async function startServer() {
   await initDb();
   await seedBriefs();
   await patchManualMetricFixes();
+  try {
+    const { backfillSignals } = await import("./signals.js");
+    const r = await backfillSignals();
+    console.log(`[signals] backfill: ${r.inserted} new from ${r.briefs} briefs`);
+  } catch (e) {
+    console.log("[signals] backfill failed:", e);
+  }
 
   const app = express();
   const server = createServer(app);
@@ -38,7 +45,22 @@ async function startServer() {
     try {
       const { upsertBrief } = await import("./db.js");
       await upsertBrief(req.body);
-      res.json({ ok: true });
+      let signals = 0;
+      try {
+        const { persistBriefSignals } = await import("./signals.js");
+        signals = await persistBriefSignals(req.body, req.body?.dateSlug);
+      } catch (e) {
+        console.log("[signals] extraction failed:", e);
+      }
+      // Synthesis runs after extraction (1W view regenerates daily on publish).
+      let synthesis = 0;
+      try {
+        const { runSynthesis } = await import("./synthesis.js");
+        synthesis = (await runSynthesis("1W")).themes;
+      } catch (e) {
+        console.log("[synthesis] 1W run failed:", e);
+      }
+      res.json({ ok: true, signals, synthesis });
     } catch (err) {
       res.status(500).json({ error: String(err) });
     }
@@ -54,6 +76,44 @@ async function startServer() {
       const { upsertBrief } = await import("./db.js");
       await upsertBrief(brief);
       res.json({ ok: true, dateSlug: brief.dateSlug, sections: Array.isArray(brief.sections) ? brief.sections.length : 0 });
+    } catch (err) {
+      res.status(500).json({ error: String(err) });
+    }
+  });
+
+  // Weekly signal realisation sweep (Trends Part 2, Addendum A). n8n's Sunday
+  // cron POSTs here; expires stale signals, then web-checks each open signal.
+  app.post("/api/realise", async (req, res) => {
+    if (!authorized(req)) return res.status(401).json({ error: "Unauthorized" });
+    try {
+      const { runRealisationSweep } = await import("./realisation.js");
+      const result = await runRealisationSweep();
+      // Longer-window synthesis (1M/3M) regenerates weekly, after the sweep so it
+      // uses fresh realised/open counts.
+      const synthesis: Record<string, number> = {};
+      try {
+        const { runSynthesis } = await import("./synthesis.js");
+        for (const w of ["1M", "3M"] as const) synthesis[w] = (await runSynthesis(w)).themes;
+      } catch (e) {
+        console.log("[synthesis] 1M/3M run failed:", e);
+      }
+      res.json({ ok: true, ...result, synthesis });
+    } catch (err) {
+      res.status(500).json({ error: String(err) });
+    }
+  });
+
+  // Manual synthesis trigger (Trends Part 2, Addendum B). Body { window?: "1W"|"1M"|"3M" }
+  // — defaults to all three. Used for one-off backfill; routine runs are chained
+  // to publish (1W) and /api/realise (1M/3M).
+  app.post("/api/synthesize", async (req, res) => {
+    if (!authorized(req)) return res.status(401).json({ error: "Unauthorized" });
+    try {
+      const { runSynthesis } = await import("./synthesis.js");
+      const windows = req.body?.window ? [req.body.window] : (["1W", "1M", "3M"] as const);
+      const out: Record<string, unknown> = {};
+      for (const w of windows) out[w] = await runSynthesis(w);
+      res.json({ ok: true, ...out });
     } catch (err) {
       res.status(500).json({ error: String(err) });
     }

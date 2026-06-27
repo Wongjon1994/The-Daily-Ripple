@@ -159,6 +159,58 @@ See **[BRIEF_FORMAT.md](BRIEF_FORMAT.md)** for the brief schema and the
 Newest first. Append an entry here for every change.
 
 ### 2026-06-27
+- **Markets section → swipeable subsection deck** — the three Markets subsections
+  (Exchanges · Rates & commodities · FX vs SGD) are now a one-at-a-time carousel
+  (like the Today's Brief story deck) instead of three stacked grids, so Markets
+  stays one subsection tall and the lead intelligence signal sits higher on the
+  page. Navigation: circular ‹ › arrows, tappable section tabs, position dots, an
+  explicit "N of 3 · swipe or use arrows" hint, and touch-swipe — all visible on
+  both mobile and desktop. Directional fade on change (respects
+  `prefers-reduced-motion`). Lands on Exchanges by default.
+- **Trends Part 2 (Addendum C): Trends page redesign — intelligence layer** — the
+  Trends page now leads with the live markets grid, then a **Dominant Signal hero**
+  (the most persistent theme in the window: pulsing badge, serif headline derived
+  from the synthesis, hero narrative, a 7-brief frequency sparkline, and the
+  aggregated Singapore Lens callout) and a **2-column theme-card grid** (persistence
+  dots, theme narrative, expandable Singapore Lens + signal evidence trail with
+  realised badges). A 1W/1M/3M window toggle governs the view. Themes appearing in
+  fewer than 2 briefs (and the `other` catch-all) are suppressed. Built on the live
+  Daily Ripple tokens (cyan/sage/category hues, Playfair headings), responsive on
+  mobile and desktop. Driven by the persisted signal ledger + synthesis prose via
+  `getSignals` / `getThemeInsights`; new view-model in `lib/trendsView.ts` (tested).
+  Note: `trendsAnalysis.ts`'s `groupBroaderSignals` / `buildWatchSignals` are now
+  unused by the page (pending a follow-up cleanup).
+- **Trends Part 2 (Addendum B): qualitative synthesis layer** — a new
+  `theme_insights` table holds pre-generated prose per (theme, window). The
+  synthesis job classifies each brief's Singapore Lens entries into themes and uses
+  `claude-sonnet-4-6` to write, per active theme, a theme narrative + aggregated
+  Singapore Lens, plus a hero narrative for the dominant theme. It runs **1W on
+  brief publish** (after extraction) and **1M/3M weekly** (chained to
+  `/api/realise`); a guarded `POST /api/synthesize` triggers it on demand. The
+  Trends page reads this table — never an LLM at read time. Gated on
+  `ANTHROPIC_API_KEY`; window/input construction is pure and covered by
+  `synthesis.test.ts`. (Spec named Sonnet 4 → current Sonnet 4.6.)
+- **Trends Part 2 (Addendum A): web-grounded signal realisation** — a weekly
+  sweep (`POST /api/realise`, for n8n's Sunday cron, `X-Api-Key`-guarded) expires
+  stale signals, then for each open signal runs a Tavily web search and asks
+  `claude-haiku-4-5` whether the signal's condition occurred. Verdicts route by
+  confidence: ≥0.85 auto-`realised` with evidence, 0.50–0.85 → `pending_review`
+  editorial queue, <0.50 left `open` and rechecked next week. The queue is worked
+  via the `confirmSignal` / `dismissSignal` tRPC mutations (admin-only). All
+  network calls are gated on `TAVILY_API_KEY` + `ANTHROPIC_API_KEY`; without them
+  the sweep degrades to a pure expiry pass. Query-building and verdict-routing are
+  pure and covered by `realisation.test.ts`. (Spec named Haiku 3.5, which retired
+  Feb 2026; using the current Haiku 4.5 for the same cheap-classification role.)
+- **Trends Part 2 (Phase 0): persistent qualitative signal ledger** — forward
+  "watch …" signals are now extracted from each brief's Singapore Lens / systems
+  synthesis on publish and persisted to a new `signals` table (theme, surfaced /
+  horizon / expiry dates, editorial-queue `status`, confidence + realisation
+  fields). Extraction mirrors the existing client watch-sentence logic; named
+  horizons ("by Q3", "in November", "2028") set the expiry, otherwise surfaced +
+  30 days. Existing briefs are backfilled idempotently on boot, an expiry sweep
+  runs alongside, and signals are exposed via the `getSignals` tRPC query.
+  Date parsing is now timezone-stable (a brief dated June 15 stays the 15th in
+  SGT, previously shifted a day via UTC). Covered by `signalsExtraction.test.ts`.
 - **Markets: grouped sections, more FX, last-known-good persistence** — the grid
   is now split into **Exchanges**, **Rates & commodities**, and **FX · vs SGD**;
   US-index cards show the proxy ETF they're derived from ("· via SPY/QQQ/DIA").

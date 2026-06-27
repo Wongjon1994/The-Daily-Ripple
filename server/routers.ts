@@ -6,7 +6,13 @@ import {
   getAllBriefs,
   getBriefDates,
   upsertBrief,
+  getSignals,
+  confirmSignal,
+  dismissSignal,
+  getThemeInsights,
 } from "./db.js";
+
+const todayIso = () => new Date().toISOString().slice(0, 10);
 
 const BriefSectionSchema = z.object({
   id: z.string(),
@@ -95,6 +101,38 @@ export const appRouter = router({
       const dates = await getBriefDates();
       return { ok: true, dates };
     }),
+
+    /** Persisted qualitative signals (Trends Part 2). Optional status filter. */
+    getSignals: publicProcedure
+      .input(z.object({ status: z.enum(["open", "realised", "expired", "pending_review"]).optional() }).optional())
+      .query(async ({ input }) => {
+        const signals = await getSignals(input?.status);
+        return { ok: true, signals };
+      }),
+
+    /** Pre-generated synthesis prose for the Trends page (Addendum B). */
+    getThemeInsights: publicProcedure
+      .input(z.object({ window: z.enum(["1W", "1M", "3M"]).default("1W") }).optional())
+      .query(async ({ input }) => {
+        const insights = await getThemeInsights(input?.window ?? "1W");
+        return { ok: true, insights };
+      }),
+
+    /** Editorial queue: confirm a pending_review signal as realised. Admin-only. */
+    confirmSignal: apiKeyProcedure
+      .input(z.object({ id: z.number().int() }))
+      .mutation(async ({ input }) => {
+        await confirmSignal(input.id, todayIso());
+        return { ok: true };
+      }),
+
+    /** Editorial queue: dismiss a pending_review signal back to open. Admin-only. */
+    dismissSignal: apiKeyProcedure
+      .input(z.object({ id: z.number().int() }))
+      .mutation(async ({ input }) => {
+        await dismissSignal(input.id, todayIso());
+        return { ok: true };
+      }),
 
     /**
      * Publish (create or update) a brief.

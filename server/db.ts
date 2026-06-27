@@ -2,7 +2,7 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import { desc, eq, gte, lte, and, sql } from "drizzle-orm";
 import * as schema from "../drizzle/schema.js";
-import type { InsertBrief, InsertMarketMetric } from "../drizzle/schema.js";
+import type { InsertBrief, InsertMarketMetric, InsertSignal, InsertThemeInsight } from "../drizzle/schema.js";
 
 const connectionString = process.env.DATABASE_URL;
 
@@ -81,7 +81,156 @@ export async function initDb(): Promise<void> {
       payload     JSONB   NOT NULL,
       fetched_at  BIGINT  NOT NULL
     );
+
+    CREATE TABLE IF NOT EXISTS signals (
+      id              SERIAL  PRIMARY KEY,
+      brief_date_slug TEXT    NOT NULL,
+      story_index     INTEGER NOT NULL DEFAULT 0,
+      theme           TEXT    NOT NULL,
+      signal_text     TEXT    NOT NULL,
+      headline        TEXT    NOT NULL DEFAULT '',
+      surfaced_date   TEXT    NOT NULL,
+      horizon_date    TEXT,
+      expiry_date     TEXT    NOT NULL,
+      status          TEXT    NOT NULL DEFAULT 'open',
+      confidence      DOUBLE PRECISION,
+      realised_date   TEXT,
+      realised_evidence_url  TEXT,
+      realised_evidence_note TEXT,
+      last_checked_date TEXT,
+      created_at      BIGINT  NOT NULL,
+      updated_at      BIGINT  NOT NULL,
+      CONSTRAINT uniq_signal UNIQUE (brief_date_slug, signal_text)
+    );
+    CREATE INDEX IF NOT EXISTS idx_signals_status ON signals(status);
+
+    CREATE TABLE IF NOT EXISTS theme_insights (
+      id              SERIAL  PRIMARY KEY,
+      theme           TEXT    NOT NULL,
+      "window"        TEXT    NOT NULL,
+      theme_narrative TEXT    NOT NULL DEFAULT '',
+      sg_lens         TEXT    NOT NULL DEFAULT '',
+      hero_narrative  TEXT,
+      is_dominant     BOOLEAN NOT NULL DEFAULT FALSE,
+      brief_count     INTEGER NOT NULL DEFAULT 0,
+      window_start    TEXT    NOT NULL,
+      window_end      TEXT    NOT NULL,
+      generated_at    BIGINT  NOT NULL,
+      CONSTRAINT uniq_theme_window UNIQUE (theme, "window")
+    );
   `);
+}
+
+// ─── Signals (qualitative ledger) ────────────────────────────────────────────
+
+/** Insert newly-extracted signals, ignoring any that already exist (so a
+ *  re-publish never clobbers a realised/expired status). Returns rows inserted. */
+export async function insertSignals(rows: InsertSignal[]): Promise<number> {
+  if (rows.length === 0) return 0;
+  const db = getDb();
+  const inserted = await db
+    .insert(schema.signals)
+    .values(rows)
+    .onConflictDoNothing({ target: [schema.signals.briefDateSlug, schema.signals.signalText] })
+    .returning({ id: schema.signals.id });
+  return inserted.length;
+}
+
+/** Mark every still-open signal whose expiry has passed as expired. Returns count. */
+export async function expireSignals(today: string): Promise<void> {
+  const db = getDb();
+  await db
+    .update(schema.signals)
+    .set({ status: "expired", updatedAt: Date.now() })
+    .where(and(eq(schema.signals.status, "open"), lte(schema.signals.expiryDate, today)));
+}
+
+/** All signals (optionally filtered by status), newest brief first. */
+export async function getSignals(status?: string) {
+  const db = getDb();
+  const q = db.select().from(schema.signals);
+  const rows = status
+    ? await q.where(eq(schema.signals.status, status)).orderBy(desc(schema.signals.surfacedDate))
+    : await q.orderBy(desc(schema.signals.surfacedDate));
+  return rows;
+}
+
+/** Persist a realisation verdict (status + confidence + evidence) for one signal. */
+export async function applySignalRealisation(
+  id: number,
+  fields: {
+    status: "open" | "realised" | "pending_review";
+    confidence: number;
+    lastCheckedDate: string;
+    realisedDate?: string;
+    realisedEvidenceUrl?: string | null;
+    realisedEvidenceNote?: string | null;
+  }
+): Promise<void> {
+  const db = getDb();
+  await db
+    .update(schema.signals)
+    .set({ ...fields, updatedAt: Date.now() })
+    .where(eq(schema.signals.id, id));
+}
+
+/** Editorial-queue confirm: a pending_review signal becomes realised. */
+export async function confirmSignal(id: number, today: string): Promise<void> {
+  const db = getDb();
+  await db
+    .update(schema.signals)
+    .set({ status: "realised", realisedDate: today, lastCheckedDate: today, updatedAt: Date.now() })
+    .where(and(eq(schema.signals.id, id), eq(schema.signals.status, "pending_review")));
+}
+
+/** Editorial-queue dismiss: a pending_review signal returns to open, evidence
+ *  cleared and lastCheckedDate reset so the next Sunday sweep rechecks it. */
+export async function dismissSignal(id: number, today: string): Promise<void> {
+  const db = getDb();
+  await db
+    .update(schema.signals)
+    .set({
+      status: "open",
+      confidence: null,
+      realisedEvidenceUrl: null,
+      realisedEvidenceNote: null,
+      lastCheckedDate: today,
+      updatedAt: Date.now(),
+    })
+    .where(and(eq(schema.signals.id, id), eq(schema.signals.status, "pending_review")));
+}
+
+// ─── Theme insights (qualitative synthesis) ──────────────────────────────────
+
+/** Upsert one (theme, window) synthesis row, overwriting prose on each run. */
+export async function upsertThemeInsight(row: InsertThemeInsight): Promise<void> {
+  const db = getDb();
+  await db
+    .insert(schema.themeInsights)
+    .values(row)
+    .onConflictDoUpdate({
+      target: [schema.themeInsights.theme, schema.themeInsights.window],
+      set: {
+        themeNarrative: row.themeNarrative,
+        sgLens: row.sgLens,
+        heroNarrative: row.heroNarrative ?? null,
+        isDominant: row.isDominant ?? false,
+        briefCount: row.briefCount ?? 0,
+        windowStart: row.windowStart,
+        windowEnd: row.windowEnd,
+        generatedAt: Date.now(),
+      },
+    });
+}
+
+/** All synthesis rows for a window (default 1W), dominant first then by briefCount. */
+export async function getThemeInsights(window = "1W") {
+  const db = getDb();
+  return db
+    .select()
+    .from(schema.themeInsights)
+    .where(eq(schema.themeInsights.window, window))
+    .orderBy(desc(schema.themeInsights.isDominant), desc(schema.themeInsights.briefCount));
 }
 
 /** Last-known-good market payloads (one row per symbol), for /api/markets resilience. */
