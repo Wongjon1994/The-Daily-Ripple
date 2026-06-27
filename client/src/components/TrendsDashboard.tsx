@@ -324,15 +324,17 @@ export default function TrendsDashboard({
 
       <section>
         <div
-          className="sticky z-20 flex items-center gap-2 mb-1 py-2 backdrop-blur-md border-b border-border/40"
+          className="sticky z-20 mb-1 py-2 backdrop-blur-md border-b border-border/40 flex flex-col gap-2 sm:flex-row sm:items-center"
           style={{ top: "var(--nav-h)", background: "color-mix(in oklab, var(--background) 93%, transparent)" }}
         >
-          <Activity className="h-4 w-4" style={{ color: "var(--color-cyan)" }} />
-          <h2 className="text-2xl font-bold" style={{ fontFamily: "'Playfair Display', Georgia, serif", color: "var(--color-cyan)" }}>
-            Intelligence signals
-          </h2>
-          <InfoTip />
-          <div className="ml-auto flex items-center gap-1" role="group" aria-label="Window">
+          <div className="flex items-center gap-2 min-w-0">
+            <Activity className="h-4 w-4 shrink-0" style={{ color: "var(--color-cyan)" }} />
+            <h2 className="text-2xl font-bold" style={{ fontFamily: "'Playfair Display', Georgia, serif", color: "var(--color-cyan)" }}>
+              Intelligence signals
+            </h2>
+            <InfoTip />
+          </div>
+          <div className="flex items-center gap-1 sm:ml-auto" role="group" aria-label="Window">
             {WINDOWS.map((w) => (
               <button
                 key={w.key}
