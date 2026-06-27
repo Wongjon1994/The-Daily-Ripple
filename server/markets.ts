@@ -29,18 +29,20 @@ interface Inst {
   label: string;
   source: Source;
   td?: { sym: string; scale: number };
-  av?: { kind: "series" | "fx"; fn?: string; params?: Record<string, string>; from?: string; to?: string };
+  av?: { fn: string; params?: Record<string, string> };
 }
 
 const INSTRUMENTS: Inst[] = [
   { symbol: "^GSPC", label: "S&P 500", source: "td", td: { sym: "SPY", scale: 10 } },
+  { symbol: "^NDX", label: "Nasdaq 100", source: "td", td: { sym: "QQQ", scale: 41 } }, // QQQ ETF ≈ NDX/41 (approx, drifts)
   { symbol: "^DJI", label: "Dow Jones", source: "td", td: { sym: "DIA", scale: 100 } },
-  { symbol: "BRENT", label: "Brent Crude", source: "av", av: { kind: "series", fn: "BRENT" } },
+  { symbol: "BRENT", label: "Brent Crude", source: "av", av: { fn: "BRENT" } },
   { symbol: "GOLD", label: "Gold", source: "td", td: { sym: "XAU/USD", scale: 1 } },
-  { symbol: "US10Y", label: "US 10Y", source: "av", av: { kind: "series", fn: "TREASURY_YIELD", params: { maturity: "10year" } } },
-  { symbol: "USDSGD", label: "USD/SGD", source: "av", av: { kind: "fx", from: "USD", to: "SGD" } },
-  { symbol: "JPYSGD", label: "JPY/SGD", source: "av", av: { kind: "fx", from: "JPY", to: "SGD" } },
-  { symbol: "EURSGD", label: "EUR/SGD", source: "av", av: { kind: "fx", from: "EUR", to: "SGD" } },
+  { symbol: "US10Y", label: "US 10Y", source: "av", av: { fn: "TREASURY_YIELD", params: { maturity: "10year" } } },
+  // FX via TD forex (real-time-ish; fresher than AV's laggy FX_DAILY).
+  { symbol: "USDSGD", label: "USD/SGD", source: "td", td: { sym: "USD/SGD", scale: 1 } },
+  { symbol: "JPYSGD", label: "JPY/SGD", source: "td", td: { sym: "JPY/SGD", scale: 1 } },
+  { symbol: "EURSGD", label: "EUR/SGD", source: "td", td: { sym: "EUR/SGD", scale: 1 } },
 ];
 
 const AV = "https://www.alphavantage.co/query";
@@ -81,22 +83,9 @@ async function fetchAvSeries(fn: string, params: Record<string, string>): Promis
   return { series, volume: 0 };
 }
 
-async function fetchAvFx(from: string, to: string): Promise<RawSeries> {
-  const res = await axios.get(AV, { params: { function: "FX_DAILY", from_symbol: from, to_symbol: to, outputsize: "full", apikey: avKey() }, timeout: 15000 });
-  const s = res.data?.["Time Series FX (Daily)"];
-  if (!s || typeof s !== "object") throw new Error(res.data?.Information || res.data?.Note || "AV no FX series");
-  const series = Object.entries(s)
-    .map(([date, v]: [string, any]) => ({ ts: toTs(date), v: num(v["4. close"]) }))
-    .filter((p) => Number.isFinite(p.v))
-    .sort((a, b) => a.ts - b.ts);
-  return { series, volume: 0 };
-}
-
 function fetchInst(inst: Inst): Promise<RawSeries> {
   if (inst.source === "td") return fetchTD(inst.td!);
-  const av = inst.av!;
-  if (av.kind === "fx") return fetchAvFx(av.from!, av.to!);
-  return fetchAvSeries(av.fn!, av.params ?? {});
+  return fetchAvSeries(inst.av!.fn, inst.av!.params ?? {});
 }
 
 // ── per-symbol cache (survives within a warm instance) ──────────────────────────

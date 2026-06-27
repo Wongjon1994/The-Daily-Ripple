@@ -18,6 +18,7 @@ export type InstrumentDef = {
 
 export const INSTRUMENTS: InstrumentDef[] = [
   { symbol: "^GSPC", label: "S&P 500", flag: "🇺🇸", color: "#60a5fa", currency: "USD", exchange: "NYSE" },
+  { symbol: "^NDX", label: "Nasdaq 100", flag: "🇺🇸", color: "#c084fc", currency: "USD", exchange: "NASDAQ" },
   { symbol: "^DJI", label: "Dow Jones", flag: "🇺🇸", color: "#818cf8", currency: "USD", exchange: "NYSE" },
   { symbol: "BRENT", label: "Brent Crude", flag: "🛢️", color: "#fb923c", currency: "USD", exchange: "ICE", isCommodity: true },
   { symbol: "GOLD", label: "Gold", flag: "🥇", color: "#fbbf24", currency: "USD", exchange: "COMEX", isCommodity: true },

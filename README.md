@@ -159,6 +159,12 @@ See **[BRIEF_FORMAT.md](BRIEF_FORMAT.md)** for the brief schema and the
 Newest first. Append an entry here for every change.
 
 ### 2026-06-27
+- **Markets: FX + Nasdaq 100 on Twelve Data; AV trimmed to 2 calls** — moved the
+  three SGD FX pairs from Alpha Vantage (which lags ~2 days) to TD forex (fresher),
+  and added **Nasdaq 100** via the QQQ ETF (TD, scaled ≈×41 — approximate, drifts).
+  Brent and 10Y yield stay on AV (TD free has no raw Brent future or yield/index;
+  BNO/NDX/TNX are fund-proxies or Grow-only). AV is now just Brent + 10Y (~8/day,
+  well under its 25/day cap); TD carries the other 7 instruments.
 - **Quantitative signal realisation on the Markets cards** — each card binds the
   briefs' forward threshold-signals ("watch oil below $75") to its live series and
   resolves them against real prices: a dashed reference line on the sparkline
