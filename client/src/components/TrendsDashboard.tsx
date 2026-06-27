@@ -19,8 +19,9 @@ import {
 import MarketsSection from "@/components/MarketsSection";
 import {
   ChevronDown, CircleCheck, Telescope, Flame, Landmark, Cpu, Shield,
-  TrendingUp, Users, Sparkles, Activity, ArrowUpRight,
+  TrendingUp, Users, Sparkles, Activity, ArrowUpRight, Info,
 } from "lucide-react";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 
 export type TrendsWindow = "1W" | "1M" | "3M";
@@ -70,11 +71,48 @@ function windowDatesFor(briefs: Record<string, DailyBrief>, window: TrendsWindow
   return all.filter((d) => d >= cutoffIso);
 }
 
+/** Trim to a word boundary with an ellipsis — a safe collapsed preview that
+ *  doesn't rely on -webkit-line-clamp (which over-reserves height on iOS). */
+function clip(text: string, n = 165): string {
+  if (text.length <= n) return text;
+  return text.slice(0, n).replace(/\s+\S*$/, "") + "…";
+}
+
 /** First sentence of the hero narrative → a headline; falls back to the top signal. */
 function heroHeadline(view: ThemeView): string {
   const src = view.heroNarrative || view.signals[0]?.signalText || meta(view.theme).label;
   const first = src.split(/(?<=[.!?])\s/)[0].trim();
   return first.length > 120 ? `${first.slice(0, 117).trimEnd()}…` : first;
+}
+
+/** Tap/hover explainer for the Intelligence signals section (works on touch). */
+function InfoTip() {
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button
+          aria-label="How intelligence signals work"
+          className="shrink-0 grid place-items-center h-5 w-5 rounded-full border border-border/60 transition-colors hover:text-[var(--color-cyan)] hover:border-[var(--color-cyan)]"
+          style={{ color: "var(--color-mist-faint)" }}
+        >
+          <Info className="h-3 w-3" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent align="start" sideOffset={8} className="w-72 p-3.5">
+        <p className="text-xs font-semibold mb-1.5" style={{ color: "var(--color-cyan)" }}>
+          How this works
+        </p>
+        <p className="text-xs leading-relaxed" style={{ color: "var(--color-mist-dim)" }}>
+          Each weekday brief ends with forward-looking “watch” signals. We extract them,
+          group by theme, and track how many of the recent briefs each theme appears in.
+          The hero is the window’s most persistent theme; every card opens to its
+          aggregated Singapore Lens and the signals behind it. Open signals are
+          re-checked against the news weekly and marked{" "}
+          <b style={{ color: "var(--color-cat-markets)" }}>Realised</b> when they come true.
+        </p>
+      </PopoverContent>
+    </Popover>
+  );
 }
 
 // ── small building blocks ────────────────────────────────────────────────────
@@ -234,11 +272,11 @@ function ThemeCard({ view }: { view: ThemeView }) {
             <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", open && "rotate-180")} />
           </span>
         </div>
-        <p
-          className="leading-relaxed"
-          style={{ color: "var(--color-mist-dim)", fontSize: 13, ...(open ? {} : { display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }) }}
-        >
-          {view.themeNarrative || view.signals[0]?.signalText || ""}
+        <p className="leading-relaxed" style={{ color: "var(--color-mist-dim)", fontSize: 13 }}>
+          {(() => {
+            const full = view.themeNarrative || view.signals[0]?.signalText || "";
+            return open ? full : clip(full);
+          })()}
         </p>
       </button>
 
@@ -292,6 +330,7 @@ export default function TrendsDashboard({
           <h2 className="text-2xl font-bold" style={{ fontFamily: "'Playfair Display', Georgia, serif", color: "var(--color-cyan)" }}>
             Intelligence signals
           </h2>
+          <InfoTip />
           <div className="ml-auto flex items-center gap-1" role="group" aria-label="Window">
             {WINDOWS.map((w) => (
               <button
