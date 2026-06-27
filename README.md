@@ -158,6 +158,16 @@ See **[BRIEF_FORMAT.md](BRIEF_FORMAT.md)** for the brief schema and the
 
 Newest first. Append an entry here for every change.
 
+### 2026-06-28
+- **Trends: explainer tooltip + collapsed-card height fix** — an info popover next
+  to "Intelligence signals" explains how signals, themes, and realisation work
+  (tap-friendly on mobile). Collapsed theme cards no longer over-reserve vertical
+  space on mobile — the preview now uses a word-boundary clip instead of
+  `-webkit-line-clamp` (which inflates height on iOS Safari).
+- **n8n: weekly realisation cron** — added a Sunday Schedule → `POST /api/realise`
+  branch (reuses the existing publish `X-Api-Key`) so the realisation sweep + 1M/3M
+  synthesis run automatically each week. (Workflow `Daily Ripple MVP 1.95`.)
+
 ### 2026-06-27
 - **Markets section → swipeable subsection deck** — the three Markets subsections
   (Exchanges · Rates & commodities · FX vs SGD) are now a one-at-a-time carousel
