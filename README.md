@@ -159,6 +159,10 @@ See **[BRIEF_FORMAT.md](BRIEF_FORMAT.md)** for the brief schema and the
 Newest first. Append an entry here for every change.
 
 ### 2026-06-28
+- **Trends: mobile header no longer overflows** — the "Intelligence signals" title
+  and the 1W/1M/3M window toggle shared one non-wrapping row, pushing 3M past the
+  card edge on narrow phones. The toggle now drops to its own row below `sm` and
+  sits inline (right-aligned) at `sm`+.
 - **Trends 1W window = 6 briefs (Mon–Sat), not 7** — briefs publish Mon–Sat, so a
   publishing week is 6 briefs. The 1W window and persistence strip now use the last
   6 briefs, so the hero/cards read "N of 6" (e.g. "6 of 6") at week's end instead of
