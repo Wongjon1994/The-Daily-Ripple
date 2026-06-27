@@ -159,6 +159,14 @@ See **[BRIEF_FORMAT.md](BRIEF_FORMAT.md)** for the brief schema and the
 Newest first. Append an entry here for every change.
 
 ### 2026-06-27
+- **Markets: grouped sections, more FX, last-known-good persistence** — the grid
+  is now split into **Exchanges**, **Rates & commodities**, and **FX · vs SGD**;
+  US-index cards show the proxy ETF they're derived from ("· via SPY/QQQ/DIA").
+  Added GBP/SGD, AUD/SGD, CNY/SGD (TD forex). New `market_cache` table persists
+  each symbol's last fetched series so a quota-blocked/failed Alpha Vantage call
+  serves the previous value instead of "Data unavailable" (fixes US 10Y / Brent
+  blanking when AV's 25/day is spent) and survives restarts; AV cache TTL → 12 h.
+  Navigation tooltip + About updated for the bento summary and the live Trends.
 - **Markets: FX + Nasdaq 100 on Twelve Data; AV trimmed to 2 calls** — moved the
   three SGD FX pairs from Alpha Vantage (which lags ~2 days) to TD forex (fresher),
   and added **Nasdaq 100** via the QQQ ETF (TD, scaled ≈×41 — approximate, drifts).

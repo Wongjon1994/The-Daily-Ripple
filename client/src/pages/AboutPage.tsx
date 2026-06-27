@@ -27,11 +27,11 @@ const COVERAGE = [
 const NAV_CARDS = [
   {
     href: "/", icon: BookOpen, title: "Today's Brief", color: "var(--color-cyan)",
-    body: "Where you start. Swipe, drag, or use your arrow keys to move through the day's eight stories — each one opens into the full story, the Singapore-specific analysis, and a list of every source we used.",
+    body: "Where you start. The “at a glance” grid up top summarises all eight stories — tap any box to jump straight to it. From there, swipe, drag, or use your arrow keys to move between stories, each opening into the full analysis, the Singapore-specific lens, and every source we used.",
   },
   {
     href: "/trends", icon: TrendingUp, title: "Trends", color: "var(--color-cat-economics)",
-    body: "Where we track ourselves. Every time the brief flags a number worth watching — an oil price level, a rate decision, an index threshold — we track it here and show you whether it played out, and how long it took. Our way of being accountable to our own analysis over time.",
+    body: "Live markets, and where we hold ourselves accountable. Real-time charts track equity indices, FX, rates and commodities; and every time a brief flags a level worth watching — an oil price, a rate, an index threshold — we resolve it against the actual numbers and show whether it played out, and how long it took.",
   },
   {
     href: "/calendar", icon: CalendarDays, title: "Archive", color: "var(--color-cat-science)",

@@ -75,7 +75,27 @@ export async function initDb(): Promise<void> {
       CONSTRAINT uniq_market_symbol_date UNIQUE (symbol, date)
     );
     CREATE INDEX IF NOT EXISTS idx_market_metrics_symbol_date ON market_metrics(symbol, date);
+
+    CREATE TABLE IF NOT EXISTS market_cache (
+      symbol      TEXT    PRIMARY KEY,
+      payload     JSONB   NOT NULL,
+      fetched_at  BIGINT  NOT NULL
+    );
   `);
+}
+
+/** Last-known-good market payloads (one row per symbol), for /api/markets resilience. */
+export async function getAllMarketCache() {
+  const db = getDb();
+  return db.select().from(schema.marketCache);
+}
+
+export async function upsertMarketCache(symbol: string, payload: unknown, fetchedAt: number): Promise<void> {
+  const db = getDb();
+  await db
+    .insert(schema.marketCache)
+    .values({ symbol, payload: payload as any, fetchedAt })
+    .onConflictDoUpdate({ target: schema.marketCache.symbol, set: { payload: payload as any, fetchedAt } });
 }
 
 // ─── Brief CRUD ──────────────────────────────────────────────────────────────

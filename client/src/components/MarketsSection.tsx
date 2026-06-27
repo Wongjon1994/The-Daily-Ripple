@@ -10,7 +10,14 @@ import { useMarkets } from "@/hooks/useMarkets";
 import { MarketCard, MarketCardSkeleton } from "@/components/MarketCard";
 import { marketThresholdSignals, type BoundSignal } from "@/lib/trendsAnalysis";
 import type { DailyBrief } from "@/lib/briefParser";
+import type { InstrumentGroup } from "@/lib/instruments";
 import { cn } from "@/lib/utils";
+
+const GROUPS: { key: InstrumentGroup; label: string }[] = [
+  { key: "exchange", label: "Exchanges" },
+  { key: "ratecom", label: "Rates & commodities" },
+  { key: "fx", label: "FX · vs SGD" },
+];
 
 // Keyword-matchable label per symbol for signal binding (e.g. "US 10Y" → yield).
 const MATCH_LABEL: Record<string, string> = {
@@ -90,14 +97,25 @@ export default function MarketsSection({ briefs }: { briefs: Record<string, Dail
         </button>
       </div>
 
-      {/* Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-        {loading
-          ? Array.from({ length: 12 }).map((_, i) => <MarketCardSkeleton key={i} />)
-          : instruments.map((inst) => (
-              <MarketCard key={inst.symbol} data={inst} range={range} signals={signalsBySymbol[inst.symbol] ?? []} />
-            ))}
-      </div>
+      {/* Grouped grids: Exchanges · Rates & commodities · FX */}
+      {GROUPS.map((g) => {
+        const items = instruments.filter((i) => i.group === g.key);
+        if (!items.length) return null;
+        return (
+          <div key={g.key} className="mb-7 last:mb-0">
+            <h3 className="text-[11px] font-mono uppercase tracking-[0.14em] mb-3" style={{ color: "var(--color-mist-faint)" }}>
+              {g.label}
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+              {loading
+                ? items.map((i) => <MarketCardSkeleton key={i.symbol} />)
+                : items.map((inst) => (
+                    <MarketCard key={inst.symbol} data={inst} range={range} signals={signalsBySymbol[inst.symbol] ?? []} />
+                  ))}
+            </div>
+          </div>
+        );
+      })}
 
       <p className="text-[10px] font-mono mt-4 text-right" style={{ color: "var(--color-mist-faint)" }}>
         Data via Twelve Data &amp; Alpha Vantage · daily close · cached server-side

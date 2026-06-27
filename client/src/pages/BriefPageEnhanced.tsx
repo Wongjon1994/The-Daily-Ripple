@@ -229,11 +229,11 @@ export default function BriefPageEnhanced({ initialSlug, initialSectionIndex = 0
               </button>
             </div>
             <ul className="space-y-2 text-sm" style={{ color: "var(--color-mist-dim)" }}>
+              <li>• The "at a glance" grid up top summarises all 8 stories — tap a box to jump to it</li>
               <li>• Swipe left/right or use arrow keys to move between stories</li>
               <li>• "Read more" expands the full analysis and sources</li>
-              <li>• The date picker switches to past briefs</li>
-              <li>• Archive in the nav opens the calendar view</li>
-              <li>• Trends charts recurring metrics across briefs</li>
+              <li>• The date picker switches to past briefs; Archive opens the calendar</li>
+              <li>• Trends tracks live markets and resolves the watch-signals flagged in past briefs</li>
             </ul>
           </div>
         </div>

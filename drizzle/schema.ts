@@ -68,6 +68,18 @@ export const marketMetrics = pgTable(
   })
 );
 
+/**
+ * Last-known-good cache for the on-demand /api/markets fetch: one row per symbol
+ * holding the full fetched series + meta as JSON. Lets a failed/quota-blocked
+ * upstream call (esp. Alpha Vantage's 25/day) serve the previous value instead of
+ * "Data unavailable", and survives instance restarts.
+ */
+export const marketCache = pgTable("market_cache", {
+  symbol: text("symbol").primaryKey(),
+  payload: jsonb("payload").notNull(),
+  fetchedAt: bigint("fetched_at", { mode: "number" }).notNull(),
+});
+
 // ─── Shared sub-types ────────────────────────────────────────────────────────
 
 export interface BriefSource {

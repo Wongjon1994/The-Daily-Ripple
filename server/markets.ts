@@ -43,6 +43,9 @@ const INSTRUMENTS: Inst[] = [
   { symbol: "USDSGD", label: "USD/SGD", source: "td", td: { sym: "USD/SGD", scale: 1 } },
   { symbol: "JPYSGD", label: "JPY/SGD", source: "td", td: { sym: "JPY/SGD", scale: 1 } },
   { symbol: "EURSGD", label: "EUR/SGD", source: "td", td: { sym: "EUR/SGD", scale: 1 } },
+  { symbol: "GBPSGD", label: "GBP/SGD", source: "td", td: { sym: "GBP/SGD", scale: 1 } },
+  { symbol: "AUDSGD", label: "AUD/SGD", source: "td", td: { sym: "AUD/SGD", scale: 1 } },
+  { symbol: "CNYSGD", label: "CNY/SGD", source: "td", td: { sym: "CNY/SGD", scale: 1 } },
 ];
 
 const AV = "https://www.alphavantage.co/query";
@@ -88,9 +91,25 @@ function fetchInst(inst: Inst): Promise<RawSeries> {
   return fetchAvSeries(inst.av!.fn, inst.av!.params ?? {});
 }
 
-// ── per-symbol cache (survives within a warm instance) ──────────────────────────
-const TTL = { td: 30 * 60 * 1000, av: 6 * 60 * 60 * 1000 };
+// ── per-symbol cache (in-memory, backed by the market_cache table) ──────────────
+const TTL = { td: 30 * 60 * 1000, av: 12 * 60 * 60 * 1000 };
 const cache = new Map<string, { raw: RawSeries; ts: number }>();
+
+// Hydrate the in-memory cache from the DB once, so a cold start (or a quota-blocked
+// upstream) serves last-known-good instead of "Data unavailable".
+let hydrated = false;
+async function hydrate(): Promise<void> {
+  if (hydrated) return;
+  hydrated = true;
+  try {
+    const { getAllMarketCache } = await import("./db.js");
+    for (const row of await getAllMarketCache()) {
+      if (!cache.has(row.symbol)) cache.set(row.symbol, { raw: row.payload as RawSeries, ts: row.fetchedAt });
+    }
+  } catch (e) {
+    console.log("[markets] cache hydrate failed:", e);
+  }
+}
 
 const RANGE_DAYS: Record<string, number> = { "1d": 2, "5d": 7, "1mo": 31, "3mo": 93, "6mo": 186, "1y": 366, "5y": 1830 };
 
@@ -128,17 +147,26 @@ function build(raw: RawSeries, rangeKey: string): MarketData {
 
 /** All instruments for a range; per-symbol cache, AV staggered to respect 5/min. */
 export async function getMarkets(rangeKey: string): Promise<Record<string, MarketData | null>> {
+  await hydrate();
   const out: Record<string, MarketData | null> = {};
-  // Refresh only the symbols whose cache is stale; stagger AV to stay under 5/min.
+  // Refresh only the symbols whose cache is stale; stagger AV to stay under 1/sec.
   for (const inst of INSTRUMENTS) {
     const hit = cache.get(inst.symbol);
     const fresh = hit && Date.now() - hit.ts < TTL[inst.source];
     if (!fresh) {
       try {
         const raw = await fetchInst(inst);
-        cache.set(inst.symbol, { raw, ts: Date.now() });
-        if (inst.source === "av") await new Promise((r) => setTimeout(r, 1300)); // AV: stay under 1 req/sec
+        const ts = Date.now();
+        cache.set(inst.symbol, { raw, ts });
+        try {
+          const { upsertMarketCache } = await import("./db.js");
+          await upsertMarketCache(inst.symbol, raw, ts);
+        } catch (e) {
+          console.log(`[markets] ${inst.symbol} persist failed: ${e}`);
+        }
+        if (inst.source === "av") await new Promise((r) => setTimeout(r, 1300));
       } catch (e: any) {
+        // Keep the existing cache entry (in-memory or DB-hydrated) — serve last-good.
         console.log(`[markets] ${inst.symbol} fetch failed: ${e?.message ?? e}`);
       }
     }

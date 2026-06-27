@@ -100,6 +100,7 @@ export function MarketCard({ data, range, signals = [] }: { data: MarketInstrume
             <div className="text-sm font-semibold truncate" style={{ color: "var(--color-mist)" }}>{data.label}</div>
             <div className="text-[10px] font-mono mt-0.5 tracking-[0.04em]" style={{ color: "var(--color-mist-faint)" }}>
               {exchangeLabel(data)}
+              {data.proxy && <span title={`Derived from the ${data.proxy} ETF`}> · via {data.proxy}</span>}
             </div>
           </div>
         </div>
