@@ -81,26 +81,34 @@ async function startServer() {
     }
   });
 
-  // Weekly signal realisation sweep (Trends Part 2, Addendum A). n8n's Sunday
-  // cron POSTs here; expires stale signals, then web-checks each open signal.
+  // Weekly signal realisation sweep + 1M/3M synthesis (Trends Part 2). The sweep
+  // web-checks ~100 open signals (Tavily + Haiku each), so it runs for minutes —
+  // far longer than an HTTP request should stay open. Respond immediately and run
+  // it in the background, so the n8n Sunday cron gets a fast ack and never times
+  // out. A guard prevents an overlapping run if the cron fires/retries twice.
+  let realiseRunning = false;
   app.post("/api/realise", async (req, res) => {
     if (!authorized(req)) return res.status(401).json({ error: "Unauthorized" });
-    try {
-      const { runRealisationSweep } = await import("./realisation.js");
-      const result = await runRealisationSweep();
-      // Longer-window synthesis (1M/3M) regenerates weekly, after the sweep so it
-      // uses fresh realised/open counts.
-      const synthesis: Record<string, number> = {};
+    if (realiseRunning) return res.status(202).json({ ok: true, started: false, note: "already running" });
+    realiseRunning = true;
+    res.status(202).json({ ok: true, started: true });
+    (async () => {
       try {
+        const { runRealisationSweep } = await import("./realisation.js");
+        const result = await runRealisationSweep();
+        console.log("[realise] sweep done:", result);
+        // Longer-window synthesis (1M/3M), after the sweep so it uses fresh counts.
         const { runSynthesis } = await import("./synthesis.js");
-        for (const w of ["1M", "3M"] as const) synthesis[w] = (await runSynthesis(w)).themes;
+        for (const w of ["1M", "3M"] as const) {
+          try { console.log(`[synthesis] ${w}:`, (await runSynthesis(w)).themes, "themes"); }
+          catch (e) { console.log(`[synthesis] ${w} failed:`, e); }
+        }
       } catch (e) {
-        console.log("[synthesis] 1M/3M run failed:", e);
+        console.log("[realise] failed:", e);
+      } finally {
+        realiseRunning = false;
       }
-      res.json({ ok: true, ...result, synthesis });
-    } catch (err) {
-      res.status(500).json({ error: String(err) });
-    }
+    })();
   });
 
   // Manual synthesis trigger (Trends Part 2, Addendum B). Body { window?: "1W"|"1M"|"3M" }
