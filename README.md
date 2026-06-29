@@ -158,6 +158,16 @@ See **[BRIEF_FORMAT.md](BRIEF_FORMAT.md)** for the brief schema and the
 
 Newest first. Append an entry here for every change.
 
+### 2026-06-29
+- **Realisation sweep hardening** — (1) the Tavily search query is now capped at
+  380 chars (Tavily rejects >400; long Singapore-Lens signals overran it and 500'd
+  the whole Sunday sweep); (2) each signal's check is isolated in try/catch so one
+  failure is logged and skipped rather than aborting the run (now reports an
+  `errors` count); (3) `POST /api/realise` runs the sweep + 1M/3M synthesis in the
+  **background** and returns `202` immediately — the work takes minutes, so a
+  synchronous response was timing out the n8n cron node even though it completed.
+  A guard prevents overlapping runs.
+
 ### 2026-06-28
 - **Trends: mobile header no longer overflows** — the "Intelligence signals" title
   and the 1W/1M/3M window toggle shared one non-wrapping row, pushing 3M past the
