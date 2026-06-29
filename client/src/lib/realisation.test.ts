@@ -26,6 +26,13 @@ describe("buildQuery", () => {
   it("leaves a plain subject untouched", () => {
     expect(buildQuery("ASEAN Kazan summit communiqué")).toBe("ASEAN Kazan summit communiqué");
   });
+
+  it("caps very long signals under Tavily's 400-char limit, on a word boundary", () => {
+    const long = "Watch whether " + "the Monetary Authority of Singapore adjusts its policy stance ".repeat(12);
+    const q = buildQuery(long);
+    expect(q.length).toBeLessThanOrEqual(400);
+    expect(q.endsWith(" ")).toBe(false); // trimmed at a word boundary
+  });
 });
 
 describe("applyVerdict", () => {

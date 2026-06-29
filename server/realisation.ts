@@ -16,13 +16,18 @@ import type { Signal } from "../drizzle/schema.js";
 const CONDITIONAL = /^(if|whether|should)\b\s+/i;
 const WATCH_LEAD = /^(watch|monitor|keep an eye on|look out for|brace for)\b\s+(whether|for|if|that)?\s*/i;
 
+// Tavily rejects queries longer than 400 chars; cap below that with margin.
+const MAX_QUERY = 380;
+
 /** Turn a forward "watch …" signal into a plain search query: strip the
- *  conditional/watch framing and trailing punctuation, leaving the core subject. */
+ *  conditional/watch framing and trailing punctuation, leaving the core subject.
+ *  Capped to Tavily's length limit (truncated on a word boundary). */
 export function buildQuery(signalText: string): string {
   let q = (signalText || "").trim();
   q = q.replace(WATCH_LEAD, "").replace(CONDITIONAL, "");
   // Drop a trailing "then …" clause and any final punctuation.
   q = q.replace(/\bthen\b.*$/i, "").replace(/[.?!,;:]+$/, "").trim();
+  if (q.length > MAX_QUERY) q = q.slice(0, MAX_QUERY).replace(/\s+\S*$/, "").trim();
   return q.charAt(0).toUpperCase() + q.slice(1);
 }
 
@@ -147,24 +152,31 @@ export async function runRealisationSweep(): Promise<{
   checked: number;
   realised: number;
   pendingReview: number;
+  errors: number;
 }> {
   const { getSignals, expireSignals, applySignalRealisation } = await import("./db.js");
   const today = todayIso();
   await expireSignals(today);
 
-  let checked = 0, realised = 0, pendingReview = 0;
+  let checked = 0, realised = 0, pendingReview = 0, errors = 0;
   if (process.env.TAVILY_API_KEY && process.env.ANTHROPIC_API_KEY) {
     const open = await getSignals("open");
     for (const signal of open) {
-      const snippets = await searchTavily(buildQuery(signal.signalText));
-      const verdict = await checkRealisation(signal, snippets);
-      if (!verdict) continue;
-      checked++;
-      const update = applyVerdict(verdict, today);
-      await applySignalRealisation(signal.id, update);
-      if (update.status === "realised") realised++;
-      else if (update.status === "pending_review") pendingReview++;
+      // Isolate each signal — a single search/LLM failure must not abort the sweep.
+      try {
+        const snippets = await searchTavily(buildQuery(signal.signalText));
+        const verdict = await checkRealisation(signal, snippets);
+        if (!verdict) continue;
+        checked++;
+        const update = applyVerdict(verdict, today);
+        await applySignalRealisation(signal.id, update);
+        if (update.status === "realised") realised++;
+        else if (update.status === "pending_review") pendingReview++;
+      } catch (e) {
+        errors++;
+        console.log(`[realisation] signal ${signal.id} failed:`, e);
+      }
     }
   }
-  return { expired: true, checked, realised, pendingReview };
+  return { expired: true, checked, realised, pendingReview, errors };
 }
