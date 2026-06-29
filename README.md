@@ -159,6 +159,10 @@ See **[BRIEF_FORMAT.md](BRIEF_FORMAT.md)** for the brief schema and the
 Newest first. Append an entry here for every change.
 
 ### 2026-06-29
+- **Signals extracted on Telegraph publish** — `/api/publish-telegraph` now runs
+  signal extraction after upserting the brief, so the Trends ledger refreshes
+  same-day instead of only on the next server restart (boot backfill). Idempotent:
+  a re-publish adds new signals and leaves existing ones untouched.
 - **Realisation sweep hardening** — (1) the Tavily search query is now capped at
   380 chars (Tavily rejects >400; long Singapore-Lens signals overran it and 500'd
   the whole Sunday sweep); (2) each signal's check is isolated in try/catch so one
