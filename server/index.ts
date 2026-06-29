@@ -75,7 +75,16 @@ async function startServer() {
       const brief = await briefFromTelegraph({ url: req.body?.url, date: req.body?.date });
       const { upsertBrief } = await import("./db.js");
       await upsertBrief(brief);
-      res.json({ ok: true, dateSlug: brief.dateSlug, sections: Array.isArray(brief.sections) ? brief.sections.length : 0 });
+      // Extract Trends signals on publish so the ledger is fresh same-day (a
+      // re-publish adds any new signals; existing ones are left untouched).
+      let signals = 0;
+      try {
+        const { persistBriefSignals } = await import("./signals.js");
+        signals = await persistBriefSignals(brief, brief.dateSlug);
+      } catch (e) {
+        console.log("[signals] telegraph extraction failed:", e);
+      }
+      res.json({ ok: true, dateSlug: brief.dateSlug, sections: Array.isArray(brief.sections) ? brief.sections.length : 0, signals });
     } catch (err) {
       res.status(500).json({ error: String(err) });
     }
