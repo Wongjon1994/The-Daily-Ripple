@@ -115,6 +115,7 @@ function buildSections(content: Node[]) {
   const sections: any[] = [];
   let cur: any = null;
   let synthesisText = "";
+  let synthesisSources: { outlet: string; title: string; url: string; date: string }[] = [];
 
   const pushParagraph = (node: Node) => {
     const txt = text(node).trim();
@@ -139,9 +140,21 @@ function buildSections(content: Node[]) {
       if (hasLink(node)) cur.sources.push(...parseSources(node));
       else cur.keyMetrics.push(...parseMetrics(node));
     } else if (tag === "blockquote") {
-      const t = text(node).replace(/^🔗?\s*\d*\.?\s*SYSTEMS SYNTHESIS/i, "").trim();
-      if (t && !t.startsWith("📎")) {
-        synthesisText = synthesisText ? `${synthesisText} ${t}` : t;
+      // The synthesis blockquote also carries an injected "📎 Sources" footer +
+      // source list. Walk children so those don't bleed into the prose/signals:
+      // skip the 📎 label, route the linked <ul> into sources, keep real text.
+      for (const child of node.children || []) {
+        if (typeof child === "string") {
+          const s = child.trim();
+          if (s && !s.startsWith("📎")) synthesisText = synthesisText ? `${synthesisText} ${s}` : s;
+          continue;
+        }
+        if (child.tag === "ul" && hasLink(child)) {
+          synthesisSources.push(...parseSources(child));
+          continue;
+        }
+        const t = text(child).replace(/^🔗?\s*\d*\.?\s*SYSTEMS SYNTHESIS/i, "").trim();
+        if (t && !t.startsWith("📎")) synthesisText = synthesisText ? `${synthesisText} ${t}` : t;
       }
     }
   }
@@ -185,7 +198,7 @@ function buildSections(content: Node[]) {
       paragraphs: paras.length ? paras : [synthesisText],
       singaporeLens: lens,
       keyMetrics: [], readingTime: Math.max(2, Math.round(wordCount(synthesisText) / 200)),
-      sources: [], urgency: "medium", tags: ["Systems", "Synthesis"],
+      sources: synthesisSources, urgency: "medium", tags: ["Systems", "Synthesis"],
     });
   }
 
