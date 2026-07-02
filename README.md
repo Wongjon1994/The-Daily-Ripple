@@ -158,6 +158,15 @@ See **[BRIEF_FORMAT.md](BRIEF_FORMAT.md)** for the brief schema and the
 
 Newest first. Append an entry here for every change.
 
+### 2026-06-30
+- **Telegraph import: section 8 no longer swallows its Sources footer** — the
+  systems-synthesis blockquote carries an injected "📎 Sources" label + source
+  list; the parser was flattening the whole blockquote, merging that footer into
+  the synthesis prose and the last signal (e.g. "…competitiveness.📎 SourcesLA
+  Times. (29 Jun)…"). It now walks the blockquote children — skipping the 📎
+  label, routing the linked list into the section's `sources`, keeping only real
+  paragraphs — so section 8 renders clean prose plus a proper Sources block.
+
 ### 2026-06-29
 - **Signals extracted on Telegraph publish** — `/api/publish-telegraph` now runs
   signal extraction after upserting the brief, so the Trends ledger refreshes
