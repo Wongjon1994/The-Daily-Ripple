@@ -209,7 +209,7 @@ export default function SwipeDemo({ brief, currentIndex: externalIndex, onPrevio
 
       {/* Carousel: peeks flank a centered focal card (clickable to navigate) */}
       <div className="relative">
-        <div className="relative mx-auto overflow-hidden px-0" style={{ maxWidth: "min(100%, 760px)" }}>
+        <div className="relative mx-auto overflow-hidden px-0" style={{ maxWidth: "min(100%, 1040px)" }}>
           <div className="relative w-full max-w-[600px] mx-auto">
             {/* Left peek (previous story) */}
             {total > 1 && (

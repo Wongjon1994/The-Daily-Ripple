@@ -192,21 +192,24 @@ export default function BriefPageEnhanced({ initialSlug, initialSectionIndex = 0
         </div>
       </div>
 
-      {/* At-a-glance bento summary, then the reading deck */}
+      {/* At-a-glance bento summary, then the reading deck. Both share one centred
+          column so the bento and the deck line up on desktop (they don't below). */}
       <main className="container py-3">
-        {!focusedReading && (
-          <div className="mb-4">
-            <BriefBento brief={brief} onSelectSection={handleBentoSelect} />
+        <div className="mx-auto w-full" style={{ maxWidth: 1040 }}>
+          {!focusedReading && (
+            <div className="mb-4">
+              <BriefBento brief={brief} onSelectSection={handleBentoSelect} />
+            </div>
+          )}
+          <div id="reading-deck" style={{ scrollMarginTop: "calc(var(--nav-h) + 56px)" }}>
+            <SwipeDemo
+              brief={brief}
+              currentIndex={currentSectionIndex}
+              onPrevious={handlePreviousSection}
+              onNext={handleNextSection}
+              briefUrl={briefUrl}
+            />
           </div>
-        )}
-        <div id="reading-deck" style={{ scrollMarginTop: "calc(var(--nav-h) + 56px)" }}>
-          <SwipeDemo
-            brief={brief}
-            currentIndex={currentSectionIndex}
-            onPrevious={handlePreviousSection}
-            onNext={handleNextSection}
-            briefUrl={briefUrl}
-          />
         </div>
       </main>
 
