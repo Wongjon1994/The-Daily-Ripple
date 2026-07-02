@@ -159,6 +159,11 @@ See **[BRIEF_FORMAT.md](BRIEF_FORMAT.md)** for the brief schema and the
 Newest first. Append an entry here for every change.
 
 ### 2026-06-30
+- **Brief page: bento + reading deck share one column on desktop** — the bento
+  filled the full 1280px container while the swipe deck was capped at ~760px, so
+  the two stacked blocks looked mismatched on desktop. Both now sit in a shared
+  ~1040px centred column (deck viewport widened to match), so their edges align
+  and the carousel peeks fill out. Reading card stays ~600px; mobile unchanged.
 - **Telegraph import: section 8 no longer swallows its Sources footer** — the
   systems-synthesis blockquote carries an injected "📎 Sources" label + source
   list; the parser was flattening the whole blockquote, merging that footer into
