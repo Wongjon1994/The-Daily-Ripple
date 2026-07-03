@@ -158,6 +158,15 @@ See **[BRIEF_FORMAT.md](BRIEF_FORMAT.md)** for the brief schema and the
 
 Newest first. Append an entry here for every change.
 
+### 2026-07-03
+- **Markets: fresh Brent + US 10Y (off laggy Alpha Vantage)** — Brent and US 10Y
+  were the only instruments still on Alpha Vantage, whose `BRENT` and
+  `TREASURY_YIELD` endpoints lag by days (Brent ~10 days stale, 10Y ~1 week) while
+  everything on Twelve Data stayed current. Brent now uses Twelve Data's `XBR/USD`
+  commodity CFD (like Gold's `XAU/USD`); US 10Y uses **FRED** (`DGS10`, daily) when
+  `FRED_API_KEY` is set, with automatic Alpha Vantage fallback so nothing regresses
+  before the free key is added.
+
 ### 2026-06-30
 - **Brief page: bento + reading deck share one column on desktop** — the bento
   filled the full 1280px container while the swipe deck was capped at ~760px, so
