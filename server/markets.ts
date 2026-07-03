@@ -37,8 +37,10 @@ const INSTRUMENTS: Inst[] = [
   { symbol: "^GSPC", label: "S&P 500", source: "td", td: { sym: "SPY", scale: 10 } },
   { symbol: "^NDX", label: "Nasdaq 100", source: "td", td: { sym: "QQQ", scale: 41 } }, // QQQ ETF ≈ NDX/41 (approx, drifts)
   { symbol: "^DJI", label: "Dow Jones", source: "td", td: { sym: "DIA", scale: 100 } },
-  // Brent + Gold via TD commodity CFDs (fresh daily); AV's BRENT/TREASURY_YIELD lag by days.
-  { symbol: "BRENT", label: "Brent Crude", source: "td", td: { sym: "XBR/USD", scale: 1 } },
+  // Gold via TD metals CFD (fresh). Brent prefers TD's XBR/USD but falls back to
+  // FRED (DCOILBRENTEU) if the TD plan excludes energy — AV's BRENT stopped
+  // serving on the free tier.
+  { symbol: "BRENT", label: "Brent Crude", source: "td", td: { sym: "XBR/USD", scale: 1 }, fred: { seriesId: "DCOILBRENTEU" } },
   { symbol: "GOLD", label: "Gold", source: "td", td: { sym: "XAU/USD", scale: 1 } },
   // US 10Y via FRED (DGS10, daily) when FRED_API_KEY is set; else falls back to AV.
   { symbol: "US10Y", label: "US 10Y", source: "fred", fred: { seriesId: "DGS10" }, av: { fn: "TREASURY_YIELD", params: { maturity: "10year" } } },
@@ -110,10 +112,20 @@ async function fetchFred(fred: { seriesId: string }, avFallback?: Inst["av"]): P
   return { series, volume: 0 };
 }
 
-function fetchInst(inst: Inst): Promise<RawSeries> {
+function fetchPrimary(inst: Inst): Promise<RawSeries> {
   if (inst.source === "td") return fetchTD(inst.td!);
   if (inst.source === "fred") return fetchFred(inst.fred!, inst.av);
   return fetchAvSeries(inst.av!.fn, inst.av!.params ?? {});
+}
+
+async function fetchInst(inst: Inst): Promise<RawSeries> {
+  try {
+    return await fetchPrimary(inst);
+  } catch (e) {
+    // A TD/AV primary can fall back to a FRED series (e.g. Brent) when configured.
+    if (inst.source !== "fred" && inst.fred) return await fetchFred(inst.fred!);
+    throw e;
+  }
 }
 
 // ── per-symbol cache (in-memory, backed by the market_cache table) ──────────────
