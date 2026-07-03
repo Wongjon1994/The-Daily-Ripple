@@ -34,6 +34,11 @@ services:
       # Twelve Data key for the equity-index refresh. Set in the dashboard.
       - key: TWELVEDATA_API_KEY
         sync: false
+      # FRED (St. Louis Fed) key — fresh daily US 10Y yield (DGS10). Free key from
+      # fredaccount.stlouisfed.org. Without it, US 10Y falls back to laggy Alpha
+      # Vantage. Set in the dashboard.
+      - key: FRED_API_KEY
+        sync: false
       # Anthropic key — Sonnet synthesis (Addendum B) + Haiku realisation verdicts
       # (Addendum A). Without it those jobs no-op gracefully. Set in the dashboard.
       - key: ANTHROPIC_API_KEY

@@ -23,22 +23,25 @@ export interface MarketData {
   recent: { date: string; v: number }[];
 }
 
-type Source = "td" | "av";
+type Source = "td" | "av" | "fred";
 interface Inst {
   symbol: string;
   label: string;
   source: Source;
   td?: { sym: string; scale: number };
   av?: { fn: string; params?: Record<string, string> };
+  fred?: { seriesId: string };
 }
 
 const INSTRUMENTS: Inst[] = [
   { symbol: "^GSPC", label: "S&P 500", source: "td", td: { sym: "SPY", scale: 10 } },
   { symbol: "^NDX", label: "Nasdaq 100", source: "td", td: { sym: "QQQ", scale: 41 } }, // QQQ ETF ≈ NDX/41 (approx, drifts)
   { symbol: "^DJI", label: "Dow Jones", source: "td", td: { sym: "DIA", scale: 100 } },
-  { symbol: "BRENT", label: "Brent Crude", source: "av", av: { fn: "BRENT" } },
+  // Brent + Gold via TD commodity CFDs (fresh daily); AV's BRENT/TREASURY_YIELD lag by days.
+  { symbol: "BRENT", label: "Brent Crude", source: "td", td: { sym: "XBR/USD", scale: 1 } },
   { symbol: "GOLD", label: "Gold", source: "td", td: { sym: "XAU/USD", scale: 1 } },
-  { symbol: "US10Y", label: "US 10Y", source: "av", av: { fn: "TREASURY_YIELD", params: { maturity: "10year" } } },
+  // US 10Y via FRED (DGS10, daily) when FRED_API_KEY is set; else falls back to AV.
+  { symbol: "US10Y", label: "US 10Y", source: "fred", fred: { seriesId: "DGS10" }, av: { fn: "TREASURY_YIELD", params: { maturity: "10year" } } },
   // FX via TD forex (real-time-ish; fresher than AV's laggy FX_DAILY).
   { symbol: "USDSGD", label: "USD/SGD", source: "td", td: { sym: "USD/SGD", scale: 1 } },
   { symbol: "JPYSGD", label: "JPY/SGD", source: "td", td: { sym: "JPY/SGD", scale: 1 } },
@@ -86,13 +89,35 @@ async function fetchAvSeries(fn: string, params: Record<string, string>): Promis
   return { series, volume: 0 };
 }
 
+const FRED = "https://api.stlouisfed.org/fred/series/observations";
+const fredKey = () => process.env.FRED_API_KEY ?? "";
+
+/** FRED daily series (e.g. DGS10 10Y yield). Falls back to Alpha Vantage when no
+ *  FRED key is configured, so US 10Y keeps working until the free key is added. */
+async function fetchFred(fred: { seriesId: string }, avFallback?: Inst["av"]): Promise<RawSeries> {
+  if (!fredKey()) {
+    if (avFallback) return fetchAvSeries(avFallback.fn, avFallback.params ?? {});
+    throw new Error("no FRED key");
+  }
+  const res = await axios.get(FRED, {
+    params: { series_id: fred.seriesId, api_key: fredKey(), file_type: "json", observation_start: "2024-01-01", sort_order: "asc" },
+    timeout: 15000,
+  });
+  const obs = res.data?.observations;
+  if (!Array.isArray(obs)) throw new Error(res.data?.error_message || "FRED no observations");
+  const series = obs.map((o: any) => ({ ts: toTs(o.date), v: num(o.value) })).filter((p) => Number.isFinite(p.v));
+  if (!series.length) throw new Error("FRED empty series");
+  return { series, volume: 0 };
+}
+
 function fetchInst(inst: Inst): Promise<RawSeries> {
   if (inst.source === "td") return fetchTD(inst.td!);
+  if (inst.source === "fred") return fetchFred(inst.fred!, inst.av);
   return fetchAvSeries(inst.av!.fn, inst.av!.params ?? {});
 }
 
 // ── per-symbol cache (in-memory, backed by the market_cache table) ──────────────
-const TTL = { td: 30 * 60 * 1000, av: 12 * 60 * 60 * 1000 };
+const TTL: Record<Source, number> = { td: 30 * 60 * 1000, fred: 6 * 60 * 60 * 1000, av: 12 * 60 * 60 * 1000 };
 const cache = new Map<string, { raw: RawSeries; ts: number }>();
 
 // Hydrate the in-memory cache from the DB once, so a cold start (or a quota-blocked
