@@ -102,7 +102,7 @@ async function fetchFred(fred: { seriesId: string }, avFallback?: Inst["av"]): P
     throw new Error("no FRED key");
   }
   const res = await axios.get(FRED, {
-    params: { series_id: fred.seriesId, api_key: fredKey(), file_type: "json", observation_start: "2024-01-01", sort_order: "asc" },
+    params: { series_id: fred.seriesId, api_key: fredKey(), file_type: "json", observation_start: "2019-01-01", sort_order: "asc" },
     timeout: 15000,
   });
   const obs = res.data?.observations;
