@@ -167,6 +167,15 @@ Newest first. Append an entry here for every change.
   `FRED_API_KEY` is set, with automatic Alpha Vantage fallback so nothing regresses
   before the free key is added.
 
+### 2026-07-04
+- **1W synthesis regenerates on every publish** — the daily Telegraph publish
+  extracted Trends signals but never re-ran the synthesis, so the 1W hero + theme
+  narratives + Singapore Lens were frozen at the last manual run (signal-driven
+  bits like persistence dots and the evidence trail still updated, making the
+  hero's stale prose stand out). `/api/publish-telegraph` now fire-and-forgets a
+  1W `runSynthesis` after responding, so the narratives refresh with each brief.
+  1M/3M still regenerate weekly via `/api/realise`.
+
 ### 2026-06-30
 - **Brief page: bento + reading deck share one column on desktop** — the bento
   filled the full 1280px container while the swipe deck was capped at ~760px, so
