@@ -85,6 +85,18 @@ async function startServer() {
         console.log("[signals] telegraph extraction failed:", e);
       }
       res.json({ ok: true, dateSlug: brief.dateSlug, sections: Array.isArray(brief.sections) ? brief.sections.length : 0, signals });
+      // Regenerate the 1W synthesis (hero + theme narratives + SG Lens) after the
+      // response — it reads the freshly-extracted signals and takes ~30–60s, so
+      // fire-and-forget keeps the publish node fast. 1M/3M run weekly via /realise.
+      (async () => {
+        try {
+          const { runSynthesis } = await import("./synthesis.js");
+          const r = await runSynthesis("1W");
+          console.log(`[synthesis] 1W regenerated on publish: ${r.themes} themes`);
+        } catch (e) {
+          console.log("[synthesis] 1W on publish failed:", e);
+        }
+      })();
     } catch (err) {
       res.status(500).json({ error: String(err) });
     }
