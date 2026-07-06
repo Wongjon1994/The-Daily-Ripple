@@ -324,8 +324,13 @@ export default function TrendsDashboard({
 
       <section>
         <div
-          className="sticky z-20 mb-1 py-2 backdrop-blur-md border-b border-border/40 flex flex-col gap-2 sm:flex-row sm:items-center"
-          style={{ top: "var(--nav-h)", background: "color-mix(in oklab, var(--background) 93%, transparent)" }}
+          className="sticky z-20 mb-3 rounded-xl border px-4 sm:px-5 py-2.5 backdrop-blur-md flex flex-col gap-2 sm:flex-row sm:items-center"
+          style={{
+            top: "calc(var(--nav-h) + 6px)",
+            background: "color-mix(in oklab, var(--background) 92%, transparent)",
+            borderColor: "var(--card-lift-border)",
+            boxShadow: "0 10px 24px -14px rgba(0,0,0,0.5), inset 0 1px 0 0 var(--card-lift-edge)",
+          }}
         >
           <div className="flex items-center gap-2 min-w-0">
             <Activity className="h-4 w-4 shrink-0" style={{ color: "var(--color-cyan)" }} />
