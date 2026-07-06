@@ -33,7 +33,7 @@ export const INSTRUMENTS: InstrumentDef[] = [
   { symbol: "BRENT", label: "Brent Crude", flag: "🛢️", color: "#fb923c", currency: "USD", exchange: "ICE", group: "ratecom", isCommodity: true },
   { symbol: "GOLD", label: "Gold", flag: "🥇", color: "#fbbf24", currency: "USD", exchange: "COMEX", group: "ratecom", isCommodity: true },
   // ── FX (vs SGD) ─────────────────────────────────────────────────────────────
-  { symbol: "USDSGD", label: "USD/SGD", flag: "🇸🇬", color: "#2dd4bf", currency: "SGD", exchange: "FX", group: "fx", isFx: true },
+  { symbol: "USDSGD", label: "USD/SGD", flag: "🇺🇸", color: "#2dd4bf", currency: "SGD", exchange: "FX", group: "fx", isFx: true },
   { symbol: "JPYSGD", label: "JPY/SGD", flag: "🇯🇵", color: "#f87171", currency: "SGD", exchange: "FX", group: "fx", isFx: true },
   { symbol: "EURSGD", label: "EUR/SGD", flag: "🇪🇺", color: "#a78bfa", currency: "SGD", exchange: "FX", group: "fx", isFx: true },
   { symbol: "GBPSGD", label: "GBP/SGD", flag: "🇬🇧", color: "#f472b6", currency: "SGD", exchange: "FX", group: "fx", isFx: true },
