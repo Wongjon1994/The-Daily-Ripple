@@ -167,6 +167,14 @@ Newest first. Append an entry here for every change.
   `FRED_API_KEY` is set, with automatic Alpha Vantage fallback so nothing regresses
   before the free key is added.
 
+### 2026-07-06
+- **Trends: Intelligence-signals header restyled** — the sticky header was a
+  full-bleed bar with the title and 1W/1M/3M toggle cramped against the edges. It's
+  now a rounded, lifted card (horizontal padding, themed border, soft shadow + lit
+  top edge via the `--card-lift-*` tokens) so the title and toggle have breathing
+  room and it reads as gently 3D. Also: USD/SGD FX card now uses the 🇺🇸 base-
+  currency flag (was 🇸🇬), matching the other FX pairs.
+
 ### 2026-07-04
 - **1W synthesis regenerates on every publish** — the daily Telegraph publish
   extracted Trends signals but never re-ran the synthesis, so the 1W hero + theme
