@@ -10,6 +10,7 @@ import {
   confirmSignal,
   dismissSignal,
   getThemeInsights,
+  getAgentStatus,
 } from "./db.js";
 
 const todayIso = () => new Date().toISOString().slice(0, 10);
@@ -109,6 +110,12 @@ export const appRouter = router({
         const signals = await getSignals(input?.status);
         return { ok: true, signals };
       }),
+
+    /** Agent status monitor (Agentic Ripple, Phase B): latest run per job +
+     *  data-health snapshot. */
+    getAgentStatus: publicProcedure.query(async () => {
+      return { ok: true, ...(await getAgentStatus()) };
+    }),
 
     /** RAG semantic search over signals + brief chunks (Agentic Ripple, Phase A).
      *  Retrieval only — free. Returns ranked hits with source refs. */

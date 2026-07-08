@@ -118,6 +118,17 @@ export async function initDb(): Promise<void> {
       generated_at    BIGINT  NOT NULL,
       CONSTRAINT uniq_theme_window UNIQUE (theme, "window")
     );
+
+    CREATE TABLE IF NOT EXISTS job_runs (
+      id           SERIAL  PRIMARY KEY,
+      job          TEXT    NOT NULL,
+      status       TEXT    NOT NULL DEFAULT 'ok',
+      started_at   BIGINT,
+      finished_at  BIGINT  NOT NULL,
+      summary      JSONB   NOT NULL DEFAULT '{}',
+      created_at   BIGINT  NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_job_runs_job ON job_runs(job, finished_at DESC);
   `);
 
   // ── RAG foundation (Agentic Ripple, Phase A): pgvector + embeddings ──────────
@@ -142,6 +153,53 @@ export async function initDb(): Promise<void> {
   } catch (e) {
     console.log("[rag] pgvector init skipped:", e);
   }
+}
+
+// ─── Job runs (agent status, Agentic Ripple Phase B) ─────────────────────────
+
+/** Log one run of a background job. `summary` holds counts (jsonb). Never throws
+ *  into the caller's critical path — status logging must not fail a job. */
+export async function recordJobRun(
+  job: "signal" | "synthesis" | "realise",
+  status: "ok" | "error",
+  startedAt: number | null,
+  summary: Record<string, unknown>
+): Promise<void> {
+  try {
+    const now = Date.now();
+    await getPool().query(
+      `INSERT INTO job_runs (job, status, started_at, finished_at, summary, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6)`,
+      [job, status, startedAt, now, JSON.stringify(summary ?? {}), now]
+    );
+  } catch (e) {
+    console.log("[jobs] recordJobRun failed:", e);
+  }
+}
+
+/** Latest run per job + data-health snapshot, for the Agent Status monitor. */
+export async function getAgentStatus() {
+  const pool = getPool();
+  const agents = (
+    await pool.query(
+      `SELECT DISTINCT ON (job) job, status, started_at, finished_at, summary
+       FROM job_runs ORDER BY job, finished_at DESC`
+    )
+  ).rows;
+  const sig = (await pool.query(`SELECT status, count(*)::int AS c FROM signals GROUP BY status`)).rows;
+  const signals: Record<string, number> = {};
+  for (const r of sig) signals[r.status] = r.c;
+  const briefs = (await pool.query(`SELECT count(*)::int AS c, max(brief_date) AS m FROM briefs`)).rows[0];
+  let chunks = 0;
+  try {
+    chunks = (await pool.query(`SELECT count(*)::int AS c FROM brief_chunks`)).rows[0].c;
+  } catch {
+    chunks = 0;
+  }
+  return {
+    agents,
+    health: { briefs: briefs.c, lastBriefDate: briefs.m, chunks, signals },
+  };
 }
 
 // ─── Signals (qualitative ledger) ────────────────────────────────────────────

@@ -5,7 +5,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { appRouter } from "./routers.js";
 import { createContext } from "./trpc.js";
-import { initDb } from "./db.js";
+import { initDb, recordJobRun } from "./db.js";
 import { seedBriefs, patchManualMetricFixes } from "./seed.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -100,15 +100,20 @@ async function startServer() {
       // response — it reads the freshly-extracted signals and takes ~30–60s, so
       // fire-and-forget keeps the publish node fast. 1M/3M run weekly via /realise.
       (async () => {
+        const t0 = Date.now();
+        let chunks = 0;
         try {
           const { persistBriefChunks } = await import("./embeddings.js");
-          await persistBriefChunks(brief, brief.dateSlug);
+          chunks = await persistBriefChunks(brief, brief.dateSlug);
         } catch (e) {
           console.log("[rag] chunk embedding on publish failed:", e);
         }
+        await recordJobRun("signal", "ok", t0, { signals, chunks, brief: brief.dateSlug });
         try {
+          const t1 = Date.now();
           const { runSynthesis } = await import("./synthesis.js");
           const r = await runSynthesis("1W");
+          await recordJobRun("synthesis", "ok", t1, { window: "1W", themes: r.themes });
           console.log(`[synthesis] 1W regenerated on publish: ${r.themes} themes`);
         } catch (e) {
           console.log("[synthesis] 1W on publish failed:", e);
@@ -132,15 +137,20 @@ async function startServer() {
     res.status(202).json({ ok: true, started: true });
     (async () => {
       try {
+        const t0 = Date.now();
         const { runRealisationSweep } = await import("./realisation.js");
         const result = await runRealisationSweep();
+        await recordJobRun("realise", "ok", t0, result);
         console.log("[realise] sweep done:", result);
         // Longer-window synthesis (1M/3M), after the sweep so it uses fresh counts.
+        const t1 = Date.now();
         const { runSynthesis } = await import("./synthesis.js");
+        const windows: Record<string, number> = {};
         for (const w of ["1M", "3M"] as const) {
-          try { console.log(`[synthesis] ${w}:`, (await runSynthesis(w)).themes, "themes"); }
+          try { windows[w] = (await runSynthesis(w)).themes; }
           catch (e) { console.log(`[synthesis] ${w} failed:`, e); }
         }
+        await recordJobRun("synthesis", "ok", t1, windows);
       } catch (e) {
         console.log("[realise] failed:", e);
       } finally {
