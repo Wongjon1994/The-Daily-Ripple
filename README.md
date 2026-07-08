@@ -168,6 +168,16 @@ Newest first. Append an entry here for every change.
   before the free key is added.
 
 ### 2026-07-06
+- **Agentic Ripple — Phase A: RAG foundation (pgvector + embeddings + search)** —
+  enabled `pgvector` on Neon; signals carry an `embedding vector(1536)` and a new
+  `brief_chunks` table holds one retrieval chunk per brief section, embedded with
+  OpenAI `text-embedding-3-small`. `server/embeddings.ts` (key-gated on
+  `OPENAI_API_KEY`) chunks/embeds on an idempotent boot backfill and on every
+  publish (chained into `/api/publish-telegraph`). New tRPC `search` (cosine
+  top-K over signals + chunks — retrieval only, ~$0/query) and `synthesizeAnswer`
+  (opt-in Haiku answer with inline citations). Verified live: relevant retrieval
+  + grounded, cited answers. Pure chunk/vector helpers covered by
+  `embeddings.test.ts`; network paths no-op without the key.
 - **Trends: Intelligence-signals header restyled** — the sticky header was a
   full-bleed bar with the title and 1W/1M/3M toggle cramped against the edges. It's
   now a rounded, lifted card (horizontal padding, themed border, soft shadow + lit
