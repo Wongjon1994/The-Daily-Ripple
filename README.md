@@ -167,6 +167,15 @@ Newest first. Append an entry here for every change.
   `FRED_API_KEY` is set, with automatic Alpha Vantage fallback so nothing regresses
   before the free key is added.
 
+### 2026-07-08
+- **Agentic Ripple — Phase B: agent status (`job_runs`)** — a `job_runs` table now
+  logs each background job (`signal` = extract + embed on publish, `synthesis` =
+  1W on publish / 1M+3M on realise, `realise` = weekly sweep) via
+  `recordJobRun`. New tRPC `getAgentStatus` returns the latest run per job plus a
+  data-health snapshot (brief count, last brief date, embedded-chunk count, signal
+  status counts) for the Agent Status monitor. Status logging never throws into a
+  job's critical path. Verified live.
+
 ### 2026-07-06
 - **Agentic Ripple — Phase A: RAG foundation (pgvector + embeddings + search)** —
   enabled `pgvector` on Neon; signals carry an `embedding vector(1536)` and a new
