@@ -119,6 +119,29 @@ export async function initDb(): Promise<void> {
       CONSTRAINT uniq_theme_window UNIQUE (theme, "window")
     );
   `);
+
+  // ── RAG foundation (Agentic Ripple, Phase A): pgvector + embeddings ──────────
+  // Enabled separately so a failure here (e.g. extension not permitted) never
+  // blocks the core app from booting.
+  try {
+    await pool.query(`CREATE EXTENSION IF NOT EXISTS vector;`);
+    await pool.query(`
+      ALTER TABLE signals ADD COLUMN IF NOT EXISTS embedding vector(1536);
+
+      CREATE TABLE IF NOT EXISTS brief_chunks (
+        id              SERIAL  PRIMARY KEY,
+        brief_date_slug TEXT    NOT NULL,
+        section_index   INTEGER NOT NULL,
+        category        TEXT    NOT NULL DEFAULT '',
+        chunk_text      TEXT    NOT NULL,
+        embedding       vector(1536),
+        created_at      BIGINT  NOT NULL,
+        CONSTRAINT uniq_chunk UNIQUE (brief_date_slug, section_index)
+      );
+    `);
+  } catch (e) {
+    console.log("[rag] pgvector init skipped:", e);
+  }
 }
 
 // ─── Signals (qualitative ledger) ────────────────────────────────────────────

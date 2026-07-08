@@ -47,3 +47,8 @@ services:
       # Without it the sweep runs the expiry pass only. Set in the dashboard.
       - key: TAVILY_API_KEY
         sync: false
+      # OpenAI key — text-embedding-3-small for RAG (Agentic Ripple, Phase A):
+      # embeds signals + brief chunks into pgvector for semantic search. Without
+      # it, embedding backfill and /search no-op. Set in the dashboard.
+      - key: OPENAI_API_KEY
+        sync: false

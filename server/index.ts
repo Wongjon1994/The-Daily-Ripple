@@ -23,6 +23,17 @@ async function startServer() {
   } catch (e) {
     console.log("[signals] backfill failed:", e);
   }
+  // RAG embeddings backfill (Phase A) — idempotent; no-op without OPENAI_API_KEY.
+  // Runs in the background so a slow embedding pass never delays server start.
+  (async () => {
+    try {
+      const { backfillEmbeddings } = await import("./embeddings.js");
+      const r = await backfillEmbeddings();
+      if (r.chunks || r.signals) console.log(`[rag] embedded ${r.chunks} chunks, ${r.signals} signals`);
+    } catch (e) {
+      console.log("[rag] embedding backfill failed:", e);
+    }
+  })();
 
   const app = express();
   const server = createServer(app);
@@ -89,6 +100,12 @@ async function startServer() {
       // response — it reads the freshly-extracted signals and takes ~30–60s, so
       // fire-and-forget keeps the publish node fast. 1M/3M run weekly via /realise.
       (async () => {
+        try {
+          const { persistBriefChunks } = await import("./embeddings.js");
+          await persistBriefChunks(brief, brief.dateSlug);
+        } catch (e) {
+          console.log("[rag] chunk embedding on publish failed:", e);
+        }
         try {
           const { runSynthesis } = await import("./synthesis.js");
           const r = await runSynthesis("1W");

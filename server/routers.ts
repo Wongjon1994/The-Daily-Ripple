@@ -110,6 +110,24 @@ export const appRouter = router({
         return { ok: true, signals };
       }),
 
+    /** RAG semantic search over signals + brief chunks (Agentic Ripple, Phase A).
+     *  Retrieval only — free. Returns ranked hits with source refs. */
+    search: publicProcedure
+      .input(z.object({ q: z.string().min(1).max(400), k: z.number().int().min(1).max(20).default(8) }))
+      .query(async ({ input }) => {
+        const { semanticSearch } = await import("./embeddings.js");
+        const hits = await semanticSearch(input.q, input.k);
+        return { ok: true, hits };
+      }),
+
+    /** RAG synthesized answer with citations (opt-in "Synthesize"). Haiku. */
+    synthesizeAnswer: publicProcedure
+      .input(z.object({ q: z.string().min(1).max(400) }))
+      .mutation(async ({ input }) => {
+        const { synthesizeAnswer } = await import("./embeddings.js");
+        return { ok: true, ...(await synthesizeAnswer(input.q)) };
+      }),
+
     /** Pre-generated synthesis prose for the Trends page (Addendum B). */
     getThemeInsights: publicProcedure
       .input(z.object({ window: z.enum(["1W", "1M", "3M"]).default("1W") }).optional())
