@@ -168,6 +168,14 @@ Newest first. Append an entry here for every change.
   before the free key is added.
 
 ### 2026-07-08
+- **Design consistency pass** — toward a more intentional, less "vibe-coded" feel:
+  (1) technical fundamentals — a brand ripple `favicon.svg` + apple-touch-icon,
+  meta description, `theme-color`, Open Graph + Twitter cards (masthead image), and
+  per-route document titles; (2) replaced the two commodity emoji (oil/medal) with
+  Lucide icons — country flags kept as a legit FX convention; (3) removed the
+  decorative pulse on the Trends hero badge (calmer, matches the "no glow, no pulse"
+  ethos). Deeper unification (one brand Button, full radius/card retrofit) lands
+  natively as the Signals page is built on the locked tokens.
 - **Agentic Ripple — Phase B: agent status (`job_runs`)** — a `job_runs` table now
   logs each background job (`signal` = extract + embed on publish, `synthesis` =
   1W on publish / 1M+3M on realise, `realise` = weekly sweep) via
