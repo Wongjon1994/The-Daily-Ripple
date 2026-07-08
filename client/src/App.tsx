@@ -35,7 +35,25 @@ function Home() {
   return <BriefPage />;
 }
 
+const BASE_TITLE = "The Daily Ripple";
+const ROUTE_TITLES: [RegExp, string][] = [
+  [/^\/signals|^\/trends/, "Signals · The Daily Ripple"],
+  [/^\/calendar/, "Archive · The Daily Ripple"],
+  [/^\/about/, "About · The Daily Ripple"],
+  [/^\/brief\//, "Today's Brief · The Daily Ripple"],
+];
+
+/** Keep the document title in sync with the route (SPA). */
+function useRouteTitle() {
+  const [location] = useLocation();
+  useEffect(() => {
+    const match = ROUTE_TITLES.find(([re]) => re.test(location));
+    document.title = match ? match[1] : `Today's Brief · ${BASE_TITLE}`;
+  }, [location]);
+}
+
 function Router() {
+  useRouteTitle();
   return (
     <Switch>
       <Route path="/" component={Home} />
