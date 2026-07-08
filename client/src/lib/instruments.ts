@@ -6,12 +6,17 @@
  * Brent + 10Y yield from Alpha Vantage.
  */
 
+import { Droplet, Coins, type LucideIcon } from "lucide-react";
+
 export type InstrumentGroup = "exchange" | "ratecom" | "fx";
 
 export type InstrumentDef = {
   symbol: string;
   label: string;
+  /** Country flag (emoji) for indices/FX; commodities use a Lucide `icon` instead. */
   flag: string;
+  /** Lucide icon override — used for commodities so we don't mix medal/oil emoji in. */
+  icon?: LucideIcon;
   color: string;
   currency: string;
   exchange: string;
@@ -30,8 +35,8 @@ export const INSTRUMENTS: InstrumentDef[] = [
   { symbol: "^DJI", label: "Dow Jones", flag: "🇺🇸", color: "#818cf8", currency: "USD", exchange: "NYSE", group: "exchange", proxy: "DIA" },
   // ── Rates & commodities ─────────────────────────────────────────────────────
   { symbol: "US10Y", label: "US 10Y", flag: "🇺🇸", color: "#fbbf24", currency: "USD", exchange: "CBOE", group: "ratecom", isYield: true },
-  { symbol: "BRENT", label: "Brent Crude", flag: "🛢️", color: "#fb923c", currency: "USD", exchange: "ICE", group: "ratecom", isCommodity: true },
-  { symbol: "GOLD", label: "Gold", flag: "🥇", color: "#fbbf24", currency: "USD", exchange: "COMEX", group: "ratecom", isCommodity: true },
+  { symbol: "BRENT", label: "Brent Crude", flag: "🛢️", icon: Droplet, color: "#fb923c", currency: "USD", exchange: "ICE", group: "ratecom", isCommodity: true },
+  { symbol: "GOLD", label: "Gold", flag: "🥇", icon: Coins, color: "#fbbf24", currency: "USD", exchange: "COMEX", group: "ratecom", isCommodity: true },
   // ── FX (vs SGD) ─────────────────────────────────────────────────────────────
   { symbol: "USDSGD", label: "USD/SGD", flag: "🇺🇸", color: "#2dd4bf", currency: "SGD", exchange: "FX", group: "fx", isFx: true },
   { symbol: "JPYSGD", label: "JPY/SGD", flag: "🇯🇵", color: "#f87171", currency: "SGD", exchange: "FX", group: "fx", isFx: true },

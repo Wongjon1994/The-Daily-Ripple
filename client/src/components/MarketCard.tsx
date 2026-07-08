@@ -78,7 +78,12 @@ export function MarketCard({ data, range, signals = [] }: { data: MarketInstrume
       <div className="rounded-xl p-4 flex items-center gap-3 bg-card border border-border/50" style={{ color: "var(--color-mist-faint)" }}>
         <AlertCircle className="w-4 h-4 shrink-0" />
         <div>
-          <div className="text-xs font-mono">{data.flag} {data.label}</div>
+          <div className="text-xs font-mono flex items-center gap-1.5">
+            {data.icon
+              ? <data.icon className="w-3.5 h-3.5" style={{ color: data.color }} aria-hidden="true" />
+              : <span>{data.flag}</span>}
+            {data.label}
+          </div>
           <div className="text-xs mt-0.5">Data unavailable</div>
         </div>
       </div>
@@ -95,7 +100,9 @@ export function MarketCard({ data, range, signals = [] }: { data: MarketInstrume
       {/* Header */}
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0">
-          <span className="text-base leading-none">{data.flag}</span>
+          {data.icon
+            ? <data.icon className="w-4 h-4 shrink-0" style={{ color: data.color }} aria-hidden="true" />
+            : <span className="text-base leading-none">{data.flag}</span>}
           <div className="min-w-0">
             <div className="text-sm font-semibold truncate" style={{ color: "var(--color-mist)" }}>{data.label}</div>
             <div className="text-[10px] font-mono mt-0.5 tracking-[0.04em]" style={{ color: "var(--color-mist-faint)" }}>

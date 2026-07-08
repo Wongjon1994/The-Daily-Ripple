@@ -215,7 +215,7 @@ function DominantHero({ view }: { view: ThemeView }) {
     >
       <div className="absolute inset-x-0 top-0 h-[3px]" style={{ background: `linear-gradient(90deg, ${color}, transparent)` }} />
       <div className="flex items-center gap-1.5 font-mono font-semibold uppercase mb-3" style={{ color, fontSize: 10, letterSpacing: "0.08em" }}>
-        <span className="animate-pulse h-1.5 w-1.5 rounded-full" style={{ background: color }} />
+        <span className="h-1.5 w-1.5 rounded-full" style={{ background: color }} />
         {label} · Strongest signal · {view.briefCount} of {view.totalBriefs} briefs
       </div>
 
