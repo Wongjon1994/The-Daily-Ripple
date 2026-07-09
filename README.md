@@ -158,6 +158,16 @@ See **[BRIEF_FORMAT.md](BRIEF_FORMAT.md)** for the brief schema and the
 
 Newest first. Append an entry here for every change.
 
+### 2026-07-08 — Agentic Ripple Phase D (editorial review UI)
+- **Editorial review queue** (`/admin/signals`, not in nav) — an admin page for the
+  signals the realisation sweep scored in the ambiguous band (`pending_review`):
+  each shows the sweep's evidence (note, source link, confidence, checked date) with
+  **Confirm realised** / **Dismiss** actions wired to the existing `confirmSignal` /
+  `dismissSignal` mutations. Those are `apiKeyProcedure`-guarded, so the admin pastes
+  the `PUBLISH_API_KEY` once; it's held in `sessionStorage` and sent as `x-api-key`
+  by the tRPC client (never written to disk, cleared on tab close). Actions are
+  disabled until the key is unlocked; a wrong key surfaces a clear error.
+
 ### 2026-07-08 — Agentic Ripple Phase D (house view / alpha card)
 - **House View (daily alpha card)** — a single opinionated, cross-cutting read on
   the current open signals for the Singapore-professional persona (the house view;

@@ -9,6 +9,7 @@ import AboutPage from "./pages/AboutPage";
 import BriefPage from "./pages/BriefPage";
 import CalendarPage from "./pages/CalendarPage";
 import SignalsPage from "./pages/SignalsPage";
+import AdminSignalsPage from "./pages/AdminSignalsPage";
 
 const VISITED_KEY = "ripple_visited";
 
@@ -37,6 +38,7 @@ function Home() {
 
 const BASE_TITLE = "The Daily Ripple";
 const ROUTE_TITLES: [RegExp, string][] = [
+  [/^\/admin\/signals/, "Editorial review · The Daily Ripple"],
   [/^\/signals|^\/trends/, "Signals · The Daily Ripple"],
   [/^\/calendar/, "Archive · The Daily Ripple"],
   [/^\/about/, "About · The Daily Ripple"],
@@ -59,6 +61,7 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/brief/:slug" component={BriefPage} />
       <Route path="/signals" component={SignalsPage} />
+      <Route path="/admin/signals" component={AdminSignalsPage} />
       {/* Legacy path — Trends was renamed to Signals. */}
       <Route path="/trends">
         <Redirect to="/signals" replace />
