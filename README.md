@@ -158,6 +158,13 @@ See **[BRIEF_FORMAT.md](BRIEF_FORMAT.md)** for the brief schema and the
 
 Newest first. Append an entry here for every change.
 
+### 2026-07-09 — About page: how to use the Signals page
+- **About → "Making the most of the Signals page"** — a new walkthrough section that
+  gives readers direction on the (now agentic) Signals page: ask across every brief,
+  start with the House View, scan the market pulse, track/reorder Active Watches,
+  watch flagged levels get marked realised, and see the agent jobs behind it. Also
+  fixed the stale nav card (Trends → **Signals**, `/trends` → `/signals`, refreshed copy).
+
 ### 2026-07-09 — Agentic Ripple Phase C (numeric realisation into the ledger)
 - **Numeric realisation sweep** — open numeric-threshold signals in the ledger
   ("Watch Brent above $90", "the 10Y below 4%") are now resolved server-side against

@@ -6,7 +6,8 @@
 
 import { Link } from "wouter";
 import {
-  ArrowRight, BookOpen, TrendingUp, CalendarDays, Sparkles, ShieldAlert,
+  ArrowRight, BookOpen, CalendarDays, Sparkles, ShieldAlert,
+  Radar, Search, Activity, Compass, Eye, CircleCheck,
 } from "lucide-react";
 import MastheadBanner from "@/components/MastheadBanner";
 
@@ -30,12 +31,40 @@ const NAV_CARDS = [
     body: "Where you start. The “at a glance” grid up top summarises all eight stories — tap any box to jump straight to it. From there, swipe, drag, or use your arrow keys to move between stories, each opening into the full analysis, the Singapore-specific lens, and every source we used.",
   },
   {
-    href: "/trends", icon: TrendingUp, title: "Trends", color: "var(--color-cat-economics)",
-    body: "Live markets, and where we hold ourselves accountable. Real-time charts track equity indices, FX, rates and commodities; and every time a brief flags a level worth watching — an oil price, a rate, an index threshold — we resolve it against the actual numbers and show whether it played out, and how long it took.",
+    href: "/signals", icon: Radar, title: "Signals", color: "var(--color-cyan)",
+    body: "Your intelligence desk. Ask a question across every brief, scan the market pulse, read the day's House View, and track the forward-looking signals still in play — with each flagged level held to account against the real numbers. More on how to use it just below.",
   },
   {
     href: "/calendar", icon: CalendarDays, title: "Archive", color: "var(--color-cat-science)",
     body: "Browse any past brief by date, on a simple calendar.",
+  },
+];
+
+/** A short walkthrough of what you can actually do on the Signals page. */
+const SIGNALS_GUIDE = [
+  {
+    icon: Search, color: "var(--color-cyan)", title: "Ask across every brief",
+    body: "Type a question into the ask bar to pull the most relevant signals and passages from the whole archive. Hit “Synthesise” for a short, cited answer drawn only from what we've published — no outside guesswork.",
+  },
+  {
+    icon: Compass, color: "var(--color-gold-rich)", title: "Start with the House View",
+    body: "Our single opinionated read for the day: where the edge is, what the consensus is underrating, and the one thing to position around — with a trail back to the signals it's built on.",
+  },
+  {
+    icon: Activity, color: "var(--color-cat-economics)", title: "Scan the market pulse",
+    body: "Six headline instruments — equities, rates, gold, oil, the SGD — sit up top with a quick trend line. Tap any to expand; the full Markets deck lives lower down the page.",
+  },
+  {
+    icon: Eye, color: "var(--color-cat-culture)", title: "Track what matters to you",
+    body: "Active Watches lists the forward-looking signals still in play. Drag them into your own order of priority — the arrangement is remembered on this device.",
+  },
+  {
+    icon: CircleCheck, color: "var(--color-cat-markets)", title: "Watch the calls play out",
+    body: "When a level we flagged — an oil price, a rate, an index threshold — is crossed, the signal is marked realised. It's how we hold our own forecasts to account, in public.",
+  },
+  {
+    icon: Radar, color: "var(--color-mist-dim)", title: "See the machine working",
+    body: "The Agent status panel shows the automated jobs behind the page — signal extraction, synthesis, the House View, and realisation checks — and when each last ran.",
   },
 ];
 
@@ -158,6 +187,54 @@ export default function AboutPage() {
                 );
               })}
             </div>
+          </section>
+
+          {/* ── Making the most of Signals ─────────────────────────────────── */}
+          <section className="mt-14">
+            <SectionHeader color="var(--color-cyan)">Making the most of the Signals page</SectionHeader>
+
+            <p className={para} style={{ color: "var(--color-mist-dim)" }}>
+              <Link href="/signals" className="font-semibold underline decoration-dotted underline-offset-2" style={{ color: "var(--color-cyan)" }}>Signals</Link>{" "}
+              is where the daily briefs add up to something bigger — a running, opinionated read on
+              what's building and what to watch. Here's how to use it, top to bottom.
+            </p>
+
+            <div className="mt-6 space-y-3">
+              {SIGNALS_GUIDE.map((item, i) => {
+                const Icon = item.icon;
+                return (
+                  <div key={i} className="flex items-start gap-3.5 rounded-xl border border-border/50 bg-card p-4">
+                    <div
+                      className="shrink-0 grid place-items-center h-9 w-9 rounded-lg"
+                      style={{ color: item.color, background: `color-mix(in oklab, ${item.color} 12%, transparent)` }}
+                    >
+                      <Icon className="h-4 w-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="font-semibold mb-1" style={{ fontFamily: SERIF, color: "var(--color-mist)" }}>
+                        {item.title}
+                      </div>
+                      <p className="text-[13px] leading-relaxed" style={{ color: "var(--color-mist-dim)" }}>
+                        {item.body}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <Link
+              href="/signals"
+              className="inline-flex items-center gap-2 mt-6 rounded-lg px-5 py-2.5 text-sm font-semibold transition-colors"
+              style={{
+                color: "var(--color-cyan)",
+                border: "1px solid color-mix(in oklab, var(--color-cyan) 45%, transparent)",
+                background: "color-mix(in oklab, var(--color-cyan) 10%, transparent)",
+              }}
+            >
+              Open the Signals page
+              <ArrowRight className="h-4 w-4" />
+            </Link>
           </section>
 
           {/* ── How it's made + limits ─────────────────────────────────────── */}
