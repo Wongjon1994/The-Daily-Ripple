@@ -158,6 +158,15 @@ See **[BRIEF_FORMAT.md](BRIEF_FORMAT.md)** for the brief schema and the
 
 Newest first. Append an entry here for every change.
 
+### 2026-07-08 — Agentic Ripple Phase D (two-column rail + touch reorder)
+- **Signals two-column rail** — the middle of the Signals page now matches the
+  locked IA: a left column (2/3) with the House View alpha card + the dominant-signal
+  hero, and a right column (1/3) with the Agent Status panel + Active Watches. The
+  theme-card grid runs full-width below. Stacks to one column on mobile.
+- **Touch reorder for Active Watches** — the watch list now reorders with Pointer
+  Events instead of HTML5 drag, so it works on touch as well as mouse (the pure,
+  tested `moveBefore`/`mergeWatchOrder` ordering is unchanged).
+
 ### 2026-07-08 — Agentic Ripple Phase D (editorial review UI)
 - **Editorial review queue** (`/admin/signals`, not in nav) — an admin page for the
   signals the realisation sweep scored in the ambiguous band (`pending_review`):

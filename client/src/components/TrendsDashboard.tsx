@@ -369,29 +369,32 @@ export default function TrendsDashboard({
           grouped by theme. Themes appearing in 2+ briefs are shown; expand any card for its Singapore Lens and evidence trail.
         </p>
 
-        <div className="grid gap-4 lg:grid-cols-2 mb-5">
-          <AgentStatus />
-          <ActiveWatches signals={signals} />
-        </div>
-
-        <div className="mb-5">
-          <AlphaCard />
-        </div>
-
-        {view.themes.length === 0 ? (
-          <div className="rounded-xl border border-border/60 bg-card p-8 text-center">
-            <Telescope className="h-6 w-6 mx-auto mb-3" style={{ color: "var(--color-mist-faint)" }} />
-            <p className="text-sm" style={{ color: "var(--color-mist-dim)" }}>No persistent themes in this window yet.</p>
-            <p className="text-xs mt-1" style={{ color: "var(--color-mist-faint)" }}>
-              The intelligence read builds as briefs accumulate — check back after the next few publish.
-            </p>
+        {/* Rail — left: house view + dominant hero; right: agent status + watches. */}
+        <div className="grid gap-4 lg:grid-cols-3 mb-5">
+          <div className="lg:col-span-2 space-y-4">
+            <AlphaCard />
+            {view.dominant ? (
+              <DominantHero view={view.dominant} />
+            ) : (
+              <div className="rounded-xl border border-border/60 bg-card p-8 text-center">
+                <Telescope className="h-6 w-6 mx-auto mb-3" style={{ color: "var(--color-mist-faint)" }} />
+                <p className="text-sm" style={{ color: "var(--color-mist-dim)" }}>No persistent themes in this window yet.</p>
+                <p className="text-xs mt-1" style={{ color: "var(--color-mist-faint)" }}>
+                  The intelligence read builds as briefs accumulate — check back after the next few publish.
+                </p>
+              </div>
+            )}
           </div>
-        ) : (
-          <div className="space-y-5">
-            {view.dominant && <DominantHero view={view.dominant} />}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-              {view.themes.map((t) => <ThemeCard key={t.theme} view={t} />)}
-            </div>
+          <div className="space-y-4">
+            <AgentStatus />
+            <ActiveWatches signals={signals} />
+          </div>
+        </div>
+
+        {/* Theme cards — full width below the rail. */}
+        {view.themes.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+            {view.themes.map((t) => <ThemeCard key={t.theme} view={t} />)}
           </div>
         )}
       </section>

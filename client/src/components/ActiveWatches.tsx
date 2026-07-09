@@ -1,15 +1,15 @@
 /**
  * Active Watches (Agentic Ripple, Phase D). The open, forward-looking signals the
- * reader is tracking, as a re-orderable list. Order is arranged by drag and
- * persisted to localStorage (no accounts); realisation is never invented — each
- * row shows only honest metadata (theme, surfaced date, horizon, and the
+ * reader is tracking, as a re-orderable list. Order is arranged by dragging the
+ * grip and persisted to localStorage (no accounts); realisation is never invented
+ * — each row shows only honest metadata (theme, surfaced date, horizon, and the
  * realisation engine's confidence when it has scored one).
  *
- * Reorder logic is the pure, tested lib/watchOrder helpers; this file wires the
- * native drag handlers and persistence around them.
+ * Reorder uses Pointer Events so it works with both mouse and touch; the ordering
+ * itself is the pure, tested lib/watchOrder helpers.
  */
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { Link } from "wouter";
 import { Eye, GripVertical, ArrowUpRight } from "lucide-react";
 import type { SignalRow } from "@/lib/trendsView";
@@ -47,30 +47,34 @@ function loadOrder(): number[] {
 
 function WatchRow({
   s,
-  onDragStart,
-  onDragEnter,
-  onDragEnd,
   dragging,
+  onPointerDown,
+  onPointerMove,
+  onPointerUp,
 }: {
   s: SignalRow;
-  onDragStart: () => void;
-  onDragEnter: () => void;
-  onDragEnd: () => void;
   dragging: boolean;
+  onPointerDown: (e: ReactPointerEvent) => void;
+  onPointerMove: (e: ReactPointerEvent) => void;
+  onPointerUp: (e: ReactPointerEvent) => void;
 }) {
   const t = tag(s.theme);
   const horizon = s.horizonDate ?? s.expiryDate ?? null;
   return (
     <div
-      draggable
-      onDragStart={onDragStart}
-      onDragEnter={onDragEnter}
-      onDragEnd={onDragEnd}
-      onDragOver={(e) => e.preventDefault()}
-      className="group flex items-start gap-2 rounded-md border border-border/50 bg-[var(--color-ink-well)] p-2.5 transition-colors"
+      data-watch-id={s.id}
+      className="flex items-start gap-2 rounded-md border border-border/50 bg-[var(--color-ink-well)] p-2.5 transition-colors"
       style={{ opacity: dragging ? 0.5 : 1, borderColor: dragging ? "var(--color-cyan-dim)" : undefined }}
     >
-      <span className="mt-0.5 cursor-grab active:cursor-grabbing touch-none" aria-hidden="true">
+      <span
+        role="button"
+        aria-label="Drag to reorder"
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        className="mt-0.5 cursor-grab active:cursor-grabbing"
+        style={{ touchAction: "none" }}
+      >
         <GripVertical className="h-3.5 w-3.5" style={{ color: "var(--color-mist-faint)" }} />
       </span>
       <div className="min-w-0 flex-1">
@@ -107,8 +111,10 @@ export default function ActiveWatches({ signals }: { signals: SignalRow[] }) {
   const byId = useMemo(() => new Map(open.map((s) => [s.id, s])), [open]);
 
   const [order, setOrder] = useState<number[]>([]);
-  const dragId = useRef<number | null>(null);
   const [draggingId, setDraggingId] = useState<number | null>(null);
+  const dragId = useRef<number | null>(null);
+  const orderRef = useRef<number[]>(order);
+  useEffect(() => { orderRef.current = order; }, [order]);
 
   // Reconcile the persisted arrangement with the live open set whenever it changes.
   useEffect(() => {
@@ -118,9 +124,31 @@ export default function ActiveWatches({ signals }: { signals: SignalRow[] }) {
     });
   }, [open]);
 
-  const persist = (next: number[]) => {
-    setOrder(next);
+  const save = (next: number[]) => {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); } catch { /* ignore */ }
+  };
+
+  // Pointer-based drag (mouse + touch): capture on the grip, hit-test the row
+  // under the pointer, and reorder live; persist on release.
+  const onPointerDown = (id: number) => (e: ReactPointerEvent) => {
+    e.preventDefault();
+    dragId.current = id;
+    setDraggingId(id);
+    (e.currentTarget as Element).setPointerCapture?.(e.pointerId);
+  };
+  const onPointerMove = (e: ReactPointerEvent) => {
+    if (dragId.current == null) return;
+    const row = (document.elementFromPoint(e.clientX, e.clientY) as Element | null)?.closest("[data-watch-id]");
+    const overId = row ? Number(row.getAttribute("data-watch-id")) : NaN;
+    if (!overId || overId === dragId.current) return;
+    setOrder((prev) => moveBefore(prev, dragId.current!, overId));
+  };
+  const onPointerUp = (e: ReactPointerEvent) => {
+    if (dragId.current == null) return;
+    (e.currentTarget as Element).releasePointerCapture?.(e.pointerId);
+    dragId.current = null;
+    setDraggingId(null);
+    save(orderRef.current);
   };
 
   const ordered = order.map((id) => byId.get(id)).filter((s): s is SignalRow => Boolean(s));
@@ -144,12 +172,9 @@ export default function ActiveWatches({ signals }: { signals: SignalRow[] }) {
               key={s.id}
               s={s}
               dragging={draggingId === s.id}
-              onDragStart={() => { dragId.current = s.id; setDraggingId(s.id); }}
-              onDragEnter={() => {
-                if (dragId.current === null || dragId.current === s.id) return;
-                setOrder((prev) => moveBefore(prev, dragId.current!, s.id));
-              }}
-              onDragEnd={() => { dragId.current = null; setDraggingId(null); persist(order); }}
+              onPointerDown={onPointerDown(s.id)}
+              onPointerMove={onPointerMove}
+              onPointerUp={onPointerUp}
             />
           ))}
         </div>
