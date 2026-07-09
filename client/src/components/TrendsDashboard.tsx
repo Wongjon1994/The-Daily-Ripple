@@ -1,7 +1,8 @@
 /**
- * Trends Dashboard (Part 2). Live markets, then the qualitative intelligence
- * layer: a Dominant Signal hero and a grid of active theme cards, built from the
- * persisted signal ledger and enriched with pre-generated synthesis prose.
+ * Signals Dashboard. An agentic ask bar and a compact market-pulse strip up top,
+ * then the qualitative intelligence layer (a Dominant Signal hero and a grid of active theme cards,
+ * built from the persisted signal ledger and enriched with synthesis prose), and
+ * the full Markets carousel demoted to supporting context at the bottom.
  *
  * All shaping lives in lib/trendsView.ts; this file only renders. Reference
  * design: trends_mockup.html, re-grounded in the live Daily Ripple tokens.
@@ -17,6 +18,11 @@ import {
   type ThemeView,
 } from "@/lib/trendsView";
 import MarketsSection from "@/components/MarketsSection";
+import MarketPulseStrip from "@/components/MarketPulseStrip";
+import AskBar from "@/components/AskBar";
+import AgentStatus from "@/components/AgentStatus";
+import ActiveWatches from "@/components/ActiveWatches";
+import AlphaCard from "@/components/AlphaCard";
 import {
   ChevronDown, CircleCheck, Telescope, Flame, Landmark, Cpu, Shield,
   TrendingUp, Users, Sparkles, Activity, ArrowUpRight, Info,
@@ -320,7 +326,9 @@ export default function TrendsDashboard({
 
   return (
     <div className="space-y-10">
-      <MarketsSection briefs={briefs} />
+      <AskBar />
+
+      <MarketPulseStrip />
 
       <section>
         <div
@@ -361,6 +369,15 @@ export default function TrendsDashboard({
           grouped by theme. Themes appearing in 2+ briefs are shown; expand any card for its Singapore Lens and evidence trail.
         </p>
 
+        <div className="grid gap-4 lg:grid-cols-2 mb-5">
+          <AgentStatus />
+          <ActiveWatches signals={signals} />
+        </div>
+
+        <div className="mb-5">
+          <AlphaCard />
+        </div>
+
         {view.themes.length === 0 ? (
           <div className="rounded-xl border border-border/60 bg-card p-8 text-center">
             <Telescope className="h-6 w-6 mx-auto mb-3" style={{ color: "var(--color-mist-faint)" }} />
@@ -378,6 +395,8 @@ export default function TrendsDashboard({
           </div>
         )}
       </section>
+
+      <MarketsSection briefs={briefs} />
     </div>
   );
 }

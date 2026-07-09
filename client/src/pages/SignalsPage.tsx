@@ -1,5 +1,5 @@
 /**
- * Trends Page — live markets + the Part 2 qualitative intelligence layer.
+ * Signals Page — the agentic intelligence layer + supporting markets.
  * Fetches the persisted signal ledger and synthesis prose; TrendsDashboard renders.
  */
 
@@ -20,7 +20,7 @@ function rowToBrief(row: any): DailyBrief {
   };
 }
 
-export default function TrendsPage() {
+export default function SignalsPage() {
   const [window, setWindow] = useState<TrendsWindow>("1W");
   const { data, isLoading } = trpc.n8n.getAll.useQuery();
   const { data: signalsData } = trpc.n8n.getSignals.useQuery();

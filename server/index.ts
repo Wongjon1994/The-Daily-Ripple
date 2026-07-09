@@ -118,6 +118,16 @@ async function startServer() {
         } catch (e) {
           console.log("[synthesis] 1W on publish failed:", e);
         }
+        // House view (daily alpha) — one Sonnet call over the fresh open signals.
+        try {
+          const t2 = Date.now();
+          const { runHouseView } = await import("./houseView.js");
+          const hv = await runHouseView();
+          await recordJobRun("alpha", "ok", t2, hv);
+          console.log("[alpha] house view on publish:", hv);
+        } catch (e) {
+          console.log("[alpha] house view on publish failed:", e);
+        }
       })();
     } catch (err) {
       res.status(500).json({ error: String(err) });
@@ -169,6 +179,8 @@ async function startServer() {
       const windows = req.body?.window ? [req.body.window] : (["1W", "1M", "3M"] as const);
       const out: Record<string, unknown> = {};
       for (const w of windows) out[w] = await runSynthesis(w);
+      const { runHouseView } = await import("./houseView.js");
+      out.houseView = await runHouseView();
       res.json({ ok: true, ...out });
     } catch (err) {
       res.status(500).json({ error: String(err) });

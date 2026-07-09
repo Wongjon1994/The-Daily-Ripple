@@ -16,6 +16,10 @@ export interface SignalRow {
   status: string; // open | realised | expired | pending_review
   realisedDate: string | null;
   realisedEvidenceNote: string | null;
+  // Present on the raw ledger rows; optional here as buildTrendsView ignores them.
+  confidence?: number | null;
+  horizonDate?: string | null;
+  expiryDate?: string | null;
 }
 
 export interface ThemeInsightRow {

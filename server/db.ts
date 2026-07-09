@@ -2,7 +2,7 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import { desc, eq, gte, lte, and, sql } from "drizzle-orm";
 import * as schema from "../drizzle/schema.js";
-import type { InsertBrief, InsertMarketMetric, InsertSignal, InsertThemeInsight } from "../drizzle/schema.js";
+import type { InsertBrief, InsertHouseView, InsertMarketMetric, InsertSignal, InsertThemeInsight } from "../drizzle/schema.js";
 
 const connectionString = process.env.DATABASE_URL;
 
@@ -119,6 +119,17 @@ export async function initDb(): Promise<void> {
       CONSTRAINT uniq_theme_window UNIQUE (theme, "window")
     );
 
+    CREATE TABLE IF NOT EXISTS house_view (
+      id            SERIAL  PRIMARY KEY,
+      date          TEXT    NOT NULL UNIQUE,
+      headline      TEXT    NOT NULL,
+      thesis        TEXT    NOT NULL,
+      stance        TEXT    NOT NULL DEFAULT '',
+      signal_refs   JSONB   NOT NULL DEFAULT '[]',
+      model         TEXT    NOT NULL DEFAULT '',
+      generated_at  BIGINT  NOT NULL
+    );
+
     CREATE TABLE IF NOT EXISTS job_runs (
       id           SERIAL  PRIMARY KEY,
       job          TEXT    NOT NULL,
@@ -160,7 +171,7 @@ export async function initDb(): Promise<void> {
 /** Log one run of a background job. `summary` holds counts (jsonb). Never throws
  *  into the caller's critical path — status logging must not fail a job. */
 export async function recordJobRun(
-  job: "signal" | "synthesis" | "realise",
+  job: "signal" | "synthesis" | "realise" | "alpha",
   status: "ok" | "error",
   startedAt: number | null,
   summary: Record<string, unknown>
@@ -312,6 +323,38 @@ export async function getThemeInsights(window = "1W") {
     .from(schema.themeInsights)
     .where(eq(schema.themeInsights.window, window))
     .orderBy(desc(schema.themeInsights.isDominant), desc(schema.themeInsights.briefCount));
+}
+
+// ─── House View (daily alpha card, Agentic Ripple Phase D) ───────────────────
+
+/** Upsert the daily house view (one row per brief date). */
+export async function upsertHouseView(row: InsertHouseView): Promise<void> {
+  const db = getDb();
+  await db
+    .insert(schema.houseView)
+    .values(row)
+    .onConflictDoUpdate({
+      target: schema.houseView.date,
+      set: {
+        headline: row.headline,
+        thesis: row.thesis,
+        stance: row.stance ?? "",
+        signalRefs: row.signalRefs ?? [],
+        model: row.model ?? "",
+        generatedAt: Date.now(),
+      },
+    });
+}
+
+/** The latest house view (most recent brief date), or null if none generated. */
+export async function getHouseView() {
+  const db = getDb();
+  const rows = await db
+    .select()
+    .from(schema.houseView)
+    .orderBy(desc(schema.houseView.date))
+    .limit(1);
+  return rows[0] ?? null;
 }
 
 /** Last-known-good market payloads (one row per symbol), for /api/markets resilience. */

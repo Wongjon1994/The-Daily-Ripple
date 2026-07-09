@@ -158,6 +158,57 @@ See **[BRIEF_FORMAT.md](BRIEF_FORMAT.md)** for the brief schema and the
 
 Newest first. Append an entry here for every change.
 
+### 2026-07-08 — Agentic Ripple Phase D (house view / alpha card)
+- **House View (daily alpha card)** — a single opinionated, cross-cutting read on
+  the current open signals for the Singapore-professional persona (the house view;
+  no per-user personalisation). A new `house_view` table + `server/houseView.ts`
+  does one **Sonnet** call over the open-signal ledger, chained off publish like
+  theme synthesis (and available via `/api/synthesize`); the page reads the
+  pre-generated row (`n8n.getHouseView`), never an LLM. The **Alpha card** renders
+  the headline, a conviction stance, the thesis, and a reasoning trail back to the
+  signals it leans on — and self-hides until a view exists. The job also surfaces
+  in the Agent Status panel ("House view"). Input-selection + output-parsing are
+  pure + unit-tested (`houseView.test.ts`); the Sonnet call is `ANTHROPIC_API_KEY`-
+  gated (reuses the existing key — no new env var).
+
+### 2026-07-08 — Agentic Ripple Phase D (active watches)
+- **Active Watches** — a re-orderable list of the open, forward-looking signals
+  the reader is tracking. Order is arranged by drag and persisted to localStorage
+  (no accounts); a reader's arrangement survives and freshly-surfaced watches land
+  at the end. No invented predictive %: each row shows only honest metadata (theme,
+  surfaced date, horizon, and the realisation engine's `conf` when it has scored
+  one). Sits beside the Agent Status panel as a two-column ops rail under the
+  Intelligence-signals header. Reorder logic is pure + unit-tested (`lib/watchOrder`).
+
+### 2026-07-08 — Agentic Ripple Phase D (agent status)
+- **Agent Status panel** — the Signals page now surfaces the background jobs that
+  produce the intelligence layer. A compact monitor reads `n8n.getAgentStatus` and
+  shows the latest run per job (Signal extraction, Synthesis, Realisation sweep)
+  with an ok/error/idle dot, a relative "last run" time and a summary line, plus a
+  data-health footer (briefs · open · realised · embedded chunks). Render-only,
+  degrades to "no runs" when the ledger is empty.
+
+### 2026-07-08 — Agentic Ripple Phase D (ask bar)
+- **Ask bar** — the Signals page now opens with an agentic ask bar. It's
+  retrieval-first: a query runs free semantic search over the signal ledger + brief
+  chunks (`n8n.search`) and lists ranked, cited sources. **Synthesise** is opt-in
+  and calls Haiku (`n8n.synthesizeAnswer`) for a grounded answer with inline `[n]`
+  citations that link back to the cited brief — so generation cost is paid only on
+  explicit intent. Degrades gracefully (no embeddings → "no matches"; no answer key
+  → citations still shown). Example prompts seed the empty state.
+
+### 2026-07-08 — Agentic Ripple Phase D (start)
+- **Trends → Signals** — the nav tab and page are now **Signals** (route `/signals`);
+  the old `/trends` URL 301-redirects so existing links keep working. Document title
+  and IA copy follow.
+- **Market-pulse strip** — the Signals page now opens with a compact pulse strip:
+  six headline instruments (S&P 500, Nasdaq 100, US 10Y, Brent, Gold, USD/SGD) with
+  price, day change and a mini sparkline; tap any chip to expand an inline detail row
+  (day/range change, 52-week range or previous close). The full **Markets** carousel
+  (all instruments, range tabs, bound threshold signals) is demoted to supporting
+  context at the bottom of the page. The strip reads from the same server-cached
+  market data on its own fixed range, so it adds no upstream API calls.
+
 ### 2026-07-03
 - **Markets: fresh Brent + US 10Y (off laggy Alpha Vantage)** — Brent and US 10Y
   were the only instruments still on Alpha Vantage, whose `BRENT` and

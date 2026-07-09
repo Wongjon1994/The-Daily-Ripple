@@ -2,13 +2,13 @@ import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
 import { useEffect, useRef } from "react";
-import { Route, Switch, useLocation } from "wouter";
+import { Redirect, Route, Switch, useLocation } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import AboutPage from "./pages/AboutPage";
 import BriefPage from "./pages/BriefPage";
 import CalendarPage from "./pages/CalendarPage";
-import TrendsPage from "./pages/TrendsPage";
+import SignalsPage from "./pages/SignalsPage";
 
 const VISITED_KEY = "ripple_visited";
 
@@ -58,7 +58,11 @@ function Router() {
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/brief/:slug" component={BriefPage} />
-      <Route path="/trends" component={TrendsPage} />
+      <Route path="/signals" component={SignalsPage} />
+      {/* Legacy path — Trends was renamed to Signals. */}
+      <Route path="/trends">
+        <Redirect to="/signals" replace />
+      </Route>
       <Route path="/calendar" component={CalendarPage} />
       <Route path="/about" component={AboutPage} />
       <Route path="/404" component={NotFound} />

@@ -88,7 +88,7 @@ function LocalClock() {
 
 const NAV_ITEMS = [
   { href: "/", label: "Today's Brief" },
-  { href: "/trends", label: "Trends" },
+  { href: "/signals", label: "Signals" },
   { href: "/calendar", label: "Archive" },
   { href: "/about", label: "About" },
 ];

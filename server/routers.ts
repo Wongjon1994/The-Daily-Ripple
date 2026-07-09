@@ -11,6 +11,7 @@ import {
   dismissSignal,
   getThemeInsights,
   getAgentStatus,
+  getHouseView,
 } from "./db.js";
 
 const todayIso = () => new Date().toISOString().slice(0, 10);
@@ -134,6 +135,11 @@ export const appRouter = router({
         const { synthesizeAnswer } = await import("./embeddings.js");
         return { ok: true, ...(await synthesizeAnswer(input.q)) };
       }),
+
+    /** The daily house view (alpha card). Pre-generated; null until first run. */
+    getHouseView: publicProcedure.query(async () => {
+      return { ok: true, houseView: (await getHouseView()) ?? null };
+    }),
 
     /** Pre-generated synthesis prose for the Trends page (Addendum B). */
     getThemeInsights: publicProcedure
