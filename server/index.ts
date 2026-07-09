@@ -148,10 +148,14 @@ async function startServer() {
     (async () => {
       try {
         const t0 = Date.now();
+        // Numeric threshold signals first: deterministic crossings against live
+        // prices, so they realise before the web sweep re-checks the same signals.
+        const { runNumericRealisationSweep } = await import("./numericRealisation.js");
+        const numeric = await runNumericRealisationSweep();
         const { runRealisationSweep } = await import("./realisation.js");
         const result = await runRealisationSweep();
-        await recordJobRun("realise", "ok", t0, result);
-        console.log("[realise] sweep done:", result);
+        await recordJobRun("realise", "ok", t0, { numericRealised: numeric.realised, ...result });
+        console.log("[realise] numeric sweep:", numeric, "· web sweep done:", result);
         // Longer-window synthesis (1M/3M), after the sweep so it uses fresh counts.
         const t1 = Date.now();
         const { runSynthesis } = await import("./synthesis.js");

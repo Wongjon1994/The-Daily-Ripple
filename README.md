@@ -158,6 +158,18 @@ See **[BRIEF_FORMAT.md](BRIEF_FORMAT.md)** for the brief schema and the
 
 Newest first. Append an entry here for every change.
 
+### 2026-07-09 — Agentic Ripple Phase C (numeric realisation into the ledger)
+- **Numeric realisation sweep** — open numeric-threshold signals in the ledger
+  ("Watch Brent above $90", "the 10Y below 4%") are now resolved server-side against
+  real market prices and marked **realised** when the level is crossed —
+  deterministically (confidence 1.0, no web search / LLM), so they surface in the
+  unified watch list, not just on the market cards. `server/numericRealisation.ts`
+  parses the metric + level (5 instruments: S&P, Dow, Brent, Gold, US 10Y) and checks
+  the first crossing after the surfaced date against `getMarkets().recent` (the same
+  live series the cards use), with a scale guard against unit mismatches. Chained into
+  `/api/realise` ahead of the web-grounded sweep (deterministic wins; the web sweep
+  then skips the already-realised ones). Parse + crossing logic is pure + unit-tested.
+
 ### 2026-07-08 — Agentic Ripple Phase D (two-column rail + touch reorder)
 - **Signals two-column rail** — the middle of the Signals page now matches the
   locked IA: a left column (2/3) with the House View alpha card + the dominant-signal
