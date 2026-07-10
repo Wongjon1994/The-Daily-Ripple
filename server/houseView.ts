@@ -48,8 +48,10 @@ export function buildHousePrompt(signals: HouseSignalInput[]): { user: string; r
     `Synthesise the HOUSE VIEW: one opinionated, cross-cutting read for a Singapore professional — ` +
     `where the edge is right now, what the consensus is underrating, and the single thing to position around. ` +
     `Connect signals across themes; take a view, do not just summarise.\n\n` +
+    `Ground every claim in the signals above. Do NOT introduce any price, rate, yield or index level that is not ` +
+    `written verbatim in them — reason in directions and triggers, not invented figures.\n\n` +
     `Return STRICT JSON only, no prose or code fences: ` +
-    `{"headline": "punchy, <=10 words", "thesis": "3-4 specific sentences, no hedging", "stance": "conviction line, <=8 words"}`;
+    `{"headline": "punchy, <=10 words", "thesis": "3-4 sentences, specific on mechanism but with no numeric level not present in the signals, no hedging", "stance": "conviction line, <=8 words"}`;
   return { user, refs };
 }
 
@@ -78,8 +80,13 @@ export function parseHouseView(text: string): { headline: string; thesis: string
 
 const SYSTEM =
   "You are the chief strategist for The Daily Ripple, writing the house view for a Singapore professional. " +
-  "You are opinionated and specific: you connect developments across domains, call out what consensus is missing, " +
-  "and commit to a view. No hedging, no filler, no disclaimers. Output only what is asked, in the exact format requested.";
+  "You are opinionated and specific about mechanisms, institutions and how developments connect — you call out " +
+  "what consensus is missing and commit to a view. No hedging, no filler, no disclaimers. " +
+  "CRITICAL — you have no live market data: do NOT state any specific numeric level (a price, rate, yield, index " +
+  "level or percentage) unless that exact figure appears verbatim in the signals you are given; any number you " +
+  "supply from memory will be stale. When a signal names a metric without a current level, describe the direction " +
+  "and the trigger (e.g. 'reprices SORA upward', 'a Brent spike above the level the brief flags'), never a " +
+  "fabricated threshold. Output only what is asked, in the exact format requested.";
 
 async function generate(user: string): Promise<string | null> {
   if (!process.env.ANTHROPIC_API_KEY) return null;

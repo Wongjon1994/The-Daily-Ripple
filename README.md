@@ -158,6 +158,14 @@ See **[BRIEF_FORMAT.md](BRIEF_FORMAT.md)** for the brief schema and the
 
 Newest first. Append an entry here for every change.
 
+### 2026-07-10 — House View: don't invent numeric levels
+- **Grounding guardrail on the House View** — the daily alpha synthesis was stating
+  specific figures it had no live data for (e.g. "a Fed hike reprices SORA above 3.8%"
+  when SORA was ~1%). The generation prompt (`server/houseView.ts`) now forbids any
+  price/rate/yield/index **level that isn't written verbatim in the source signals** —
+  it reasons in directions and triggers ("reprices SORA upward") instead of fabricated
+  thresholds. Keeps the view specific about mechanisms without ungrounded numbers.
+
 ### 2026-07-09 — About page: how to use the Signals page
 - **About → "Making the most of the Signals page"** — a new walkthrough section that
   gives readers direction on the (now agentic) Signals page: ask across every brief,

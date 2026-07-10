@@ -32,6 +32,8 @@ describe("buildHousePrompt", () => {
     expect(user).toContain("[1]");
     expect(user).toContain("Energy & Commodities");
     expect(user).toContain("STRICT JSON");
+    // Grounding guardrail: forbid numeric levels not present in the signals.
+    expect(user).toMatch(/do not introduce any price, rate, yield or index level/i);
     expect(refs).toEqual([{ slug: "jul-8-2026", storyIndex: 5, text: "Watch Brent above $90 into winter." }]);
   });
 });
