@@ -125,7 +125,7 @@ export default function AskBar() {
           <input
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
-            placeholder="Ask across the briefs — “where are oil prices headed?”"
+            placeholder="Ask across the briefs…"
             maxLength={400}
             className="flex-1 bg-transparent outline-none text-sm min-w-0"
             style={{ color: "var(--color-mist)" }}

@@ -342,7 +342,7 @@ export default function TrendsDashboard({
         >
           <div className="flex items-center gap-2 min-w-0">
             <Activity className="h-4 w-4 shrink-0" style={{ color: "var(--color-cyan)" }} />
-            <h2 className="text-2xl font-bold" style={{ fontFamily: "'Playfair Display', Georgia, serif", color: "var(--color-cyan)" }}>
+            <h2 className="text-xl sm:text-2xl font-bold" style={{ fontFamily: "'Playfair Display', Georgia, serif", color: "var(--color-cyan)" }}>
               Intelligence signals
             </h2>
             <InfoTip />

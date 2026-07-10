@@ -25,8 +25,8 @@ const FLAT = "var(--color-mist-faint)";
 const trendOf = (pct: number) => (Math.abs(pct) < 0.01 ? FLAT : pct >= 0 ? UP : DOWN);
 
 /** Tiny inline sparkline drawn from the instrument's series — no axes, no chrome. */
-function Spark({ series, color, w = 96, h = 26 }: { series: { v: number }[]; color: string; w?: number; h?: number }) {
-  if (series.length < 2) return <div style={{ width: w, height: h }} />;
+function Spark({ series, color, w = 96, h = 26, fluid = false }: { series: { v: number }[]; color: string; w?: number; h?: number; fluid?: boolean }) {
+  if (series.length < 2) return <div className={fluid ? "w-full" : undefined} style={{ width: fluid ? undefined : w, height: h }} />;
   const vs = series.map((p) => p.v);
   const min = Math.min(...vs);
   const span = Math.max(...vs) - min || 1;
@@ -34,7 +34,14 @@ function Spark({ series, color, w = 96, h = 26 }: { series: { v: number }[]; col
     .map((p, i) => `${(i / (series.length - 1)) * w},${h - ((p.v - min) / span) * h}`)
     .join(" ");
   return (
-    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" aria-hidden="true">
+    <svg
+      width={fluid ? undefined : w}
+      height={h}
+      viewBox={`0 0 ${w} ${h}`}
+      preserveAspectRatio="none"
+      aria-hidden="true"
+      className={fluid ? "w-full" : undefined}
+    >
       <polyline
         points={pts}
         fill="none"
@@ -70,7 +77,7 @@ function PulseChip({ inst, active, onClick }: { inst: MarketInstrument; active: 
         </span>
       </div>
       <div className="mt-1 flex items-end justify-between gap-2">
-        <div>
+        <div className="shrink-0">
           <div className="text-sm font-semibold tabular-nums leading-none" style={{ color: "var(--color-mist)" }}>
             {inst.error ? "—" : formatPrice(inst.currentPrice, inst)}
           </div>
@@ -82,7 +89,11 @@ function PulseChip({ inst, active, onClick }: { inst: MarketInstrument; active: 
             </span>
           </div>
         </div>
-        <Spark series={inst.series} color={inst.color} />
+        {/* Fluid sparkline — shrinks before the price does, capped at 96px so it
+            never crowds the number in the 2-column mobile layout. */}
+        <div className="flex-1 min-w-0 max-w-[96px] flex justify-end">
+          <Spark series={inst.series} color={inst.color} fluid />
+        </div>
       </div>
     </button>
   );
