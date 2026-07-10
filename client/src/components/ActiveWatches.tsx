@@ -9,11 +9,11 @@
  * itself is the pure, tested lib/watchOrder helpers.
  */
 
-import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "wouter";
-import { Eye, GripVertical, ArrowUpRight, CircleCheck } from "lucide-react";
+import { Eye, ChevronUp, ChevronDown, ArrowUpRight, CircleCheck } from "lucide-react";
 import type { SignalRow } from "@/lib/trendsView";
-import { mergeWatchOrder, moveBefore } from "@/lib/watchOrder";
+import { mergeWatchOrder, moveByStep } from "@/lib/watchOrder";
 
 const STORAGE_KEY = "ripple_watch_order";
 
@@ -47,38 +47,41 @@ function loadOrder(): number[] {
   }
 }
 
+function ReorderButton({ dir, disabled, onClick }: { dir: "up" | "down"; disabled: boolean; onClick: () => void }) {
+  const Icon = dir === "up" ? ChevronUp : ChevronDown;
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={`Move ${dir}`}
+      className="grid place-items-center h-5 w-5 rounded border border-border/50 transition-colors disabled:opacity-30 enabled:hover:border-[var(--color-cyan-dim)] enabled:hover:text-[var(--color-cyan)]"
+      style={{ color: "var(--color-mist-faint)" }}
+    >
+      <Icon className="h-3 w-3" />
+    </button>
+  );
+}
+
 function WatchRow({
   s,
-  dragging,
-  onPointerDown,
-  onPointerMove,
-  onPointerUp,
+  isFirst,
+  isLast,
+  onMove,
 }: {
   s: SignalRow;
-  dragging: boolean;
-  onPointerDown: (e: ReactPointerEvent) => void;
-  onPointerMove: (e: ReactPointerEvent) => void;
-  onPointerUp: (e: ReactPointerEvent) => void;
+  isFirst: boolean;
+  isLast: boolean;
+  onMove: (dir: -1 | 1) => void;
 }) {
   const t = tag(s.theme);
   const horizon = s.horizonDate ?? s.expiryDate ?? null;
   return (
-    <div
-      data-watch-id={s.id}
-      className="flex items-start gap-2 rounded-md border border-border/50 bg-[var(--color-ink-well)] p-2.5 transition-colors"
-      style={{ opacity: dragging ? 0.5 : 1, borderColor: dragging ? "var(--color-cyan-dim)" : undefined }}
-    >
-      <span
-        role="button"
-        aria-label="Drag to reorder"
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={onPointerUp}
-        className="mt-0.5 cursor-grab active:cursor-grabbing"
-        style={{ touchAction: "none" }}
-      >
-        <GripVertical className="h-3.5 w-3.5" style={{ color: "var(--color-mist-faint)" }} />
-      </span>
+    <div className="flex items-start gap-2 rounded-md border border-border/50 bg-[var(--color-ink-well)] p-2.5">
+      <div className="flex flex-col gap-1 shrink-0 mt-0.5">
+        <ReorderButton dir="up" disabled={isFirst} onClick={() => onMove(-1)} />
+        <ReorderButton dir="down" disabled={isLast} onClick={() => onMove(1)} />
+      </div>
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2 mb-1">
           <span className="font-mono uppercase tracking-[0.06em] rounded px-1" style={{ color: t.color, background: `color-mix(in oklab, ${t.color} 12%, transparent)`, fontSize: 9 }}>
@@ -150,10 +153,6 @@ export default function ActiveWatches({ signals }: { signals: SignalRow[] }) {
   const byId = useMemo(() => new Map(open.map((s) => [s.id, s])), [open]);
 
   const [order, setOrder] = useState<number[]>([]);
-  const [draggingId, setDraggingId] = useState<number | null>(null);
-  const dragId = useRef<number | null>(null);
-  const orderRef = useRef<number[]>(order);
-  useEffect(() => { orderRef.current = order; }, [order]);
 
   // Reconcile the persisted arrangement with the live open set whenever it changes.
   useEffect(() => {
@@ -163,31 +162,14 @@ export default function ActiveWatches({ signals }: { signals: SignalRow[] }) {
     });
   }, [open]);
 
-  const save = (next: number[]) => {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); } catch { /* ignore */ }
-  };
-
-  // Pointer-based drag (mouse + touch): capture on the grip, hit-test the row
-  // under the pointer, and reorder live; persist on release.
-  const onPointerDown = (id: number) => (e: ReactPointerEvent) => {
-    e.preventDefault();
-    dragId.current = id;
-    setDraggingId(id);
-    (e.currentTarget as Element).setPointerCapture?.(e.pointerId);
-  };
-  const onPointerMove = (e: ReactPointerEvent) => {
-    if (dragId.current == null) return;
-    const row = (document.elementFromPoint(e.clientX, e.clientY) as Element | null)?.closest("[data-watch-id]");
-    const overId = row ? Number(row.getAttribute("data-watch-id")) : NaN;
-    if (!overId || overId === dragId.current) return;
-    setOrder((prev) => moveBefore(prev, dragId.current!, overId));
-  };
-  const onPointerUp = (e: ReactPointerEvent) => {
-    if (dragId.current == null) return;
-    (e.currentTarget as Element).releasePointerCapture?.(e.pointerId);
-    dragId.current = null;
-    setDraggingId(null);
-    save(orderRef.current);
+  // Reorder via up/down buttons — works on touch, mouse and keyboard alike, and
+  // persists immediately. (Replaced pointer-drag, which was unreliable on mobile.)
+  const move = (id: number, dir: -1 | 1) => {
+    setOrder((prev) => {
+      const next = moveByStep(prev, id, dir);
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); } catch { /* ignore */ }
+      return next;
+    });
   };
 
   const ordered = order.map((id) => byId.get(id)).filter((s): s is SignalRow => Boolean(s));
@@ -230,18 +212,17 @@ export default function ActiveWatches({ signals }: { signals: SignalRow[] }) {
       {view === "open" ? (
         ordered.length === 0 ? (
           <p className="text-xs leading-relaxed" style={{ color: "var(--color-mist-faint)" }}>
-            No active watches yet. Forward-looking signals appear here as briefs publish — drag to arrange your own priority.
+            No active watches yet. Forward-looking signals appear here as briefs publish — use the arrows to arrange your own priority.
           </p>
         ) : (
           <div className="space-y-2 max-h-[420px] overflow-y-auto pr-1">
-            {ordered.map((s) => (
+            {ordered.map((s, i) => (
               <WatchRow
                 key={s.id}
                 s={s}
-                dragging={draggingId === s.id}
-                onPointerDown={onPointerDown(s.id)}
-                onPointerMove={onPointerMove}
-                onPointerUp={onPointerUp}
+                isFirst={i === 0}
+                isLast={i === ordered.length - 1}
+                onMove={(dir) => move(s.id, dir)}
               />
             ))}
           </div>

@@ -36,6 +36,16 @@ describe("buildHousePrompt", () => {
     expect(user).toMatch(/do not introduce any price, rate, yield or index level/i);
     expect(refs).toEqual([{ slug: "jul-8-2026", storyIndex: 5, text: "Watch Brent above $90 into winter." }]);
   });
+
+  it("includes recently-realised calls as confirmed context, but only open signals as refs", () => {
+    const realised = sig({ signalText: "Brent held above $90.", realisedDate: "2026-07-06", realisedEvidenceNote: "Brent closed at $92." });
+    const { user, refs } = buildHousePrompt([sig({ storyIndex: 1 })], [realised]);
+    expect(user).toMatch(/Recently REALISED/);
+    expect(user).toContain("Brent closed at $92.");
+    // Realised items inform the prose but are not part of the reasoning-trail refs.
+    expect(refs).toHaveLength(1);
+    expect(refs[0].text).toBe("Watch Brent above $90 into winter.");
+  });
 });
 
 describe("parseHouseView", () => {

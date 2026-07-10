@@ -158,6 +158,20 @@ See **[BRIEF_FORMAT.md](BRIEF_FORMAT.md)** for the brief schema and the
 
 Newest first. Append an entry here for every change.
 
+### 2026-07-10 — Mobile reorder, no-cache index, realisations feed the synthesis
+- **Active Watches reorder with up/down buttons** — replaced the pointer-drag (which
+  was unreliable on touch) with per-row up/down buttons, so reordering works on
+  mobile, mouse and keyboard alike; order still persists to localStorage. Logic is
+  pure + unit-tested (`moveByStep`).
+- **`index.html` now sent `no-cache`** — hashed `/assets/*` are cached immutably, but
+  the HTML revalidates every load, so browsers (and in-app webviews like Telegram's)
+  pick up the newest bundle after a deploy instead of serving a stale one. This was
+  behind "realised text still truncated on mobile" — the fix was live but cached.
+- **Synthesis & House View now factor in recent realisations** — the daily House View
+  and each theme's synthesis are given the calls that have come true in the last 21
+  days (with their evidence) as confirmed facts, so the read reflects the latest
+  outcomes and its own track record, not just the open watch list.
+
 ### 2026-07-10 — Weekly realisation on Render (in-process scheduler) + realised text
 - **Weekly realisation sweep now runs in-process** — an in-app scheduler
   (`server/scheduler.ts`) fires the shared realise flow at ~Sunday 09:00 SGT,

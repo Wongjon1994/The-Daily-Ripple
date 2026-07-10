@@ -26,3 +26,13 @@ export function moveBefore(order: number[], srcId: number, targetId: number): nu
   const ti = without.indexOf(targetId);
   return [...without.slice(0, ti), srcId, ...without.slice(ti)];
 }
+
+/** Nudge `id` one place up (dir -1) or down (dir +1); no-op at the ends. */
+export function moveByStep(order: number[], id: number, dir: -1 | 1): number[] {
+  const i = order.indexOf(id);
+  const j = i + dir;
+  if (i < 0 || j < 0 || j >= order.length) return order;
+  const next = [...order];
+  [next[i], next[j]] = [next[j], next[i]];
+  return next;
+}

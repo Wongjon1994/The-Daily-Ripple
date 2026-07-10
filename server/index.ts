@@ -210,11 +210,25 @@ async function startServer() {
       ? path.resolve(__dirname, "public")
       : path.resolve(__dirname, "..", "dist", "public");
 
-  app.use(express.static(staticPath));
+  // Hashed assets (/assets/index-*.js|css) are content-addressed → cache forever.
+  // index.html must revalidate every load, else browsers (esp. in-app webviews like
+  // Telegram's) keep loading a stale bundle reference after a deploy.
+  app.use(
+    express.static(staticPath, {
+      setHeaders(res, filePath) {
+        if (filePath.endsWith(path.sep + "index.html") || filePath.endsWith("index.html")) {
+          res.setHeader("Cache-Control", "no-cache");
+        } else if (filePath.includes(`${path.sep}assets${path.sep}`)) {
+          res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+        }
+      },
+    })
+  );
 
   // SPA fallback
   app.get("*", (_req, res) => {
     const indexPath = path.join(staticPath, "index.html");
+    res.setHeader("Cache-Control", "no-cache");
     res.sendFile(indexPath, (err) => {
       if (err) res.status(404).send("Not found");
     });

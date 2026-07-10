@@ -17,6 +17,9 @@ export interface HouseSignalInput {
   briefDateSlug: string;
   storyIndex: number;
   surfacedDate: string;
+  /** Present on realised inputs — the outcome that confirmed the call. */
+  realisedDate?: string | null;
+  realisedEvidenceNote?: string | null;
 }
 
 const THEME_LABELS: Record<string, string> = {
@@ -36,20 +39,32 @@ export function selectHouseSignals(signals: HouseSignalInput[], cap = 14): House
   return [...signals].sort((a, b) => (a.surfacedDate < b.surfacedDate ? 1 : -1)).slice(0, cap);
 }
 
-/** Build the Sonnet prompt + the refs (slug/story/text) the view leans on. */
-export function buildHousePrompt(signals: HouseSignalInput[]): { user: string; refs: HouseViewRef[] } {
+/** Build the Sonnet prompt + the refs (slug/story/text) the view leans on. Recently
+ *  realised signals (calls that have since come true) are given as confirmed facts so
+ *  the view reflects the latest outcomes, not just the open watch list. */
+export function buildHousePrompt(
+  signals: HouseSignalInput[],
+  realised: HouseSignalInput[] = []
+): { user: string; refs: HouseViewRef[] } {
   const chosen = selectHouseSignals(signals);
   const refs: HouseViewRef[] = chosen.map((s) => ({ slug: s.briefDateSlug, storyIndex: s.storyIndex, text: s.signalText }));
   const lines = chosen
     .map((s, i) => `[${i + 1}] (${THEME_LABELS[s.theme] ?? s.theme}, ${s.surfacedDate}) ${s.signalText}`)
     .join("\n");
+  const realisedBlock = realised.length
+    ? `\n\nRecently REALISED — earlier calls that have now come true (treat as confirmed facts; any figure here ` +
+      `is real, so you may use it; factor these outcomes into the view and note the track record where it sharpens the read):\n\n` +
+      realised
+        .map((s) => `(${THEME_LABELS[s.theme] ?? s.theme}, realised ${s.realisedDate ?? ""}) ${s.signalText}${s.realisedEvidenceNote ? ` → ${s.realisedEvidenceNote}` : ""}`)
+        .join("\n")
+    : "";
   const user =
-    `Open forward-looking signals currently tracked (most recent first):\n\n${lines}\n\n` +
+    `Open forward-looking signals currently tracked (most recent first):\n\n${lines}${realisedBlock}\n\n` +
     `Synthesise the HOUSE VIEW: one opinionated, cross-cutting read for a Singapore professional — ` +
     `where the edge is right now, what the consensus is underrating, and the single thing to position around. ` +
     `Connect signals across themes; take a view, do not just summarise.\n\n` +
     `Ground every claim in the signals above. Do NOT introduce any price, rate, yield or index level that is not ` +
-    `written verbatim in them — reason in directions and triggers, not invented figures.\n\n` +
+    `written verbatim in them (the realised block counts as written) — reason in directions and triggers, not invented figures.\n\n` +
     `Return STRICT JSON only, no prose or code fences: ` +
     `{"headline": "punchy, <=10 words", "thesis": "3-4 sentences written to the reader in plain stakes (their rate, bill, job, portfolio), specific on mechanism but with no numeric level not present in the signals, no hedging", "stance": "conviction line, <=8 words"}`;
   return { user, refs };
@@ -124,7 +139,24 @@ export async function runHouseView(): Promise<{ ok: boolean; date?: string; refs
     storyIndex: s.storyIndex,
     surfacedDate: s.surfacedDate,
   }));
-  const { user, refs } = buildHousePrompt(inputs);
+
+  // Recently realised calls (last 21 days) give the view confirmed, latest outcomes.
+  const cutoff = new Date(Date.now() - 21 * 86_400_000).toISOString().slice(0, 10);
+  const realisedInputs: HouseSignalInput[] = ((await getSignals("realised")) as any[])
+    .filter((s) => (s.realisedDate ?? "") >= cutoff)
+    .sort((a, b) => ((a.realisedDate ?? "") < (b.realisedDate ?? "") ? 1 : -1))
+    .slice(0, 8)
+    .map((s) => ({
+      theme: s.theme,
+      signalText: s.signalText,
+      briefDateSlug: s.briefDateSlug,
+      storyIndex: s.storyIndex,
+      surfacedDate: s.surfacedDate,
+      realisedDate: s.realisedDate,
+      realisedEvidenceNote: s.realisedEvidenceNote,
+    }));
+
+  const { user, refs } = buildHousePrompt(inputs, realisedInputs);
   const parsed = parseHouseView((await generate(user)) ?? "");
   if (!parsed) return { ok: false };
 

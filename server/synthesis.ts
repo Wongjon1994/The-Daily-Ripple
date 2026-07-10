@@ -125,11 +125,17 @@ async function generate(user: string): Promise<string | null> {
   return block && block.type === "text" ? block.text.trim() : null;
 }
 
-function header(input: ThemeInput, window: Window, start: string, end: string): string {
+export interface RealisedNote { signalText: string; realisedDate: string; note: string }
+
+function header(input: ThemeInput, window: Window, start: string, end: string, realised: RealisedNote[] = []): string {
   const label = THEME_LABELS[input.theme] ?? input.theme;
+  const realisedBlock = realised.length
+    ? `\n\nRecently REALISED in this theme — earlier watch calls now confirmed true (real outcomes; weave in where relevant):\n\n` +
+      realised.map((r) => `- (realised ${r.realisedDate}) ${r.signalText}${r.note ? ` → ${r.note}` : ""}`).join("\n")
+    : "";
   return (
     `Theme: ${label}\nWindow: ${window} (${start} to ${end})\n\n` +
-    `Singapore Lens entries for this theme, chronologically:\n\n${formatEntries(input.entries)}`
+    `Singapore Lens entries for this theme, chronologically:\n\n${formatEntries(input.entries)}${realisedBlock}`
   );
 }
 
@@ -139,13 +145,24 @@ function header(input: ThemeInput, window: Window, start: string, end: string): 
  */
 export async function runSynthesis(window: Window): Promise<{ window: Window; themes: number; dominant: string | null }> {
   if (!process.env.ANTHROPIC_API_KEY) return { window, themes: 0, dominant: null };
-  const { getAllBriefs, upsertThemeInsight } = await import("./db.js");
+  const { getAllBriefs, upsertThemeInsight, getSignals } = await import("./db.js");
   const briefs = await getAllBriefs({ limit: 1000 });
   const { themes, dominant, windowStart, windowEnd } = buildThemeInputs(briefs, window);
 
+  // Recently realised calls (last 21 days), grouped by theme, so each theme's
+  // synthesis can reflect the outcomes that have since come true.
+  const cutoff = new Date(Date.now() - 21 * 86_400_000).toISOString().slice(0, 10);
+  const realisedByTheme = new Map<string, RealisedNote[]>();
+  for (const s of (await getSignals("realised")) as any[]) {
+    if ((s.realisedDate ?? "") < cutoff) continue;
+    const list = realisedByTheme.get(s.theme) ?? [];
+    if (list.length < 5) list.push({ signalText: s.signalText, realisedDate: s.realisedDate, note: s.realisedEvidenceNote ?? "" });
+    realisedByTheme.set(s.theme, list);
+  }
+
   let generated = 0;
   for (const input of themes) {
-    const base = header(input, window, windowStart, windowEnd);
+    const base = header(input, window, windowStart, windowEnd, realisedByTheme.get(input.theme) ?? []);
     const themeNarrative =
       (await generate(`${base}\n\nWrite a 2–3 sentence read on how this theme has moved across the window and the one development that matters most — plainly and directly, focused on the trajectory, not a list of each entry.`)) ?? "";
     const sgLens =
