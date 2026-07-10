@@ -102,13 +102,24 @@ async function startServer() {
       (async () => {
         const t0 = Date.now();
         let chunks = 0;
+        let expired = 0;
         try {
           const { persistBriefChunks } = await import("./embeddings.js");
           chunks = await persistBriefChunks(brief, brief.dateSlug);
         } catch (e) {
           console.log("[rag] chunk embedding on publish failed:", e);
         }
-        await recordJobRun("signal", "ok", t0, { signals, chunks, brief: brief.dateSlug });
+        // Age out open signals past their 30-day / named-horizon expiry. A reliable
+        // daily cadence: the boot backfill rarely runs (free tier stays warm) and the
+        // weekly realise sweep isn't dependable, so open signals otherwise pile up.
+        try {
+          const { expireSignals } = await import("./db.js");
+          expired = await expireSignals(new Date().toISOString().slice(0, 10));
+          if (expired) console.log(`[signals] expired ${expired} past-horizon signals on publish`);
+        } catch (e) {
+          console.log("[signals] expiry on publish failed:", e);
+        }
+        await recordJobRun("signal", "ok", t0, { signals, chunks, expired, brief: brief.dateSlug });
         try {
           const t1 = Date.now();
           const { runSynthesis } = await import("./synthesis.js");

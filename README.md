@@ -158,6 +158,18 @@ See **[BRIEF_FORMAT.md](BRIEF_FORMAT.md)** for the brief schema and the
 
 Newest first. Append an entry here for every change.
 
+### 2026-07-10 — Active Watches: realised filter + reliable signal aging
+- **Realised filter in Active Watches** — the panel now has a visible Open / Realised
+  toggle (with live counts). "Realised" lists the watches whose flagged call came
+  true, each with a green "Realised · <date>" badge and the sweep's evidence note;
+  the Open view keeps the drag-to-reorder behaviour.
+- **Signal aging now runs daily on publish** — 30-day (or named-horizon) signal
+  expiry was only firing on server boot and in the weekly realisation sweep, neither
+  of which is dependable on the free tier (kept-warm instance rarely reboots; the
+  sweep is cron-driven), so open signals piled up. `expireSignals` now also runs on
+  every brief publish and reports how many it aged out (surfaced in the "signal" job
+  summary). Briefs themselves are never aged — the Archive is the full history.
+
 ### 2026-07-10 — Synthesis & House View: closer-to-home voice
 - **Warmer, reader-first tone for the AI-written prose** — the theme synthesis
   (`server/synthesis.ts`) and daily House View (`server/houseView.ts`) read too

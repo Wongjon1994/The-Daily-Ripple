@@ -229,12 +229,14 @@ export async function insertSignals(rows: InsertSignal[]): Promise<number> {
 }
 
 /** Mark every still-open signal whose expiry has passed as expired. Returns count. */
-export async function expireSignals(today: string): Promise<void> {
+export async function expireSignals(today: string): Promise<number> {
   const db = getDb();
-  await db
+  const rows = await db
     .update(schema.signals)
     .set({ status: "expired", updatedAt: Date.now() })
-    .where(and(eq(schema.signals.status, "open"), lte(schema.signals.expiryDate, today)));
+    .where(and(eq(schema.signals.status, "open"), lte(schema.signals.expiryDate, today)))
+    .returning({ id: schema.signals.id });
+  return rows.length;
 }
 
 /** All signals (optionally filtered by status), newest brief first. */
