@@ -158,6 +158,19 @@ See **[BRIEF_FORMAT.md](BRIEF_FORMAT.md)** for the brief schema and the
 
 Newest first. Append an entry here for every change.
 
+### 2026-07-10 — Weekly realisation on Render (in-process scheduler) + realised text
+- **Weekly realisation sweep now runs in-process** — an in-app scheduler
+  (`server/scheduler.ts`) fires the shared realise flow at ~Sunday 09:00 SGT,
+  replacing the n8n Sunday cron. It's **catch-up aware**: an hourly check runs the
+  sweep whenever the most recent scheduled slot has passed without a recorded run
+  (once overdue by ≥1h), so a slot missed during a redeploy/outage self-heals within
+  the hour instead of skipping a week — and a slot already serviced is never
+  repeated. The `/api/realise` endpoint stays for manual runs; both share one flow
+  (`server/realiseFlow.ts`) with a single overlap guard. Slot/due maths are pure +
+  unit-tested. (You can now delete the two n8n realisation nodes.)
+- **Realised watches show their full text** — the realised-watch rows no longer
+  clamp the signal and evidence note to two lines.
+
 ### 2026-07-10 — Active Watches: realised filter + reliable signal aging
 - **Realised filter in Active Watches** — the panel now has a visible Open / Realised
   toggle (with live counts). "Realised" lists the watches whose flagged call came

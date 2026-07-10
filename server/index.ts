@@ -35,6 +35,15 @@ async function startServer() {
     }
   })();
 
+  // Weekly realisation sweep (Sunday ~09:00 SGT) — in-process, catch-up aware.
+  // Replaces the n8n Sunday cron; the /api/realise endpoint stays for manual runs.
+  try {
+    const { startWeeklyRealiseScheduler } = await import("./scheduler.js");
+    startWeeklyRealiseScheduler();
+  } catch (e) {
+    console.log("[scheduler] start failed:", e);
+  }
+
   const app = express();
   const server = createServer(app);
 
@@ -148,40 +157,14 @@ async function startServer() {
   // Weekly signal realisation sweep + 1M/3M synthesis (Trends Part 2). The sweep
   // web-checks ~100 open signals (Tavily + Haiku each), so it runs for minutes —
   // far longer than an HTTP request should stay open. Respond immediately and run
-  // it in the background, so the n8n Sunday cron gets a fast ack and never times
-  // out. A guard prevents an overlapping run if the cron fires/retries twice.
-  let realiseRunning = false;
+  // it in the background, so a caller (the in-process scheduler, or a manual/n8n
+  // trigger) gets a fast ack. The shared flow guards against overlapping runs.
   app.post("/api/realise", async (req, res) => {
     if (!authorized(req)) return res.status(401).json({ error: "Unauthorized" });
-    if (realiseRunning) return res.status(202).json({ ok: true, started: false, note: "already running" });
-    realiseRunning = true;
+    const { isRealiseRunning, runRealiseFlow } = await import("./realiseFlow.js");
+    if (isRealiseRunning()) return res.status(202).json({ ok: true, started: false, note: "already running" });
     res.status(202).json({ ok: true, started: true });
-    (async () => {
-      try {
-        const t0 = Date.now();
-        // Numeric threshold signals first: deterministic crossings against live
-        // prices, so they realise before the web sweep re-checks the same signals.
-        const { runNumericRealisationSweep } = await import("./numericRealisation.js");
-        const numeric = await runNumericRealisationSweep();
-        const { runRealisationSweep } = await import("./realisation.js");
-        const result = await runRealisationSweep();
-        await recordJobRun("realise", "ok", t0, { numericRealised: numeric.realised, ...result });
-        console.log("[realise] numeric sweep:", numeric, "· web sweep done:", result);
-        // Longer-window synthesis (1M/3M), after the sweep so it uses fresh counts.
-        const t1 = Date.now();
-        const { runSynthesis } = await import("./synthesis.js");
-        const windows: Record<string, number> = {};
-        for (const w of ["1M", "3M"] as const) {
-          try { windows[w] = (await runSynthesis(w)).themes; }
-          catch (e) { console.log(`[synthesis] ${w} failed:`, e); }
-        }
-        await recordJobRun("synthesis", "ok", t1, windows);
-      } catch (e) {
-        console.log("[realise] failed:", e);
-      } finally {
-        realiseRunning = false;
-      }
-    })();
+    void runRealiseFlow();
   });
 
   // Manual synthesis trigger (Trends Part 2, Addendum B). Body { window?: "1W"|"1M"|"3M" }

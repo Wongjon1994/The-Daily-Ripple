@@ -123,9 +123,9 @@ function RealisedRow({ s }: { s: SignalRow }) {
         </span>
         <ArrowUpRight className="h-3 w-3 ml-auto shrink-0" style={{ color: "var(--color-mist-faint)" }} />
       </div>
-      <p className="leading-snug line-clamp-2" style={{ color: "var(--color-mist-dim)", fontSize: 12 }}>{s.signalText}</p>
+      <p className="leading-snug" style={{ color: "var(--color-mist-dim)", fontSize: 12 }}>{s.signalText}</p>
       {s.realisedEvidenceNote && (
-        <p className="leading-snug mt-1 line-clamp-2" style={{ color: "var(--color-mist-faint)", fontSize: 10 }}>{s.realisedEvidenceNote}</p>
+        <p className="leading-snug mt-1" style={{ color: "var(--color-mist-faint)", fontSize: 10 }}>{s.realisedEvidenceNote}</p>
       )}
     </Link>
   );

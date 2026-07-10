@@ -188,6 +188,14 @@ export async function recordJobRun(
   }
 }
 
+/** The most recent run of one job (finished_at is epoch ms, as a string from pg). */
+export async function getLastJobRun(job: string): Promise<{ finished_at: unknown } | null> {
+  const rows = (
+    await getPool().query(`SELECT finished_at FROM job_runs WHERE job = $1 ORDER BY finished_at DESC LIMIT 1`, [job])
+  ).rows;
+  return rows[0] ?? null;
+}
+
 /** Latest run per job + data-health snapshot, for the Agent Status monitor. */
 export async function getAgentStatus() {
   const pool = getPool();
