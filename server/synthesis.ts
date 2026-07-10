@@ -94,10 +94,13 @@ export function formatEntries(entries: LensEntry[], cap = 12): string {
 
 // ── LLM synthesis (key-gated) ────────────────────────────────────────────────
 const SYSTEM =
-  "You are an intelligence analyst for The Daily Ripple, a Singapore-focused global " +
-  "intelligence brief. Write in a precise, analytical style — no hedging, no filler. " +
-  "Be direct and specific about mechanisms, institutions, and numbers where they exist " +
-  "in the source material. Output only the requested prose, no preamble.";
+  "You are the resident analyst at The Daily Ripple, writing for one reader: a Singapore professional " +
+  "juggling a mortgage, a job, and a mix of local and global investments. Match the voice of the brief's " +
+  "Singapore Lens entries in the material below — write TO the reader (second person, 'here in Singapore'), " +
+  "and land each point where they'll actually feel it: their rate, their bill, their job, their CPF, their " +
+  "portfolio. Keep the rigour — be specific about the mechanism and the numbers that matter — but translate " +
+  "institutions and acronyms into plain stakes, and stay warm and concrete, not corporate. No hedging, no " +
+  "filler. Output only the requested prose, no preamble.";
 
 const THEME_LABELS: Record<string, string> = {
   geopolitics: "Geopolitics & Security",
@@ -144,12 +147,12 @@ export async function runSynthesis(window: Window): Promise<{ window: Window; th
   for (const input of themes) {
     const base = header(input, window, windowStart, windowEnd);
     const themeNarrative =
-      (await generate(`${base}\n\nWrite a 2–3 sentence synthesis of how this theme has evolved across this window and what the single most important development is. Focus on trajectory. Do not summarise each entry individually.`)) ?? "";
+      (await generate(`${base}\n\nWrite a 2–3 sentence read on how this theme has moved across the window and the one development that matters most — plainly and directly, focused on the trajectory, not a list of each entry.`)) ?? "";
     const sgLens =
-      (await generate(`${base}\n\nWrite a 2–3 sentence synthesis of what this theme means for Singapore right now, as of the most recent brief.`)) ?? "";
+      (await generate(`${base}\n\nWrite 2–3 sentences in the voice of the Singapore Lens above: what this means for the reader here right now — what to watch, and where it shows up in their life (their rate, bill, job, or portfolio). Speak to them directly.`)) ?? "";
     const isDominant = input.theme === dominant;
     const heroNarrative = isDominant
-      ? (await generate(`${base}\n\nWrite a 3–4 sentence hero synthesis: the single most important development in this dominant theme and why it matters for Singapore right now. Lead with the outcome.`)) ?? null
+      ? (await generate(`${base}\n\nWrite a 3–4 sentence hero read: the single most important development in this dominant theme and why it matters to the reader here right now. Lead with the outcome, in plain terms they'll feel — not an institutional summary.`)) ?? null
       : null;
 
     const row: InsertThemeInsight = {

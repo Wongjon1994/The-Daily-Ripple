@@ -158,6 +158,16 @@ See **[BRIEF_FORMAT.md](BRIEF_FORMAT.md)** for the brief schema and the
 
 Newest first. Append an entry here for every change.
 
+### 2026-07-10 — Synthesis & House View: closer-to-home voice
+- **Warmer, reader-first tone for the AI-written prose** — the theme synthesis
+  (`server/synthesis.ts`) and daily House View (`server/houseView.ts`) read too
+  corporate/fact-heavy next to the briefs' Singapore Lens. Both generation prompts
+  now write **to** the reader (second person, "here in Singapore") and land each
+  point where they'll feel it — their rate, bill, job, CPF, portfolio — translating
+  institutions and acronyms into plain stakes while keeping the analytical rigour.
+  The synthesis prompt explicitly matches the voice of the Singapore Lens entries it's
+  already given. Takes effect on the next regeneration (publish / `/api/synthesize`).
+
 ### 2026-07-10 — Signals page: mobile polish
 - **Mobile optimisation of the Signals page** — the market-pulse sparkline is now
   fluid (shrinks before the price, capped at 96px) so it never crowds the number in
