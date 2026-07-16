@@ -477,7 +477,8 @@ export function buildTrackedMetrics(
 const THEMES: { key: string; label: string; icon: string; re: RegExp }[] = [
   { key: "energy", label: "Energy & commodities", icon: "Flame", re: /\b(oil|brent|crude|hormuz|energy|electricity|tariff|lng|petrol|fuel|opec|commodit|gold)\b/i },
   { key: "rates", label: "Rates & banking", icon: "Landmark", re: /\b(fed|rate|yield|treasury|inflation|cpi|mas|sora|cpf|fomc|monetary|dbs|ocbc|uob|bank)\b/i },
-  { key: "ai_tech", label: "AI & technology", icon: "Cpu", re: /\b(ai|artificial intelligence|chip|semiconductor|nvidia|broadcom|software|data cent|cloud|spacex|starlink|tech|algorithm|cradle|lundbeck)\b/i },
+  { key: "ai_tech", label: "AI & technology", icon: "Cpu", re: /\b(ai|artificial intelligence|openai|chatgpt|anthropic|claude|gemini|llm|copilot|robot|humanoid|automation|chip|semiconductor|nvidia|broadcom|software|data cent|cloud|spacex|starlink|tech|algorithm|cradle|lundbeck)\b/i },
+  { key: "health", label: "Science & health", icon: "HeartPulse", re: /\b(ebola|outbreak|epidemic|pandemic|vaccine|virus|pheic|world health organization|clinical trial|drug approval|caseload|medisave|moh|hospital|pharma|biotech|cancer|alzheimer|diabet|a\*star|duke-nus|mrna)\b/i },
   { key: "geopolitics", label: "Geopolitics & security", icon: "Shield", re: /\b(china|iran|russia|ukraine|israel|trump|sanction|military|taiwan|war|election|protest|prabowo|defen[cs]e|navy|south china sea)\b/i },
   { key: "markets", label: "Markets & corporate", icon: "TrendingUp", re: /\b(ipo|valuation|equit|stock|nasdaq|s&p|index|earnings|merger|acquisition|reit|fund|raise|listing|shares|airtrunk|sgx)\b/i },
   { key: "society", label: "Society & culture", icon: "Sparkles", re: /\b(culture|film|music|tony|award|broadway|festival|sport|world cup|tourism|arts|esplanade|cannes|blackpink|bts)\b/i },

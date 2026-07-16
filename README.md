@@ -158,6 +158,23 @@ See **[BRIEF_FORMAT.md](BRIEF_FORMAT.md)** for the brief schema and the
 
 Newest first. Append an entry here for every change.
 
+### 2026-07-16 — Market realisations: single source of truth + Science & Health theme
+- **Market levels can no longer be "realised" from news snippets** (the Brent "$126"
+  incident — our own series showed ~$81). Layered policy: (1) a signal naming a
+  tracked instrument *and* a level is now the **deterministic numeric sweep's
+  exclusive domain** — the web sweep skips it entirely, so if our price series says
+  the level hasn't crossed, no LLM can realise it; (2) market-flavoured but
+  unparseable signals are **capped below the auto-realise band** — the web sweep can
+  route them to the editorial queue but never realise them itself; (3) the verdict
+  prompt now forbids figures not present verbatim in the snippets. New guarded
+  `reopenSignal` mutation reverts a wrongly-realised signal to open for re-evaluation.
+- **New "Science & Health" signal theme** — the brief has a dedicated Science &
+  Health section but its signals were falling into the hidden "other" bucket (so was
+  anything mentioning OpenAI/ChatGPT — the AI classifier predated them). Added the
+  `health` theme end-to-end (classifier, theme cards, watches, admin, synthesis and
+  House View labels), refreshed the AI vocabulary, and on boot the server now retags
+  existing "other" signals that match the new vocabulary.
+
 ### 2026-07-10 — Mobile reorder, no-cache index, realisations feed the synthesis
 - **Active Watches reorder with up/down buttons** — replaced the pointer-drag (which
   was unreliable on touch) with per-row up/down buttons, so reordering works on

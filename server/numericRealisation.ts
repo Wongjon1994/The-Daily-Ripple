@@ -35,6 +35,16 @@ const SYMBOL_KEYWORDS: { symbol: string; kw: RegExp }[] = [
 // A level sitting right beside the metric keyword: "above $90", "below 4%", "tops 6000".
 const THRESHOLD = /(above|below|under|over|past|beyond|breaches?|tops?)\s+\$?\s?(\d[\d,.]*)/i;
 
+/** The tracked symbol a signal's text refers to, if any — regardless of whether a
+ *  parseable level sits beside it. Used by the web sweep to treat market-flavoured
+ *  signals conservatively (market prices are verified against our own series, never
+ *  against news snippets). Pure. */
+export function matchesTrackedSymbol(text: string): string | null {
+  if (!text) return null;
+  for (const { symbol, kw } of SYMBOL_KEYWORDS) if (kw.test(text)) return symbol;
+  return null;
+}
+
 /** Parse a numeric threshold (symbol + level + direction) from a signal's text,
  *  or null if it names no resolvable metric-and-level. Pure. */
 export function parseSignalThreshold(text: string): ParsedThreshold | null {

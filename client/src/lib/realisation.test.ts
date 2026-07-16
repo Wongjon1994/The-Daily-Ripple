@@ -78,4 +78,12 @@ describe("applyVerdict", () => {
     expect(applyVerdict(v({ confidence: 0.85 }), today).status).toBe("realised");
     expect(applyVerdict(v({ confidence: 0.84 }), today).status).toBe("pending_review");
   });
+
+  it("never auto-realises a market-related signal from web evidence — caps to review", () => {
+    // The Brent "$126" incident: a web verdict on a market-flavoured signal must go
+    // through the editorial queue, however confident the LLM is.
+    const u = applyVerdict(v({ confidence: 0.95 }), today, true);
+    expect(u.status).toBe("pending_review");
+    expect(u.confidence).toBe(0.8);
+  });
 });

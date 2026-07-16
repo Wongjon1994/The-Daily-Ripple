@@ -25,7 +25,7 @@ import ActiveWatches from "@/components/ActiveWatches";
 import AlphaCard from "@/components/AlphaCard";
 import {
   ChevronDown, CircleCheck, Telescope, Flame, Landmark, Cpu, Shield,
-  TrendingUp, Users, Sparkles, Activity, ArrowUpRight, Info,
+  TrendingUp, Users, Sparkles, Activity, ArrowUpRight, Info, HeartPulse,
 } from "lucide-react";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
@@ -35,6 +35,7 @@ export type TrendsWindow = "1W" | "1M" | "3M";
 const THEME_META: Record<string, { label: string; Icon: typeof Flame; color: string }> = {
   geopolitics: { label: "Geopolitics & Security", Icon: Shield, color: "var(--color-cat-geopolitics)" },
   ai_tech: { label: "AI & Technology", Icon: Cpu, color: "var(--color-cyan)" },
+  health: { label: "Science & Health", Icon: HeartPulse, color: "var(--color-sage)" },
   society: { label: "Society & Culture", Icon: Users, color: "var(--color-cat-culture)" },
   rates: { label: "Rates & Banking", Icon: Landmark, color: "var(--color-cat-tech)" },
   markets: { label: "Markets & Corporate", Icon: TrendingUp, color: "var(--color-cat-science)" },

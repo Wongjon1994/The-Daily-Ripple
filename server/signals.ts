@@ -44,7 +44,8 @@ function extractWatch(text: string, isSystems: boolean): string[] {
 const THEMES: { key: string; re: RegExp }[] = [
   { key: "energy", re: /\b(oil|brent|crude|hormuz|energy|electricity|tariff|lng|petrol|fuel|opec|commodit|gold)\b/i },
   { key: "rates", re: /\b(fed|rate|yield|treasury|inflation|cpi|mas|sora|cpf|fomc|monetary|dbs|ocbc|uob|bank)\b/i },
-  { key: "ai_tech", re: /\b(ai|artificial intelligence|chip|semiconductor|nvidia|broadcom|software|data cent|cloud|spacex|starlink|tech|algorithm|cradle|lundbeck)\b/i },
+  { key: "ai_tech", re: /\b(ai|artificial intelligence|openai|chatgpt|anthropic|claude|gemini|llm|copilot|robot|humanoid|automation|chip|semiconductor|nvidia|broadcom|software|data cent|cloud|spacex|starlink|tech|algorithm|cradle|lundbeck)\b/i },
+  { key: "health", re: /\b(ebola|outbreak|epidemic|pandemic|vaccine|virus|pheic|world health organization|clinical trial|drug approval|caseload|medisave|moh|hospital|pharma|biotech|cancer|alzheimer|diabet|a\*star|duke-nus|mrna)\b/i },
   { key: "geopolitics", re: /\b(china|iran|russia|ukraine|israel|trump|sanction|military|taiwan|war|election|protest|prabowo|defen[cs]e|navy|south china sea)\b/i },
   { key: "markets", re: /\b(ipo|valuation|equit|stock|nasdaq|s&p|index|earnings|merger|acquisition|reit|fund|raise|listing|shares|airtrunk|sgx)\b/i },
   { key: "society", re: /\b(culture|film|music|tony|award|broadway|festival|sport|world cup|tourism|arts|esplanade|cannes|blackpink|bts)\b/i },
@@ -134,12 +135,29 @@ export async function persistBriefSignals(brief: any, dateSlug: string): Promise
   return insertSignals(rows);
 }
 
+/** Re-tag signals stranded in the 'other' bucket whose text matches a real theme —
+ *  run at boot so a classifier vocabulary extension applies to existing rows too. */
+export async function reclassifyOtherSignals(): Promise<number> {
+  const { getSignals, updateSignalTheme } = await import("./db.js");
+  let retagged = 0;
+  for (const s of (await getSignals()) as any[]) {
+    if (s.theme !== "other") continue;
+    const theme = classifyTheme(`${s.signalText} ${s.headline || ""}`);
+    if (theme !== "other") {
+      await updateSignalTheme(s.id, theme);
+      retagged++;
+    }
+  }
+  return retagged;
+}
+
 /** One-off (idempotent) backfill of all existing briefs, then an expiry sweep. */
-export async function backfillSignals(): Promise<{ briefs: number; inserted: number }> {
+export async function backfillSignals(): Promise<{ briefs: number; inserted: number; retagged: number }> {
   const { getAllBriefs, insertSignals, expireSignals } = await import("./db.js");
   const briefs = await getAllBriefs({ limit: 1000 });
   let inserted = 0;
   for (const b of briefs) inserted += await insertSignals(extractBriefSignals(b, (b as any).dateSlug));
   await expireSignals(todayIso());
-  return { briefs: briefs.length, inserted };
+  const retagged = await reclassifyOtherSignals();
+  return { briefs: briefs.length, inserted, retagged };
 }

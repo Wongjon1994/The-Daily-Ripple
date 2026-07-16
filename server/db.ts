@@ -285,6 +285,34 @@ export async function confirmSignal(id: number, today: string): Promise<void> {
     .where(and(eq(schema.signals.id, id), eq(schema.signals.status, "pending_review")));
 }
 
+/** Re-tag one signal's theme (boot-time reclassification of the 'other' bucket). */
+export async function updateSignalTheme(id: number, theme: string): Promise<void> {
+  const db = getDb();
+  await db
+    .update(schema.signals)
+    .set({ theme, updatedAt: Date.now() })
+    .where(eq(schema.signals.id, id));
+}
+
+/** Editorial repair: revert a wrongly-realised signal to open — realisation fields
+ *  cleared so the sweeps re-evaluate it from scratch (and, for a market-threshold
+ *  signal, the deterministic numeric sweep now owns it). */
+export async function reopenSignal(id: number, today: string): Promise<void> {
+  const db = getDb();
+  await db
+    .update(schema.signals)
+    .set({
+      status: "open",
+      confidence: null,
+      realisedDate: null,
+      realisedEvidenceUrl: null,
+      realisedEvidenceNote: null,
+      lastCheckedDate: today,
+      updatedAt: Date.now(),
+    })
+    .where(and(eq(schema.signals.id, id), eq(schema.signals.status, "realised")));
+}
+
 /** Editorial-queue dismiss: a pending_review signal returns to open, evidence
  *  cleared and lastCheckedDate reset so the next Sunday sweep rechecks it. */
 export async function dismissSignal(id: number, today: string): Promise<void> {

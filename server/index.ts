@@ -19,7 +19,7 @@ async function startServer() {
   try {
     const { backfillSignals } = await import("./signals.js");
     const r = await backfillSignals();
-    console.log(`[signals] backfill: ${r.inserted} new from ${r.briefs} briefs`);
+    console.log(`[signals] backfill: ${r.inserted} new from ${r.briefs} briefs · ${r.retagged} retagged from 'other'`);
   } catch (e) {
     console.log("[signals] backfill failed:", e);
   }

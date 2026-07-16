@@ -48,10 +48,18 @@ export interface SignalUpdate {
   realisedEvidenceNote?: string | null;
 }
 
+/** Web verdicts on market-flavoured signals can never auto-realise: prices belong
+ *  to the deterministic market sweep, so cap them into the editorial queue. */
+export const MARKET_WEB_CONFIDENCE_CAP = 0.8;
+
 /** Map an LLM verdict to the signal fields to persist. A non-realised verdict is
- *  treated as zero confidence so it always falls through to "leave open". */
-export function applyVerdict(verdict: Verdict, today: string): SignalUpdate {
-  const confidence = verdict.realised ? verdict.confidence : 0;
+ *  treated as zero confidence so it always falls through to "leave open". When
+ *  `marketRelated`, confidence is capped below the auto-realise band so a human
+ *  confirms any market claim the web sweep makes (news snippets are not a price
+ *  source — see the Brent "$126" incident). */
+export function applyVerdict(verdict: Verdict, today: string, marketRelated = false): SignalUpdate {
+  let confidence = verdict.realised ? verdict.confidence : 0;
+  if (marketRelated) confidence = Math.min(confidence, MARKET_WEB_CONFIDENCE_CAP);
   const base = { confidence, lastCheckedDate: today };
   if (confidence >= 0.85) {
     return {
@@ -100,7 +108,11 @@ async function searchTavily(query: string): Promise<SearchSnippet[]> {
 const VERDICT_SYSTEM =
   "You are a signal realisation checker for an intelligence brief. Be conservative — " +
   "only mark a signal as realised if the evidence clearly and specifically confirms the " +
-  "stated condition occurred. Do not infer or extrapolate. Respond with JSON only.";
+  "stated condition occurred. Do not infer or extrapolate. Your evidence note may only " +
+  "contain figures that appear verbatim in the search snippets — never supply a number " +
+  "from memory. If the condition hinges on a market price level (a commodity, index, " +
+  "yield or FX rate reaching a level), do not treat snippets as confirmation of the " +
+  "price — keep confidence at or below 0.7 for such signals. Respond with JSON only.";
 
 /** Ask Haiku whether a signal's condition is confirmed by the search snippets.
  *  Returns null if no Anthropic key is set or the response can't be parsed. */
@@ -150,25 +162,38 @@ const todayIso = () => new Date().toISOString().slice(0, 10);
 export async function runRealisationSweep(): Promise<{
   expired: boolean;
   checked: number;
+  skippedNumeric: number;
   realised: number;
   pendingReview: number;
   errors: number;
 }> {
   const { getSignals, expireSignals, applySignalRealisation } = await import("./db.js");
+  const { parseSignalThreshold, matchesTrackedSymbol } = await import("./numericRealisation.js");
   const today = todayIso();
   await expireSignals(today);
 
-  let checked = 0, realised = 0, pendingReview = 0, errors = 0;
+  let checked = 0, skippedNumeric = 0, realised = 0, pendingReview = 0, errors = 0;
   if (process.env.TAVILY_API_KEY && process.env.ANTHROPIC_API_KEY) {
     const open = await getSignals("open");
     for (const signal of open) {
+      // Single source of truth for market levels: a signal that names a tracked
+      // instrument AND a level is the numeric sweep's exclusive domain. If our own
+      // price series says the level hasn't crossed, it stays open — the web sweep
+      // must never adjudicate it from news snippets (the Brent "$126" incident).
+      if (parseSignalThreshold(signal.signalText)) {
+        skippedNumeric++;
+        continue;
+      }
       // Isolate each signal — a single search/LLM failure must not abort the sweep.
       try {
         const snippets = await searchTavily(buildQuery(signal.signalText));
         const verdict = await checkRealisation(signal, snippets);
         if (!verdict) continue;
         checked++;
-        const update = applyVerdict(verdict, today);
+        // Market-flavoured but unparseable signals can be web-checked, but never
+        // auto-realised — they land in the editorial queue for a human call.
+        const marketRelated = matchesTrackedSymbol(signal.signalText) !== null;
+        const update = applyVerdict(verdict, today, marketRelated);
         await applySignalRealisation(signal.id, update);
         if (update.status === "realised") realised++;
         else if (update.status === "pending_review") pendingReview++;
@@ -178,5 +203,5 @@ export async function runRealisationSweep(): Promise<{
       }
     }
   }
-  return { expired: true, checked, realised, pendingReview, errors };
+  return { expired: true, checked, skippedNumeric, realised, pendingReview, errors };
 }

@@ -9,6 +9,7 @@ import {
   getSignals,
   confirmSignal,
   dismissSignal,
+  reopenSignal,
   getThemeInsights,
   getAgentStatus,
   getHouseView,
@@ -162,6 +163,14 @@ export const appRouter = router({
       .input(z.object({ id: z.number().int() }))
       .mutation(async ({ input }) => {
         await dismissSignal(input.id, todayIso());
+        return { ok: true };
+      }),
+
+    /** Editorial repair: revert a wrongly-realised signal to open. Admin-only. */
+    reopenSignal: apiKeyProcedure
+      .input(z.object({ id: z.number().int() }))
+      .mutation(async ({ input }) => {
+        await reopenSignal(input.id, todayIso());
         return { ok: true };
       }),
 

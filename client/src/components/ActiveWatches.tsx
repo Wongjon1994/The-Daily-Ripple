@@ -20,6 +20,7 @@ const STORAGE_KEY = "ripple_watch_order";
 const THEME_TAG: Record<string, { label: string; color: string }> = {
   geopolitics: { label: "Geopolitics", color: "var(--color-cat-geopolitics)" },
   ai_tech: { label: "AI & Tech", color: "var(--color-cyan)" },
+  health: { label: "Health", color: "var(--color-sage)" },
   society: { label: "Society", color: "var(--color-cat-culture)" },
   rates: { label: "Rates", color: "var(--color-cat-tech)" },
   markets: { label: "Markets", color: "var(--color-cat-science)" },

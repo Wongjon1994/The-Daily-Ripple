@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parseSignalThreshold, resolveCrossing } from "../../../server/numericRealisation";
+import { parseSignalThreshold, resolveCrossing, matchesTrackedSymbol } from "../../../server/numericRealisation";
 
 /**
  * Unit tests for the pure Phase C threshold parse + crossing check. The sweep
@@ -25,6 +25,15 @@ describe("parseSignalThreshold", () => {
 
   it("returns null when there is a level but no known metric", () => {
     expect(parseSignalThreshold("Watch unemployment above 5%.")).toBeNull();
+  });
+});
+
+describe("matchesTrackedSymbol", () => {
+  it("flags a tracked instrument even without a parseable level", () => {
+    expect(matchesTrackedSymbol("Watch Brent directionally even if you hold no energy stocks.")).toBe("BRENT");
+  });
+  it("returns null for non-market text", () => {
+    expect(matchesTrackedSymbol("Watch ASEAN's July communiqué for the Batanes wording.")).toBeNull();
   });
 });
 

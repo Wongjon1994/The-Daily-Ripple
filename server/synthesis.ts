@@ -105,6 +105,7 @@ const SYSTEM =
 const THEME_LABELS: Record<string, string> = {
   geopolitics: "Geopolitics & Security",
   ai_tech: "AI & Technology",
+  health: "Science & Health",
   society: "Society & Culture",
   rates: "Rates & Banking",
   markets: "Markets & Corporate",

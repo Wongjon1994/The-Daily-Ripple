@@ -24,6 +24,15 @@ describe("classifyTheme", () => {
   it("maps geopolitics keywords", () => {
     expect(classifyTheme("China and Russia signalled deeper military ties")).toBe("geopolitics");
   });
+  it("maps modern AI-lab names to ai_tech (not other)", () => {
+    expect(classifyTheme("If OpenAI's ChatGPT Work adoption among Enterprise clients exceeds 20% penetration")).toBe("ai_tech");
+  });
+  it("maps health keywords to the health theme", () => {
+    expect(classifyTheme("If the DRC Ebola caseload crosses 3,000 before the Oxford vaccine trial reports")).toBe("health");
+  });
+  it("prefers health over an incidental country mention", () => {
+    expect(classifyTheme("A clinical trial in China reported preliminary efficacy data")).toBe("health");
+  });
   it("falls back to other when nothing matches", () => {
     expect(classifyTheme("A quiet day with little of note")).toBe("other");
   });
