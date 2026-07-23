@@ -6,7 +6,10 @@
  * that table; it never calls an LLM at read time.
  *
  * The window/input construction is pure and unit-tested; the Sonnet calls are
- * gated on ANTHROPIC_API_KEY (without it, runSynthesis is a no-op).
+ * gated on ANTHROPIC_API_KEY (without it, runSynthesis is a no-op). All three
+ * windows (1W/1M/3M) regenerate weekly in the Sunday realise flow — synthesis is
+ * the pipeline's cost driver and aggregate themes move slowly. Each theme's 2–3
+ * calls share a `cache_control` prefix (the header) so calls 2–3 read it cheaply.
  */
 
 import { classifyTheme } from "./signals.js";
@@ -112,7 +115,21 @@ const THEME_LABELS: Record<string, string> = {
   energy: "Energy & Commodities",
 };
 
-async function generate(user: string): Promise<string | null> {
+/**
+ * Split the prompt into a cacheable prefix (the per-theme header — system + up to
+ * 12 Lens entries, reused across a theme's 2–3 calls) and the varying instruction.
+ * A `cache_control` breakpoint on the prefix lets calls 2–3 within a run read it at
+ * ~90% off. Text blocks concatenate with no separator, so the instruction keeps its
+ * leading "\n\n" to reproduce the original single-string prompt exactly. Pure.
+ */
+export function cachedUserContent(prefix: string, instruction: string) {
+  return [
+    { type: "text" as const, text: prefix, cache_control: { type: "ephemeral" as const } },
+    { type: "text" as const, text: instruction },
+  ];
+}
+
+async function generate(prefix: string, instruction: string): Promise<string | null> {
   if (!process.env.ANTHROPIC_API_KEY) return null;
   const { default: Anthropic } = await import("@anthropic-ai/sdk");
   const client = new Anthropic();
@@ -120,7 +137,7 @@ async function generate(user: string): Promise<string | null> {
     model: "claude-sonnet-4-6",
     max_tokens: 400,
     system: SYSTEM,
-    messages: [{ role: "user", content: user }],
+    messages: [{ role: "user", content: cachedUserContent(prefix, instruction) }],
   });
   const block = resp.content.find((b) => b.type === "text");
   return block && block.type === "text" ? block.text.trim() : null;
@@ -165,12 +182,12 @@ export async function runSynthesis(window: Window): Promise<{ window: Window; th
   for (const input of themes) {
     const base = header(input, window, windowStart, windowEnd, realisedByTheme.get(input.theme) ?? []);
     const themeNarrative =
-      (await generate(`${base}\n\nWrite a 2–3 sentence read on how this theme has moved across the window and the one development that matters most — plainly and directly, focused on the trajectory, not a list of each entry.`)) ?? "";
+      (await generate(base, `\n\nWrite a 2–3 sentence read on how this theme has moved across the window and the one development that matters most — plainly and directly, focused on the trajectory, not a list of each entry.`)) ?? "";
     const sgLens =
-      (await generate(`${base}\n\nWrite 2–3 sentences in the voice of the Singapore Lens above: what this means for the reader here right now — what to watch, and where it shows up in their life (their rate, bill, job, or portfolio). Speak to them directly.`)) ?? "";
+      (await generate(base, `\n\nWrite 2–3 sentences in the voice of the Singapore Lens above: what this means for the reader here right now — what to watch, and where it shows up in their life (their rate, bill, job, or portfolio). Speak to them directly.`)) ?? "";
     const isDominant = input.theme === dominant;
     const heroNarrative = isDominant
-      ? (await generate(`${base}\n\nWrite a 3–4 sentence hero read: the single most important development in this dominant theme and why it matters to the reader here right now. Lead with the outcome, in plain terms they'll feel — not an institutional summary.`)) ?? null
+      ? (await generate(base, `\n\nWrite a 3–4 sentence hero read: the single most important development in this dominant theme and why it matters to the reader here right now. Lead with the outcome, in plain terms they'll feel — not an institutional summary.`)) ?? null
       : null;
 
     const row: InsertThemeInsight = {

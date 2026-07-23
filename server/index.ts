@@ -129,15 +129,10 @@ async function startServer() {
           console.log("[signals] expiry on publish failed:", e);
         }
         await recordJobRun("signal", "ok", t0, { signals, chunks, expired, brief: brief.dateSlug });
-        try {
-          const t1 = Date.now();
-          const { runSynthesis } = await import("./synthesis.js");
-          const r = await runSynthesis("1W");
-          await recordJobRun("synthesis", "ok", t1, { window: "1W", themes: r.themes });
-          console.log(`[synthesis] 1W regenerated on publish: ${r.themes} themes`);
-        } catch (e) {
-          console.log("[synthesis] 1W on publish failed:", e);
-        }
+        // Theme synthesis (1W/1M/3M) is the pipeline's cost driver and moves slowly
+        // at the aggregate level, so it regenerates weekly in the Sunday realise flow
+        // — NOT on every publish. The House View below stays daily (freshness is its
+        // whole point, and it's ~$0.20/mo).
         // House view (daily alpha) — one Sonnet call over the fresh open signals.
         try {
           const t2 = Date.now();

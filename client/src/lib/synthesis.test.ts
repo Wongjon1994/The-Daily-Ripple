@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { buildThemeInputs, formatEntries } from "../../../server/synthesis";
+import { buildThemeInputs, formatEntries, cachedUserContent } from "../../../server/synthesis";
 
 /**
  * Unit tests for the pure synthesis input-construction (Trends Part 2, Addendum B).
@@ -54,6 +54,21 @@ describe("buildThemeInputs (1W)", () => {
     );
     expect(out2.themes).toEqual([]);
     expect(out2.dominant).toBeNull();
+  });
+});
+
+describe("cachedUserContent", () => {
+  it("puts the cache breakpoint on the shared prefix, not the instruction", () => {
+    const content = cachedUserContent("HEADER", "\n\nINSTRUCTION");
+    expect(content).toHaveLength(2);
+    expect(content[0]).toEqual({ type: "text", text: "HEADER", cache_control: { type: "ephemeral" } });
+    expect(content[1]).toEqual({ type: "text", text: "\n\nINSTRUCTION" });
+    expect("cache_control" in content[1]).toBe(false);
+  });
+
+  it("concatenates to the exact original single-string prompt", () => {
+    const content = cachedUserContent("base", "\n\ninstruction");
+    expect(content.map((b) => b.text).join("")).toBe("base\n\ninstruction");
   });
 });
 

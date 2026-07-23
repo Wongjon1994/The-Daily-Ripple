@@ -158,6 +158,19 @@ See **[BRIEF_FORMAT.md](BRIEF_FORMAT.md)** for the brief schema and the
 
 Newest first. Append an entry here for every change.
 
+### 2026-07-23 — Synthesis: weekly cadence + prompt caching (LLM cost ~60% down)
+- **Theme synthesis (1W/1M/3M) now regenerates weekly**, in the Sunday realise flow,
+  instead of 1W running on every daily publish. Synthesis is the pipeline's LLM cost
+  driver and aggregate themes move slowly, so this is the bulk of the saving (theme
+  cards can be up to ~6 days stale mid-week — an accepted trade). The **House View
+  stays daily** (freshness is its whole point, and it's ~$0.20/mo) and signal
+  extraction stays daily.
+- **Prompt caching on synthesis** — each theme's 2–3 Sonnet calls share an identical
+  header (system + up to 12 Lens entries); a `cache_control` breakpoint on that
+  prefix lets calls 2–3 read it at ~90% off. No model change (still Sonnet 4.6).
+  `cachedUserContent` is pure + unit-tested. Combined, automated LLM spend drops from
+  ~$4.25 to ~$1.6/mo.
+
 ### 2026-07-16 — Market realisations: single source of truth + Science & Health theme
 - **Market levels can no longer be "realised" from news snippets** (the Brent "$126"
   incident — our own series showed ~$81). Layered policy: (1) a signal naming a

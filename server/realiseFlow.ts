@@ -25,11 +25,13 @@ export async function runRealiseFlow(): Promise<void> {
     await recordJobRun("realise", "ok", t0, { numericRealised: numeric.realised, ...result });
     console.log("[realise] numeric sweep:", numeric, "· web sweep done:", result);
 
-    // Longer-window synthesis (1M/3M), after the sweep so it uses fresh counts.
+    // All theme synthesis (1W/1M/3M) regenerates weekly here, after the sweep so it
+    // uses fresh realised counts. 1W moved off the daily publish flow to cut cost;
+    // caching (per-theme header) makes each window's 2–3 calls read the prefix cheaply.
     const t1 = Date.now();
     const { runSynthesis } = await import("./synthesis.js");
     const windows: Record<string, number> = {};
-    for (const w of ["1M", "3M"] as const) {
+    for (const w of ["1W", "1M", "3M"] as const) {
       try { windows[w] = (await runSynthesis(w)).themes; }
       catch (e) { console.log(`[synthesis] ${w} failed:`, e); }
     }
