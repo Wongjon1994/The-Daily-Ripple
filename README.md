@@ -169,7 +169,9 @@ Newest first. Append an entry here for every change.
   header (system + up to 12 Lens entries); a `cache_control` breakpoint on that
   prefix lets calls 2–3 read it at ~90% off. No model change (still Sonnet 4.6).
   `cachedUserContent` is pure + unit-tested. Combined, automated LLM spend drops from
-  ~$4.25 to ~$1.6/mo.
+  ~$4.25 to ~$1.6/mo. `runSynthesis` reports cache-hit tokens (`cacheRead`/`cacheWrite`)
+  in its result, surfaced in the `/api/synthesize` response and the synthesis job
+  summary, so a cache hit is verifiable without digging through server logs.
 
 ### 2026-07-16 — Market realisations: single source of truth + Science & Health theme
 - **Market levels can no longer be "realised" from news snippets** (the Brent "$126"

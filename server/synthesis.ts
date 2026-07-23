@@ -129,8 +129,10 @@ export function cachedUserContent(prefix: string, instruction: string) {
   ];
 }
 
-async function generate(prefix: string, instruction: string): Promise<string | null> {
-  if (!process.env.ANTHROPIC_API_KEY) return null;
+interface GenResult { text: string | null; cacheRead: number; cacheWrite: number }
+
+async function generate(prefix: string, instruction: string): Promise<GenResult> {
+  if (!process.env.ANTHROPIC_API_KEY) return { text: null, cacheRead: 0, cacheWrite: 0 };
   const { default: Anthropic } = await import("@anthropic-ai/sdk");
   const client = new Anthropic();
   const resp = await client.messages.create({
@@ -140,7 +142,12 @@ async function generate(prefix: string, instruction: string): Promise<string | n
     messages: [{ role: "user", content: cachedUserContent(prefix, instruction) }],
   });
   const block = resp.content.find((b) => b.type === "text");
-  return block && block.type === "text" ? block.text.trim() : null;
+  const u = resp.usage as { cache_read_input_tokens?: number | null; cache_creation_input_tokens?: number | null };
+  return {
+    text: block && block.type === "text" ? block.text.trim() : null,
+    cacheRead: u.cache_read_input_tokens ?? 0,
+    cacheWrite: u.cache_creation_input_tokens ?? 0,
+  };
 }
 
 export interface RealisedNote { signalText: string; realisedDate: string; note: string }
@@ -161,8 +168,8 @@ function header(input: ThemeInput, window: Window, start: string, end: string, r
  * Generate + persist synthesis prose for every active theme in a window.
  * Returns a summary. No-op (themes: 0) when ANTHROPIC_API_KEY is unset.
  */
-export async function runSynthesis(window: Window): Promise<{ window: Window; themes: number; dominant: string | null }> {
-  if (!process.env.ANTHROPIC_API_KEY) return { window, themes: 0, dominant: null };
+export async function runSynthesis(window: Window): Promise<{ window: Window; themes: number; dominant: string | null; cacheRead: number; cacheWrite: number }> {
+  if (!process.env.ANTHROPIC_API_KEY) return { window, themes: 0, dominant: null, cacheRead: 0, cacheWrite: 0 };
   const { getAllBriefs, upsertThemeInsight, getSignals } = await import("./db.js");
   const briefs = await getAllBriefs({ limit: 1000 });
   const { themes, dominant, windowStart, windowEnd } = buildThemeInputs(briefs, window);
@@ -179,15 +186,17 @@ export async function runSynthesis(window: Window): Promise<{ window: Window; th
   }
 
   let generated = 0;
+  let cacheRead = 0, cacheWrite = 0;
+  const acc = (r: GenResult) => { cacheRead += r.cacheRead; cacheWrite += r.cacheWrite; return r.text; };
   for (const input of themes) {
     const base = header(input, window, windowStart, windowEnd, realisedByTheme.get(input.theme) ?? []);
     const themeNarrative =
-      (await generate(base, `\n\nWrite a 2–3 sentence read on how this theme has moved across the window and the one development that matters most — plainly and directly, focused on the trajectory, not a list of each entry.`)) ?? "";
+      acc(await generate(base, `\n\nWrite a 2–3 sentence read on how this theme has moved across the window and the one development that matters most — plainly and directly, focused on the trajectory, not a list of each entry.`)) ?? "";
     const sgLens =
-      (await generate(base, `\n\nWrite 2–3 sentences in the voice of the Singapore Lens above: what this means for the reader here right now — what to watch, and where it shows up in their life (their rate, bill, job, or portfolio). Speak to them directly.`)) ?? "";
+      acc(await generate(base, `\n\nWrite 2–3 sentences in the voice of the Singapore Lens above: what this means for the reader here right now — what to watch, and where it shows up in their life (their rate, bill, job, or portfolio). Speak to them directly.`)) ?? "";
     const isDominant = input.theme === dominant;
     const heroNarrative = isDominant
-      ? (await generate(base, `\n\nWrite a 3–4 sentence hero read: the single most important development in this dominant theme and why it matters to the reader here right now. Lead with the outcome, in plain terms they'll feel — not an institutional summary.`)) ?? null
+      ? acc(await generate(base, `\n\nWrite a 3–4 sentence hero read: the single most important development in this dominant theme and why it matters to the reader here right now. Lead with the outcome, in plain terms they'll feel — not an institutional summary.`)) ?? null
       : null;
 
     const row: InsertThemeInsight = {
@@ -204,5 +213,5 @@ export async function runSynthesis(window: Window): Promise<{ window: Window; th
     await upsertThemeInsight(row);
     generated++;
   }
-  return { window, themes: generated, dominant };
+  return { window, themes: generated, dominant, cacheRead, cacheWrite };
 }

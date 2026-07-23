@@ -31,11 +31,16 @@ export async function runRealiseFlow(): Promise<void> {
     const t1 = Date.now();
     const { runSynthesis } = await import("./synthesis.js");
     const windows: Record<string, number> = {};
+    let cacheRead = 0, cacheWrite = 0;
     for (const w of ["1W", "1M", "3M"] as const) {
-      try { windows[w] = (await runSynthesis(w)).themes; }
-      catch (e) { console.log(`[synthesis] ${w} failed:`, e); }
+      try {
+        const r = await runSynthesis(w);
+        windows[w] = r.themes;
+        cacheRead += r.cacheRead;
+        cacheWrite += r.cacheWrite;
+      } catch (e) { console.log(`[synthesis] ${w} failed:`, e); }
     }
-    await recordJobRun("synthesis", "ok", t1, windows);
+    await recordJobRun("synthesis", "ok", t1, { ...windows, cacheRead, cacheWrite });
   } catch (e) {
     console.log("[realise] failed:", e);
   } finally {
