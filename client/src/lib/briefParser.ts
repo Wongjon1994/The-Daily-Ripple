@@ -106,17 +106,16 @@ function extractKeyMetrics(text: string): KeyMetric[] {
   const numberPattern = /([A-Z][A-Za-z\s&]+?):\s*(\$?[\d,]+(?:\.\d+)?(?:%|bpd|K|M|B)?)/g;
   let numberMatch: RegExpExecArray | null;
   while ((numberMatch = numberPattern.exec(text)) !== null) {
+    const match = numberMatch;
     // Only add if not already captured
-    if (numberMatch && !metrics.some((m) => m.label === numberMatch![1].trim())) {
-      if (numberMatch) {
-        metrics.push({
-          label: numberMatch[1].trim(),
-          value: numberMatch[2].trim(),
-        });
-      }
+    if (!metrics.some((m) => m.label === match[1].trim())) {
+      metrics.push({
+        label: match[1].trim(),
+        value: match[2].trim(),
+      });
     }
   }
-
+  
   return metrics;
 }
 
@@ -242,7 +241,7 @@ export function parseBriefHTML(htmlContent: string): DailyBrief {
   // Extract sections (1-8)
   const sections: BriefSection[] = [];
   const sectionPattern = /<h3[^>]*>([^<]+)<\/h3>([\s\S]*?)(?=<h3|<blockquote|$)/g;
-  let sectionMatch: RegExpExecArray | null;
+  let sectionMatch;
   const sectionMatches: Array<{ header: string; content: string }> = [];
 
   while ((sectionMatch = sectionPattern.exec(htmlContent)) !== null) {
@@ -258,7 +257,7 @@ export function parseBriefHTML(htmlContent: string): DailyBrief {
     // Extract paragraphs
     const paragraphs: string[] = [];
     const pPattern = /<p[^>]*>([^<]+)<\/p>/g;
-    let pMatch: RegExpExecArray | null;
+    let pMatch;
     while ((pMatch = pPattern.exec(match.content)) !== null) {
       paragraphs.push(pMatch[1].trim());
     }

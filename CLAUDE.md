@@ -79,8 +79,17 @@ Project-specific conventions that extend the four principles above.
 ## Before every commit
 
 - Run `npx tsc --noEmit`, `npx vitest run` (keep the suite green), and `npx vite build` — all must pass.
-- Update `README.md` **and its Changelog** for every user-facing change (newest entry first, dated).
+- Add a dated entry to `CHANGELOG.md` (newest first) for every user-facing change, **in the same commit** — not a follow-up, not a new changelog file per feature.
 - End commit messages with the `Co-Authored-By: Claude ...` line. Work on the default branch is fine for this repo's solo flow; push only when asked.
+
+## Keep docs in sync with every change (not a follow-up task)
+
+Treat documentation as part of the change. A doc that describes last month's system is worse than no doc, because it reads as current.
+
+- If a change makes `README.md`, `ARCHITECTURE.md`, `FUNCTIONAL_SPEC.md`, `BRIEF_FORMAT.md`, or `DATABASE_FUNCTIONALITY.md` inaccurate, fix it in the **same** commit. Fix any doc links you break by moving files.
+- Superseded docs get archived (moved to `docs/internal/` with a one-line "historical, superseded by X" header) or deleted in the **same** commit that supersedes them — never left at root to accumulate. Only tag something "superseded" when you've verified it actually is.
+- **No new root-level scratch files** (one-off scripts, `*_data.json`, handoff notes). Internal/build docs live in `docs/internal/`; runnable scripts in `scripts/`.
+- Root stays lean: `README.md`, `CHANGELOG.md`, and the current-behaviour specs only.
 
 ## Verifying a change ("Goal-Driven Execution", adapted)
 
