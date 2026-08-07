@@ -7,22 +7,24 @@ This is the deep-dive behind the summary in [README.md](./README.md): what runs 
 ```mermaid
 flowchart TD
     subgraph n8n["n8n (self-hosted, DigitalOcean droplet · $6/mo)"]
-        A[Schedule Trigger<br/>9:30 AM SGT daily] --> B[Tavily Search<br/>6 queries: geopolitics, markets,<br/>tech, culture]
-        B --> C[Claude — Synthesis<br/>writes 8-section DailyBrief JSON<br/>directly against the schema]
-        C --> D[Validate Brief Schema<br/>Zod, client-side, fail fast]
-        D -->|valid| E[POST /api/publish<br/>X-Api-Key]
-        D -->|invalid| X[Telegram: validation<br/>error alert]
+        A[Schedule Trigger<br/>~9:30 AM SGT · Mon–Sat] --> B[Tools Agent<br/>Claude Sonnet + Tavily search tool<br/>writes the 8-section brief as HTML]
+        B --> V[Check Brief Validity]
+        V -->|invalid| RE{Retries<br/>exhausted?}
+        RE -->|no| B
+        RE -->|yes| X[Telegram: brief-failed alert]
+        V -->|valid| C[Code: Format for Telegra.ph]
+        C --> D[Publish to Telegraph<br/>createPage → page URL]
+        D --> E[POST /api/publish-telegraph<br/>X-Api-Key · sends the Telegraph URL]
+        D --> J[Publish to Telegram<br/>subscriber broadcast]
     end
 
-    subgraph api["Express + tRPC API"]
-        E --> F[Validate Brief Schema<br/>Zod, server-side<br/>defense in depth]
-        F -->|valid| G[(Postgres — Neon/Supabase<br/>via Drizzle ORM)]
-        F -->|invalid| Y[400 + logged error]
+    subgraph api["Express + tRPC API (Render)"]
+        E --> F[briefFromTelegraph<br/>fetch Telegraph page + deterministically<br/>reparse HTML → DailyBrief]
+        F --> G[(Postgres — Neon · Drizzle ORM)]
+        F --> S[chained on publish:<br/>signal extraction · embeddings ·<br/>house view · daily expiry sweep]
     end
 
-    G --> H[tRPC query<br/>n8n.getAll / getLatest]
-    H --> I[React SPA<br/>brief deck · trends · calendar · about]
-    C --> J[Telegram Bot API<br/>subscriber notification]
+    G --> H[tRPC query<br/>n8n.getAll / getLatest] --> I[React SPA<br/>brief deck · Signals · calendar · about]
 
     style n8n fill:#0f1c2e,color:#fff
     style api fill:#1a1a2e,color:#fff
@@ -30,29 +32,29 @@ flowchart TD
 
 ## Why it's shaped this way
 
-### The pipeline evolved — it didn't start here
+### The publish pipeline — how it works today, and where it's headed
 
-**v1: Telegraph as intermediary.** The first working version had the LLM write the brief as HTML, publish it to Telegraph (a free lightweight publishing platform), and then run a *second* LLM pass that fetched the Telegraph HTML back and parsed it into the app's structured schema. The reasoning at the time was sound: Telegraph gave a human-reviewable, archived, "published" artifact before anything touched the database, and it cleanly separated "writing" from "structuring" into two agent responsibilities.
+**Today (live): Telegraph as the structuring intermediary.** The generating agent — Claude, run through n8n's **Tools Agent** with **Tavily** as its search tool — writes the full 8-section brief as **HTML**. n8n runs a `Check Brief Validity` gate (retrying the agent, then alerting on Telegram if retries are exhausted), publishes the HTML to **Telegraph** (a free, archived, human-reviewable publishing platform), and POSTs the Telegraph URL to `/api/publish-telegraph`. The server fetches that page and **deterministically reparses** the HTML back into the strict `DailyBrief` schema (`server/telegraphImport.ts` — structural parsing, *no* second LLM), then validates and persists. Telegraph doubles as the shareable public artifact and the subscriber-broadcast target.
 
-**Why it broke:** Telegraph's HTML is a *lossy* rendering of the brief. It carries headline, paragraphs, and sources — but not `summary`, `singaporeLens`, `tags`, `urgency`, `readingTime`, or the systems-synthesis block. Those fields had to be re-derived from the rendered HTML using regex heuristics, and every time the LLM's HTML output drifted even slightly (a missing section number, a synthesis block rendered as a blockquote instead of a heading, a category label edited in a way the regex didn't expect), the extraction step silently dropped a section or mis-tagged a category. The intermediary that was supposed to be a safety net turned into an undocumented second schema that had to be kept in sync with the first by hand.
+**The known fragility (why the migration below exists).** Telegraph's HTML is a *lossy* rendering of the brief: it carries headline, paragraphs, and sources — but not `summary`, `singaporeLens`, `tags`, `urgency`, `readingTime`, or the systems-synthesis block cleanly. The reparser re-derives those from the rendered HTML with heuristics, so every time the model's HTML drifts even slightly (a missing section number, a synthesis block rendered as a blockquote instead of a heading, an unexpected category label), a field can be silently dropped or mis-tagged. The intermediary that gives us a clean archived artifact is also a second, implicit schema kept in sync by parsing rules.
 
-**v2 (current target architecture): structured JSON is the canonical artifact.** The generating LLM is given the full schema plus a worked example and emits the complete `DailyBrief` JSON in one pass — no re-parsing step. That JSON is POSTed directly to `/api/publish`, validated against a strict Zod schema, and persisted. Telegraph, where still used, is now just *one downstream rendering* of that JSON (for archival/shareability), not a step the pipeline depends on. This is documented in detail in [BRIEF_FORMAT.md](./BRIEF_FORMAT.md), which is effectively the postmortem for v1.
+**Where it's headed (planned, not yet shipped): structured JSON as the canonical artifact.** The migration is to have the agent emit the complete `DailyBrief` JSON in one pass against the schema and POST it directly to `/api/publish` — that endpoint already exists and Zod-validates server-side — demoting Telegraph to *one downstream rendering* of that JSON rather than a step the pipeline depends on. The field-by-field gap and rationale are the postmortem in [BRIEF_FORMAT.md](./BRIEF_FORMAT.md).
 
-*(This document reflects the recommended/target architecture as written into the repo. If the production n8n workflow has moved further since — e.g. additional nodes, a different search provider mix — treat the node names here as illustrative and the data-flow shape as the source of truth.)*
+*(Verified against the live n8n workflow (MVP 2.02): the Telegraph path above is the source of truth today; the direct-`/api/publish` flow is the planned next step, not the current one.)*
 
 ### Two-layer validation, not one
 
-Every brief is validated twice against the same schema: once inside n8n before the HTTP call (cheap, fails fast, keeps obviously broken payloads off the wire), and again server-side at the API boundary (`/api/publish`) before it touches the database. The n8n-side check is a convenience; the server-side check is the actual security boundary — an LLM-authored payload is treated exactly like any other untrusted input, never like a trusted internal caller just because it's "your own" workflow.
+Every brief is checked twice: once inside n8n before the HTTP call (the `Check Brief Validity` gate — cheap, fails fast, retries the agent and keeps obviously broken payloads off the wire), and again server-side at the publish API boundary before it touches the database. The n8n-side check is a convenience; the server-side check is the actual security boundary — an LLM-authored payload is treated exactly like any other untrusted input, never like a trusted internal caller just because it's "your own" workflow.
 
 ### Rigid schema, flexible generation
 
-The schema is deliberately strict — 12 fixed fields per section, typed metric values, a controlled category vocabulary keyed to emoji rather than free-text labels. All of the model's flexibility is pushed into the prose (headline, summary, paragraphs, analysis), never into the shape of the data. This is what makes a swipeable deck, a trends dashboard with sparklines, and a calendar archive all reliable renderers of the same underlying object — the UI never has to defensively guess at what shape the data might be in today.
+The schema is deliberately strict — 12 fixed fields per section, typed metric values, a controlled category vocabulary keyed to emoji rather than free-text labels. All of the model's flexibility is pushed into the prose (headline, summary, paragraphs, analysis), never into the shape of the data. This is what makes a swipeable deck, the Signals intelligence dashboard, and a calendar archive all reliable renderers of the same underlying object — the UI never has to defensively guess at what shape the data might be in today.
 
 ### Signals: two tracking mechanisms, deliberately different
 
 **Signals** is the feature that holds the brief accountable to its own calls. There are actually two mechanisms behind it, used for two different kinds of claim:
 
-- **Deterministic, for numeric thresholds.** A claim like "watch Brent above $90" is extracted from the brief's own analytical prose via a cue-word convention (`watch`, `monitor`, `brace for`, `the tell`, etc.), using one shared extractor so the story card and the Signals page's "Broader signals" view always agree. It's marked *realized* the moment a later brief's actual reported data crosses the stated threshold — pure arithmetic, no model judgment involved, because there's no judgment call to make.
+- **Deterministic, for numeric thresholds.** A claim like "watch Brent above $90" is extracted from the brief's own analytical prose via a cue-word convention (`watch`, `monitor`, `brace for`, `the tell`, etc.), using one shared extractor so the story card and the Signals page's watch list always agree. It's marked *realized* the moment the app's own market series crosses the stated threshold — pure arithmetic, no model judgment involved, because there's no judgment call to make.
 - **Agentic, with calibrated autonomy, for everything else.** A qualitative call ("if the Fed holds, expect this on mortgages") can't be resolved by a threshold check — realizing it is a judgment call. That's handled by a separate background agent system, detailed below, that scores its own confidence and only acts alone when it's confident; otherwise it asks a human.
 
 The full agent system — what actually forms the house view, tracks these calls over time, and writes the theme narrative — is its own layer, covered next.
@@ -99,15 +101,14 @@ Both calls are hard-gated on the relevant API key being set (`OPENAI_API_KEY`, `
 
 ## Data flow, end to end
 
-1. **9:30 AM SGT** — n8n's schedule trigger fires.
-2. **Research** — Tavily runs 6 searches across the day's geopolitics, markets, technology, and culture developments.
-3. **Synthesis** — Claude reads the search results and writes the full 8-section `DailyBrief` JSON (7 stories + 1 systems-synthesis section), including per-section Singapore Lens analysis, key metrics, and sourced links, directly against the schema.
-4. **Client-side validation** — a Zod check in n8n confirms required fields, length limits, and structural integrity before anything is sent. Failures notify a Telegram error channel instead of publishing.
-5. **Publish** — the validated payload is POSTed to `/api/publish` with an API key.
-6. **Server-side validation** — the same schema is re-checked at the API boundary (defense in depth), content is sanitized, and source URLs are checked.
-7. **Persistence** — the brief is upserted into Postgres by `dateSlug` (idempotent — a republish updates, not duplicates).
-8. **Serve** — the React SPA queries the latest/all briefs via tRPC (`n8n.getLatest`, `n8n.getAll`) and renders the deck, trends dashboard, and calendar.
-9. **Distribute** — a Telegram message notifies subscribers with a link to the day's brief.
+1. **~9:30 AM SGT (Mon–Sat)** — n8n's schedule trigger fires.
+2. **Research + synthesis** — the Tools Agent (Claude) runs Tavily searches across the day's geopolitics, markets, technology, science and culture developments and writes the full 8-section brief (7 stories + 1 systems-synthesis section), with per-section Singapore Lens, key metrics, and sourced links, as **HTML**.
+3. **Validity gate** — a `Check Brief Validity` node screens the output; on failure it retries the agent, and if retries are exhausted it alerts a Telegram error channel instead of publishing.
+4. **Publish to Telegraph** — the HTML is formatted and published to Telegraph (`createPage`), which returns a page URL and serves as the archived, shareable artifact.
+5. **Ingest** — n8n POSTs that Telegraph URL to `/api/publish-telegraph` with an API key.
+6. **Reparse + persist** — the server fetches the Telegraph page and **deterministically reparses** the HTML into the `DailyBrief` schema, then upserts it into Postgres by `dateSlug` (idempotent — a republish updates, not duplicates). Signal extraction, chunk embeddings, the house view, and the daily expiry sweep are chained off this publish.
+7. **Serve** — the React SPA queries the latest/all briefs via tRPC (`n8n.getLatest`, `n8n.getAll`) and renders the deck, the **Signals** dashboard, and the calendar.
+8. **Distribute** — a Telegram message notifies subscribers with a link to the day's brief.
 
 ## Stack rationale
 

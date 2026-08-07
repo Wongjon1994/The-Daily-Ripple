@@ -18,7 +18,7 @@ The existing pipeline validates that a brief is *structurally* correct — the r
 
 ## Where this sits in the pipeline
 
-Insert both eval nodes **after** the synthesis node and **before** the existing `Validate Brief Schema` node, so structural validation still runs last as the final gate before publish:
+Insert both eval nodes **after** the Tools Agent (synthesis) node and **before** the existing `Check Brief Validity` gate, so validation still runs last before publish. *(These nodes assume the structured `DailyBrief` object is in hand inside n8n — i.e. the direct-JSON pipeline described as the target in [ARCHITECTURE.md](./ARCHITECTURE.md#the-publish-pipeline--how-it-works-today-and-where-its-headed). On today's live Telegraph pipeline the agent emits HTML and the structured object only exists after the server's reparse, so until direct-JSON ships these checks would run server-side / post-reparse instead.)*
 
 ```
 Claude — Synthesis
@@ -27,9 +27,9 @@ Eval: Numeric Sanity Check  ──┐
       ↓                        ├─→ Eval: Log Result ──→ POST /api/trpc/n8n.logJobRun (job: "eval")
 Eval: LLM-as-Judge Score  ────┘                          → same job_runs table + Agent Status page
       ↓                                                     as signal / realise / synthesis / alpha
-Validate Brief Schema (existing)
+Check Brief Validity (existing)
       ↓
-POST /api/publish (existing)
+Publish (Telegraph today; direct /api/publish once migrated)
 ```
 
 ## Node 1 — `Eval: Fetch Previous Brief` (HTTP Request node)

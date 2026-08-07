@@ -86,7 +86,7 @@ Project-specific conventions that extend the four principles above.
 
 Treat documentation as part of the change. A doc that describes last month's system is worse than no doc, because it reads as current.
 
-- If a change makes `README.md`, `ARCHITECTURE.md`, `FUNCTIONAL_SPEC.md`, `BRIEF_FORMAT.md`, or `DATABASE_FUNCTIONALITY.md` inaccurate, fix it in the **same** commit. Fix any doc links you break by moving files.
+- If a change makes any current-behaviour doc inaccurate, fix it in the **same** commit: `README.md`, `ARCHITECTURE.md`, `FUNCTIONAL_SPEC.md`, `BRIEF_FORMAT.md`, `DATABASE_FUNCTIONALITY.md`, `EVALUATION.md`, `COST_TRACKING.md`. (`EVALUATION.md`/`COST_TRACKING.md` are proposed-design docs — keep them honest about what's shipped vs planned; if you build one of those layers, move it from "proposed" to "live" there.) Fix any doc links you break by moving files.
 - Superseded docs get archived (moved to `docs/internal/` with a one-line "historical, superseded by X" header) or deleted in the **same** commit that supersedes them — never left at root to accumulate. Only tag something "superseded" when you've verified it actually is.
 - **No new root-level scratch files** (one-off scripts, `*_data.json`, handoff notes). Internal/build docs live in `docs/internal/`; runnable scripts in `scripts/`.
 - Root stays lean: `README.md`, `CHANGELOG.md`, and the current-behaviour specs only.

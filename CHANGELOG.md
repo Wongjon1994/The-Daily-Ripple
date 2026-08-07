@@ -2,7 +2,16 @@
 
 Newest first. Append an entry here for every change.
 
-### 2026-08-06 — Docs: sync README + FUNCTIONAL_SPEC to the Signals page; add architecture/eval/cost docs
+### 2026-08-06 — Docs: correct ARCHITECTURE to the live Telegraph pipeline; extend docs-sync rule
+- Verified against the live n8n workflow (MVP 2.02): the brief still publishes via
+  **Telegraph** (`Tools Agent → HTML → Telegraph → /api/publish-telegraph → deterministic
+  server reparse`), not direct JSON. Corrected **ARCHITECTURE.md**'s diagram, pipeline
+  narrative (Telegraph = live; direct-`/api/publish` = planned, not shipped), data-flow
+  steps, and the two-layer-validation / Trends→Signals references accordingly.
+- **EVALUATION.md** node placement updated to the real `Check Brief Validity` gate, with a
+  caveat that its eval nodes assume the target direct-JSON pipeline.
+- **CLAUDE.md** docs-sync rule now explicitly covers `EVALUATION.md` and `COST_TRACKING.md`
+  (and notes the shipped-vs-planned discipline for proposed-design docs).
 - **README.md** and **FUNCTIONAL_SPEC.md** now describe the current **Signals** page — the
   pre-agentic "Trends" metric grid is gone. Covers the ask bar (RAG search + cited
   synthesis), market-pulse strip, daily House View, theme cards with a dominant-signal
