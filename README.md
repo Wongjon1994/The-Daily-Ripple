@@ -1,7 +1,7 @@
 # The Daily Ripple
 
-A single-page web app that presents a daily intelligence brief, a cross-brief
-trends dashboard, a date archive, and an editorial about page. Stories are
+A single-page web app that presents a daily intelligence brief, an agentic
+cross-brief **Signals** intelligence dashboard, a date archive, and an editorial about page. Stories are
 written for a Singapore reader and always answer the same question: *so what
 does this mean for me, here?*
 
@@ -18,11 +18,11 @@ first-visit landing page.
 | Tab | Route | What it is |
 |-----|-------|------------|
 | **Today's Brief** | `/`, `/brief/:slug` | A swipeable deck of up to 8 story cards for one day's brief. Story cards expand to the full analysis, "by the numbers" metrics, a Singapore Lens note, a gold **"Signal(s) to watch"** block, and link-checked sources. The 8th card is the **systems synthesis** — thesis prose plus three numbered "Signals to watch" (no metrics, no Lens box). A date picker plus **Telegram** ("For the latest updates") and **Full brief** CTAs sit above the deck. |
-| **Trends** | `/trends` | A metric-first dashboard synthesised across *all* briefs. Tracked-metric cards with sparklines and realised/watching signals, plus forward-looking cues grouped by theme. Every data point links back to the brief that reported it. |
+| **Signals** | `/signals` | An agentic intelligence desk across *all* briefs: an **ask bar** (RAG search + opt-in cited synthesis), a **market-pulse** strip, a daily **House View** (opinionated alpha card), **theme cards** with a dominant-signal hero and evidence trail, re-orderable **Active Watches** (open/realised filter), an **agent-status** monitor, and the full markets carousel. The old `/trends` URL redirects here. |
 | **Archive** | `/calendar` | A monthly calendar; days with a brief are highlighted and click through to that day's deck. |
 | **About** | `/about` | Editorial page explaining the product, its coverage, how to navigate, and an AI-authorship + "not financial advice" disclosure. Shown automatically to first-time visitors. |
 
-Cross-navigation is pervasive: a number on Trends, a flagged signal, or a date
+Cross-navigation is pervasive: a flagged signal or evidence link on Signals, a date
 in the Archive all deep-link into the specific story behind them
 (`/brief/:slug?story=N`).
 
@@ -40,7 +40,7 @@ in the Archive all deep-link into the specific story behind them
 - **Focused reading** — clicking a bento cell hides the summary, scrolls the deck
   to the top, and locks the view on that story so the reader can swipe left/right
   without distraction; a "Back to summary" CTA returns to the top and restores
-  the bento. Deep links (`?story=N`, e.g. from Trends signals) open in focused
+  the bento. Deep links (`?story=N`, e.g. from Signals watches) open in focused
   reading too. Without clicking a cell, the reader can simply scroll down from the
   summary to the deck.
 - **Deck navigation** works by swipe/drag, arrow keys, prev/next arrows, the
@@ -48,7 +48,7 @@ in the Archive all deep-link into the specific story behind them
   neighbouring cards.
 - **"Signals to watch"** — forward-looking signals are extracted from the
   Singapore Lens (story cards) and the synthesis prose (section 8) by one shared
-  extractor, so the card's signals match the Trends "Broader signals" 1-to-1.
+  extractor, so the card's signals match the Signals watch list 1-to-1.
   The synthesis card always surfaces three numbered signals.
 - **Top ticker on every tab** — a "TODAY · cycling headline · clock" bar shows
   across all four tabs (falls back to the latest brief's headlines off the brief
@@ -89,7 +89,7 @@ in the Archive all deep-link into the specific story behind them
 ```
 client/
   src/
-    pages/        ← Page-level components (BriefPageEnhanced, TrendsPage, CalendarPage, AboutPage)
+    pages/        ← Page-level components (BriefPageEnhanced, SignalsPage, CalendarPage, AboutPage, AdminSignalsPage)
     components/   ← Deck, cards, masthead, charts, shadcn/ui
     lib/          ← briefParser and helpers
 server/           ← Express + tRPC, seed/publish ingestion, link checks
@@ -146,10 +146,13 @@ See **[BRIEF_FORMAT.md](BRIEF_FORMAT.md)** for the brief schema and the
 
 | Document | Covers |
 |----------|--------|
+| [ARCHITECTURE.md](ARCHITECTURE.md) | System design, the Signals agent subsystem, data flow, and stack rationale |
 | [FUNCTIONAL_SPEC.md](FUNCTIONAL_SPEC.md) | Full observable behaviour of all four tabs |
 | [BRIEF_FORMAT.md](BRIEF_FORMAT.md) | The `DailyBrief` schema and importer |
 | [DATABASE_FUNCTIONALITY.md](DATABASE_FUNCTIONALITY.md) | Data model and persistence |
 | [DEPLOY.md](DEPLOY.md) | Deployment |
+| [EVALUATION.md](EVALUATION.md) | Output-quality evaluation layer (proposed design) |
+| [COST_TRACKING.md](COST_TRACKING.md) | Per-run token/cost logging & unit economics (proposed design) |
 | [CHANGELOG.md](CHANGELOG.md) | Dated log of every user-facing change (newest first) |
 | [docs/internal/](docs/internal/) | Early specs, n8n pipeline guides, and agent handoff notes (build history) |
 

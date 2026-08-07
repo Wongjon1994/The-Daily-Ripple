@@ -2,6 +2,17 @@
 
 Newest first. Append an entry here for every change.
 
+### 2026-08-06 — Docs: sync README + FUNCTIONAL_SPEC to the Signals page; add architecture/eval/cost docs
+- **README.md** and **FUNCTIONAL_SPEC.md** now describe the current **Signals** page — the
+  pre-agentic "Trends" metric grid is gone. Covers the ask bar (RAG search + cited
+  synthesis), market-pulse strip, daily House View, theme cards with a dominant-signal
+  hero and evidence trail, re-orderable Active Watches (open/realised filter), the
+  agent-status monitor, and the two-engine (deterministic + web-grounded) realisation
+  logic. Route/nav references updated (`/trends` → `/signals`, `/admin/signals` noted).
+- Added **ARCHITECTURE.md** (system design + the Signals "Agentic Ripple" subsystem, data
+  flow, stack rationale) and the proposed-design docs **EVALUATION.md** and
+  **COST_TRACKING.md**; all linked from the README Documentation table.
+
 ### 2026-08-06 — Repo hygiene: split out CHANGELOG, move internal docs
 - Extracted this changelog out of `README.md` into `CHANGELOG.md`; README now points here.
 - Moved early specs, n8n pipeline guides, and agent handoff notes into `docs/internal/`,
