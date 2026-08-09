@@ -12,7 +12,8 @@ import { Link } from "wouter";
 import { CheckCircle2, XCircle, KeyRound, ExternalLink, Loader2, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { trpc, ADMIN_KEY_STORAGE } from "@/lib/trpc";
-import MastheadBanner from "@/components/MastheadBanner";
+import SiteHeader from "@/components/SiteHeader";
+import AgentStatus from "@/components/AgentStatus";
 
 const THEME_TAG: Record<string, { label: string; color: string }> = {
   geopolitics: { label: "Geopolitics", color: "var(--color-cat-geopolitics)" },
@@ -93,7 +94,7 @@ export default function AdminSignalsPage() {
 
   return (
     <div className="min-h-screen">
-      <MastheadBanner />
+      <SiteHeader />
       <main className="container py-8 max-w-3xl space-y-5">
         <div>
           <h1 className="text-2xl font-bold" style={{ fontFamily: "'Playfair Display', Georgia, serif", color: "var(--color-mist)" }}>
@@ -109,6 +110,10 @@ export default function AdminSignalsPage() {
           onSave={(k) => { sessionStorage.setItem(ADMIN_KEY_STORAGE, k); setHasKey(true); }}
           onClear={() => { sessionStorage.removeItem(ADMIN_KEY_STORAGE); setHasKey(false); }}
         />
+
+        {/* Full per-job telemetry — moved off the reader Signals page (which now
+            shows a simplified freshness widget) to its natural home in ops. */}
+        <AgentStatus />
 
         {isLoading ? (
           <div className="flex items-center gap-2 py-8 justify-center text-sm" style={{ color: "var(--color-mist-faint)" }}>
@@ -134,7 +139,7 @@ export default function AdminSignalsPage() {
                     {typeof s.confidence === "number" && (
                       <span className="font-mono" style={{ color: "var(--color-gold-rich)", fontSize: 10 }}>conf {s.confidence.toFixed(2)}</span>
                     )}
-                    <Link href={`/brief/${s.briefDateSlug}?story=${s.storyIndex + 1}`} className="font-mono ml-auto transition-colors hover:text-[var(--color-cyan)]" style={{ color: "var(--color-mist-faint)", fontSize: 10 }}>
+                    <Link href={`/brief/${s.briefDateSlug}/${s.storyIndex + 1}`} className="font-mono ml-auto transition-colors hover:text-[var(--color-cyan)]" style={{ color: "var(--color-mist-faint)", fontSize: 10 }}>
                       surfaced {shortIso(s.surfacedDate)}
                     </Link>
                   </div>

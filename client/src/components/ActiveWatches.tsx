@@ -92,7 +92,7 @@ function WatchRow({
             <span className="font-mono" style={{ color: "var(--color-mist-faint)", fontSize: 9 }}>conf {s.confidence.toFixed(2)}</span>
           )}
           <Link
-            href={`/brief/${s.briefDateSlug}?story=${s.storyIndex + 1}`}
+            href={`/brief/${s.briefDateSlug}/${s.storyIndex + 1}`}
             className="font-mono ml-auto flex items-center gap-0.5 shrink-0 transition-colors hover:text-[var(--color-cyan)]"
             style={{ color: "var(--color-mist-faint)", fontSize: 9 }}
           >
@@ -114,7 +114,7 @@ function RealisedRow({ s }: { s: SignalRow }) {
   const t = tag(s.theme);
   return (
     <Link
-      href={`/brief/${s.briefDateSlug}?story=${s.storyIndex + 1}`}
+      href={`/brief/${s.briefDateSlug}/${s.storyIndex + 1}`}
       className="block rounded-md border border-border/50 bg-[var(--color-ink-well)] p-2.5 transition-colors hover:border-[color-mix(in_oklab,var(--color-cat-markets)_45%,transparent)]"
     >
       <div className="flex items-center gap-2 mb-1">

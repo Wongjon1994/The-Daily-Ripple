@@ -7,7 +7,7 @@ import { useMemo, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import type { DailyBrief } from "@/lib/briefParser";
-import MastheadBanner from "@/components/MastheadBanner";
+import SiteHeader from "@/components/SiteHeader";
 import TrendsDashboard, { type TrendsWindow } from "@/components/TrendsDashboard";
 
 function rowToBrief(row: any): DailyBrief {
@@ -36,7 +36,7 @@ export default function SignalsPage() {
 
   return (
     <div className="min-h-screen">
-      <MastheadBanner />
+      <SiteHeader />
       <main className="container py-8">
         {isLoading ? (
           <div className="flex items-center justify-center h-48">

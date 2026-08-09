@@ -66,7 +66,7 @@ export default function AlphaCard() {
             {refs.map((r, i) => (
               <Link
                 key={i}
-                href={`/brief/${r.slug}?story=${r.storyIndex + 1}`}
+                href={`/brief/${r.slug}/${r.storyIndex + 1}`}
                 className="flex items-start gap-1.5 text-[11px] leading-snug transition-colors hover:text-[var(--color-mist)]"
                 style={{ color: "var(--color-mist-faint)" }}
               >

@@ -17,42 +17,40 @@ first-visit landing page.
 
 | Tab | Route | What it is |
 |-----|-------|------------|
-| **Today's Brief** | `/`, `/brief/:slug` | A swipeable deck of up to 8 story cards for one day's brief. Story cards expand to the full analysis, "by the numbers" metrics, a Singapore Lens note, a gold **"Signal(s) to watch"** block, and link-checked sources. The 8th card is the **systems synthesis** — thesis prose plus three numbered "Signals to watch" (no metrics, no Lens box). A date picker plus **Telegram** ("For the latest updates") and **Full brief** CTAs sit above the deck. |
-| **Signals** | `/signals` | An agentic intelligence desk across *all* briefs: an **ask bar** (RAG search + opt-in cited synthesis), a **market-pulse** strip, a daily **House View** (opinionated alpha card), **theme cards** with a dominant-signal hero and evidence trail, re-orderable **Active Watches** (open/realised filter), an **agent-status** monitor, and the full markets carousel. The old `/trends` URL redirects here. |
-| **Archive** | `/calendar` | A monthly calendar; days with a brief are highlighted and click through to that day's deck. |
+| **Today's Brief** | `/`, `/brief/:slug` | A single-column list of the day's ≤8 stories — a lead card plus compact rows (from 640px, a lead card above a story-card grid). Each story opens its own **Story page** (`/brief/:slug/:story`): serif headline, pulled-out **stat tiles** for key figures, short paragraphs, a distinct **Singapore Lens** callout, a link into Signals, and link-checked sources. The 8th section is the **systems synthesis** — thesis prose plus numbered "Signals to watch". A date picker plus **Telegram** ("For the latest updates") and **Full brief** CTAs sit above the list. |
+| **Signals** | `/signals` | An agentic intelligence desk across *all* briefs: an **ask bar** (RAG search + opt-in cited synthesis), a **market-pulse** strip, a daily **House View** (opinionated alpha card), **theme cards** with a dominant-signal hero and evidence trail, re-orderable **Active Watches** (open/realised filter), a **freshness line** ("Updated Xh ago" — a right-rail sync widget on desktop; the full per-job agent telemetry lives on the admin page), and the full markets carousel. The old `/trends` URL redirects here. |
+| **Archive** | `/calendar` | Past briefs grouped under week signposts ("This week", "Last week", …) with a headline row per day; a search box filters across the whole archive. Briefs older than two weeks fold behind an expandable month calendar. |
 | **About** | `/about` | Editorial page explaining the product, its coverage, how to navigate, and an AI-authorship + "not financial advice" disclosure. Shown automatically to first-time visitors. |
 
 Cross-navigation is pervasive: a flagged signal or evidence link on Signals, a date
 in the Archive all deep-link into the specific story behind them
-(`/brief/:slug?story=N`).
+(`/brief/:slug/:story`).
 
 ### Key behaviours
 
 - **First visit** → redirected to About (flag stored in `localStorage`);
   thereafter `/` goes straight to the latest brief.
-- **"At a glance" bento** — above the deck, an editorial magazine-style summary
-  of all eight sections: a "Lead Story" hero cell, two mediums, a four-across
-  strip, and a full-width System Synthesis footer. Each cell distills its section
-  to a topic line (clean word-boundary truncation, no mid-word cuts) plus its
-  most telling figure — a key-metric chip and/or gold numerals in the dek — not
-  just a repeated headline. The grid is the default at every width: 2 columns on
-  narrow, the 4-column magazine grid from `sm` up; cells size to content.
-- **Focused reading** — clicking a bento cell hides the summary, scrolls the deck
-  to the top, and locks the view on that story so the reader can swipe left/right
-  without distraction; a "Back to summary" CTA returns to the top and restores
-  the bento. Deep links (`?story=N`, e.g. from Signals watches) open in focused
-  reading too. Without clicking a cell, the reader can simply scroll down from the
-  summary to the deck.
-- **Deck navigation** works by swipe/drag, arrow keys, prev/next arrows, the
-  progress dots, and (on desktop ≥1024px) clickable "peek" previews of the
-  neighbouring cards.
+- **Responsive navigation** — a **bottom tab bar** (Brief · Signals · Archive ·
+  About, 44px targets) on mobile (<640px); a **top tab bar** with the same icons
+  plus an active pill + underline from 640px up. A slim wordmark header (ripple
+  mark + dark toggle) sits at every width — the full masthead artwork now
+  headlines the **About** page rather than topping every tab.
+- **Today's Brief as a list** — the canonical view is a single column: a lead
+  card then compact story rows (icon · category · headline · source · time); from
+  640px the secondary stories become a 2→3-column card grid under a full-width
+  lead. The DOM order stays linear (lead → 2 → 3 …) for screen readers. Tapping a
+  story opens its own **Story page**.
+- **Stat tiles** — where a section carries structured `keyMetrics`, the Story
+  page pulls the figures out of the prose into tiles at the top (progressive
+  enhancement — mostly the markets/economics sections). Deltas always pair a
+  direction arrow with the colour, never colour alone.
 - **"Signals to watch"** — forward-looking signals are extracted from the
   Singapore Lens (story cards) and the synthesis prose (section 8) by one shared
   extractor, so the card's signals match the Signals watch list 1-to-1.
   The synthesis card always surfaces three numbered signals.
-- **Top ticker on every tab** — a "TODAY · cycling headline · clock" bar shows
-  across all four tabs (falls back to the latest brief's headlines off the brief
-  page), hidden on Sundays until Monday's brief lands.
+- **Top ticker** — a "TODAY · cycling headline · clock" bar shows from 640px up
+  (falls back to the latest brief's headlines off the brief page), hidden on the
+  slim mobile header and on Sundays until Monday's brief lands.
 - **Time-of-day greeting** ("Good morning/afternoon/evening") and the **clock**
   follow the **reader's local timezone**. On Sundays the greeting invites the
   reader to review the week's briefs (Sunday cadence is Singapore time, the
@@ -70,10 +68,11 @@ in the Archive all deep-link into the specific story behind them
   (18–24, dim dusk) · `night` (00–06, dark) — set before first paint by a
   script in `client/index.html` to avoid a flash. A nav **Auto / Light / Dark**
   toggle (`ThemeToggle`) overrides it and persists to `localStorage`.
-- The light bands use a dedicated light masthead (`masthead-banner-light.png`)
-  and a warm merlion-cream gold accent; the dark/evening bands keep the cyan +
-  gold duotone. Bands are defined as `:root[data-theme="…"]` blocks in
-  `client/src/index.css`.
+- The About page's masthead uses a dedicated light artwork (`masthead-banner-light.png`)
+  in the light bands; a warm merlion-cream gold accent in light, the cyan + gold
+  duotone in dark/evening. Bands are `:root[data-theme="…"]` blocks in
+  `client/src/index.css`; secondary text and status colours are tuned per band to
+  meet WCAG AA contrast.
 
 ---
 
@@ -89,8 +88,8 @@ in the Archive all deep-link into the specific story behind them
 ```
 client/
   src/
-    pages/        ← Page-level components (BriefPageEnhanced, SignalsPage, CalendarPage, AboutPage, AdminSignalsPage)
-    components/   ← Deck, cards, masthead, charts, shadcn/ui
+    pages/        ← Page-level components (BriefPageEnhanced, StoryPage, SignalsPage, ArchivePage, AboutPage, AdminSignalsPage)
+    components/   ← SiteHeader (nav), TodayBriefList, cards, charts, shadcn/ui
     lib/          ← briefParser and helpers
 server/           ← Express + tRPC, seed/publish ingestion, link checks
 shared/           ← Shared types & constants

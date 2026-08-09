@@ -2,6 +2,47 @@
 
 Newest first. Append an entry here for every change.
 
+### 2026-08-09 — Mobile & web UX revamp (navigation, readability, information hierarchy)
+A structural revamp guided by the UX spec — no data changes, no theme re-skin; the
+navy/gold editorial identity is preserved.
+- **Navigation & chrome** — a **bottom tab bar** (Brief · Signals · Archive · About,
+  44px targets) on mobile (<640px) and a **top tab bar** with the same icons + an
+  active pill/underline (not colour alone) from 640px up. The full-height masthead
+  banner is gone from every tab; a slim wordmark header (new ripple mark + dark
+  toggle) sits at all widths, and the **masthead artwork now headlines the About
+  page** (`MastheadArt`). `MastheadBanner` → `SiteHeader`.
+- **Today's Brief de-duplicated** — the "1 of 8" swipe carousel (`SwipeDemo`) and the
+  bento (`BriefBento`) are replaced by one canonical **single-column list**
+  (`TodayBriefList`): a lead card + compact rows, becoming a lead-plus-grid from
+  640px, with linear DOM order for screen readers and a distinct tint for the
+  System Synthesis.
+- **Story page** — a new route `/brief/:slug/:story` (`StoryPage`) opens a focused
+  read: back bar, serif headline, byline, **pulled-out stat tiles** where a section
+  carries structured `keyMetrics` (progressive enhancement; deltas pair an arrow with
+  colour), short paragraphs, a distinct **Singapore Lens** callout, a link into
+  Signals, and link-checked sources. Replaces the in-page expand/carousel reader
+  (`BriefCard`, `SwipeDemo` removed).
+- **Signals** — the raw Agents/telemetry panel is replaced for readers by a **freshness
+  line** ("Updated Xh ago") on mobile/tablet and a simplified **sync widget** in a now
+  **sticky** desktop right rail (`SignalsFreshness`); the full per-job telemetry
+  (`AgentStatus`) moved to the admin page. All signal deep-links updated `?story=N` →
+  `/:story`.
+- **Archive** — the month calendar is replaced by past briefs **grouped under week
+  signposts** with a headline row per day and an **all-time search** (`ArchivePage`,
+  was `CalendarPage`). Browse mode caps at three weeks and folds older briefs behind an
+  **expandable month calendar**; typing a query flattens to a single all-time result
+  list so nothing older is hidden from search.
+- **Accessibility** — a per-band token contrast audit: the dark bands were already
+  AA-clean; the light/evening bands now darken/lift `sage`/`crimson`/`mist-faint`/`cyan`
+  so delta and meta text clear WCAG AA (≥4.5:1). Deltas, realised markers, and
+  persistence dots all pair colour with an icon/text label.
+- **One category map** — icon, colour token, and label consolidated into
+  `lib/categories.ts` and reused across the brief list, Story page, Signals, and About.
+- Preserved throughout: the Telegram CTA, "Read the full brief" (Telegraph) link, and
+  the help modal. Docs synced (`README`, `FUNCTIONAL_SPEC`, `ARCHITECTURE`).
+- Dev-only `scripts/dev-readonly-server.ts` added for verifying against real data with
+  zero writes to the production database.
+
 ### 2026-08-06 — Docs: correct ARCHITECTURE to the live Telegraph pipeline; extend docs-sync rule
 - Verified against the live n8n workflow (MVP 2.02): the brief still publishes via
   **Telegraph** (`Tools Agent → HTML → Telegraph → /api/publish-telegraph → deterministic

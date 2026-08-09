@@ -17,7 +17,7 @@ Client-side routes (no full page reloads between tabs):
 |------|------------|
 | `/` | First-ever visitor is redirected to **About**; thereafter **Today's Brief** (latest brief) |
 | `/brief/:slug` | Today's Brief, showing a specific day (e.g. `/brief/june-20-2026`) |
-| `/brief/:slug?story=N` | …deep-linked to story **N** (1-based) within that brief |
+| `/brief/:slug/:story` | **Story page** — story **N** (1-based) within that brief, as a standalone read |
 | `/signals` | Signals (agentic intelligence dashboard) |
 | `/trends` | Redirects to `/signals` (legacy) |
 | `/admin/signals` | Editorial review queue (key-gated; not in nav) |
@@ -31,17 +31,17 @@ a flag (`ripple_visited`) is stored in `localStorage`. On every visit after
 that, `/` goes straight to Today's Brief. The About tab remains reachable from
 the nav at any time. Explicit `/brief/:slug` links are unaffected.
 
-### 1.3 Masthead (top of every tab)
-- A teaser ticker (Today's Brief only) cycling the first three headlines every 5s, with a live clock in the **reader's local timezone** (labelled, e.g. "09:06 GMT+8"). On **Sundays** (Singapore time — the brief-publishing cadence) the ticker is hidden until Monday's fresh brief lands.
-- The banner artwork (falls back to a text masthead if the image fails to load); clicking it returns to `/`.
-- A **sticky navigation bar** that locks to the top of the viewport once the banner scrolls away. Tabs, left→right: **Today's Brief · Signals · Archive · About**. The active tab is highlighted in cyan.
-- A greeting line (Today's Brief only), time-of-day aware in the **reader's local time** ("Good morning/afternoon/evening"), matching the local-time theme band. On **Sundays**, the salutation is kept but the second sentence is replaced to invite the reader to review the week's briefs ("…This week's briefs are ready for your review — have a read. We'll see you next week.") rather than announce a daily brief.
+### 1.3 Site header & navigation
+- A **slim sticky header** at every width: the wordmark (ripple mark + "The Daily Ripple", returns to `/`) and the theme toggle. The full masthead **banner artwork now lives on the About page**, not atop every tab.
+- **Navigation** is responsive: a **bottom tab bar** (<640px) fixed in the thumb zone with 44px icon+label targets, and a **top tab bar** (≥640px) with the same icons. Tabs, left→right: **Today's Brief · Signals · Archive · About**. The active tab carries a cyan pill **and** an underline/indicator (not colour alone), so the state reads without relying on colour.
+- A **teaser ticker** (≥640px) cycling the first headlines every 5s with a live clock in the **reader's local timezone** (e.g. "09:06 GMT+8"); hidden on the slim mobile header and, on **Sundays** (Singapore time — the publishing cadence), until Monday's fresh brief lands.
+- A greeting line (Today's Brief only), time-of-day aware in the **reader's local time** ("Good morning/afternoon/evening"), matching the local-time theme band. On **Sundays**, the salutation is kept but the second sentence invites the reader to review the week's briefs rather than announce a daily brief.
 
 ### 1.4 Sticky layering
 Secondary bars stack beneath the nav (which defines `--nav-h`): the brief's date-picker row (Today's Brief) and the Signals "Intelligence signals" section header pin directly below the nav as you scroll.
 
 ### 1.5 Theme & background
-Dark theme throughout, with a faint fixed world-map backdrop behind all content.
+A time-of-day adaptive theme in four bands (morning/midday light → evening/night dark), keyed to the reader's local hour with an Auto/Light/Dark override, over a faint fixed world-map backdrop. Secondary text and status colours are tuned per band to meet WCAG AA contrast.
 
 ### 1.6 Data & loading
 - All content is fetched from the backend via tRPC (`/api/trpc`). The frontend never reads the database directly.
@@ -51,51 +51,39 @@ Dark theme throughout, with a faint fixed world-map backdrop behind all content.
 
 ## 2. Tab 1 — Today's Brief (`/`, `/brief/:slug`)
 
-The reading experience: a swipeable deck of story cards for one day's brief.
+The reading experience: a single-column **list** of the day's stories. Each story opens its own **Story page** (§2.4); there is no swipe carousel.
 
 ### 2.1 Brief selection
 - On `/`, the **most recent** brief loads. On `/brief/:slug`, that specific day loads; an unknown slug falls back to the latest.
-- A **date-picker row** (sticky under the nav) holds:
-  - A **brief selector** dropdown grouping recent briefs by week ("This Week", "Last Week"); older briefs are reachable via the Archive tab. Selecting a brief switches the deck and resets to story 1.
-  - A **"Read the full brief"** link (label shortens to "Full brief" on mobile) opening the canonical source (Telegraph) in a new tab — shown only when a source URL exists.
+- A **date-picker row** (sticky under the header) holds:
+  - A **brief selector** dropdown grouping recent briefs by week ("This Week", "Last Week"); older briefs are reachable via the Archive tab.
+  - A **Telegram** CTA ("For the latest updates"; "Telegram" on mobile) and a **"Read the full brief"** link ("Full brief" on mobile) opening the canonical Telegraph source in a new tab — shown only when a source URL exists.
   - A **help (?)** button opening a "How to navigate" modal.
 
-### 2.2 The story deck (carousel)
-- A brief has up to **8 story cards** (sections 1–7 plus a Systems Synthesis).
-- **Story counter + arrows (primary navigation):** a centred "**N of 8**" counter sits above the deck, flanked by circular **‹ ›** prev/next arrows on every screen size.
-- **Progress dots** sit below the deck; the current dot is enlarged and cyan, and tapping any dot jumps to that story.
-- **Other ways to navigate:**
-  - **Swipe** left/right (touch) or **drag** (mouse).
-  - **Arrow keys** (←/→).
-  - **Desktop (≥1024px):** faint "peek" previews of the previous/next cards flank the focal card and are clickable.
-  - **Mobile (<1024px):** a "Swipe or tap the arrows to move between stories" hint sits under the dots.
-- Navigation wraps around (next from the last story returns to the first).
-- The deep-link `?story=N` opens the deck at story N.
+### 2.2 The story list
+- A brief has up to **8 stories** (sections 1–7 plus a Systems Synthesis).
+- **Lead card** — section 1, a prominent card with a filled **"Lead story"** pill, serif headline, a one-line dek with key figures emphasised in gold, source attribution, and a "Read →" affordance.
+- **Story rows** — the remaining stories as compact rows: a category icon in a tinted tile, an **NN category** eyebrow, the headline, and a one-line `source · reading-time` meta.
+- **System Synthesis** (section 8) gets its own distinct gold tint so it reads as analysis, not another headline.
+- **Responsive:** a single column on mobile; from 640px the secondary stories become a 2→3-column card grid under the full-width lead. The **DOM order stays linear** (lead → 2 → 3 … → synthesis) regardless of the visual grid, for screen readers.
+- Tapping any item navigates to its **Story page** at `/brief/:slug/:story`.
 
-### 2.3 Story card — collapsed state
-Each card shows, top to bottom:
-1. **Category kicker** — emoji + label, an **urgency dot** (red = high, cyan = medium, none = low), and an estimated **reading time** (e.g. "2m"). A thin category-coloured rule sits under the header, with a faint large story number watermarked in the corner.
-   - **Story 1 is labelled "LEAD STORY"** on the card. Its underlying category (e.g. geopolitics) is unchanged — only the displayed label differs, matching how the brief is constructed.
-2. **Headline** (serif).
-3. **Deck/standfirst** — a 2–3 line summary with the first few words in gold as a lead-in; long decks fade out at the bottom to signal there's more.
-4. **Singapore Lens teaser** — a short, cyan-ruled preview of the local-angle note (shown only when the Lens adds something beyond the body). Tapping it expands the card.
-5. **Footer** — source attribution ("via …") and a full-width **CTA** that advertises what's inside: e.g. "Full analysis · Singapore Lens · 3 sources → Read more".
+### 2.3 The one shared category map
+Category → icon, colour (a `--color-cat-*` token), and label are defined once (`lib/categories.ts`) and reused across the brief list, Story page, Signals, and About. Section 1 is always presented as the day's **Lead story** (globe icon, cyan accent) regardless of its underlying category.
 
-### 2.4 Story card — expanded state
-Tapping "Read more" expands an inset panel containing, in order:
-1. **"By the numbers"** strip — key-metric chips (label, value, up/down colour-coded change), when the story carries metrics.
-2. **Lede paragraph** (story's first paragraph) — bright text with an editorial drop cap in the category colour.
-3. **Remaining paragraphs** — same bright typography as the lede; one punchy sentence may be lifted out as a large italic pull-quote to break the prose.
-4. **Singapore Lens · Analyst's note** — the local-angle commentary in **non-italic** serif, closing out the story after the paragraphs (cyan left-rule, pin icon). Suppressed when it would merely duplicate the body (e.g. Systems Synthesis). Any forward-looking sentence carrying a watch cue (`watch`, `monitor`, `keep an eye`, …) is split out beneath the note as a gold-accented **"Signal(s) to watch"** block (eye icon). These signals come from the same extractor that persists the Signals ledger, so the brief card and the Signals watch list stay matched 1-to-1.
-5. **Sources** — a **two-line row** per source: status icon + outlet + date on the first line, the article title wrapping below. Each row is clickable (opens in a new tab) and carries a **link-status icon**:
-   - ✓ verified (2xx–3xx), ⚠ blocked (the site refused the automated check — likely fine in a browser; 401/403/405/429/5xx), ✗ likely broken (404/410), ? unverified/timeout. A spinner shows while checks run.
-   - When a story has no inline sources, a single "read the full brief" link is shown instead.
-
-A "Show less" control collapses the card again.
+### 2.4 Story page (`/brief/:slug/:story`)
+A focused, standalone read for one story. A slim bar with a **Back to brief** control replaces the main header. Body, top to bottom:
+1. **Eyebrow** — category label (in the category colour) + estimated **reading time**.
+2. **Headline** (serif) and a **byline/meta** line (`via <outlets> · <date>`), then a category-coloured rule.
+3. **Stat tiles** — where the section carries structured `keyMetrics` with real values, the key figures are pulled out of the prose into tiles at the top (label, value, and an up/down **arrow + colour** change — never colour alone). Progressive enhancement: sections without metrics simply omit them.
+4. **Lede paragraph** with an editorial drop cap in the category colour, then the **remaining paragraphs** as short blocks.
+5. **Singapore Lens · Analyst's note** — the local-angle commentary in serif with a cyan left-rule + pin icon, visually distinct from the body prose. Any forward-looking sentence carrying a watch cue is split out beneath as a gold **"Signal(s) to watch"** block (eye icon), from the same extractor that persists the Signals ledger — so the story and the Signals watch list stay matched 1-to-1. The Systems Synthesis surfaces its numbered "Signals to watch" instead of a Lens box.
+6. **Track in Signals** — a link into the Signals layer.
+7. **Sources** — one row per source: status icon + outlet + date, article title wrapping below; each clickable (new tab) with a **link-status icon** (✓ verified · ⚠ blocked · ✗ likely broken · ? unverified; spinner while checking). With no inline sources, a "read the full brief" link shows instead; the canonical **Telegraph** link is always offered.
 
 ### 2.5 States
-- **Loading:** centred spinner + "PREPARING YOUR BRIEF".
-- **No briefs:** message prompting to publish a brief via the API.
+- **Loading:** centred spinner + "PREPARING YOUR BRIEF" (list); a spinner on the Story page.
+- **No briefs:** message prompting to publish a brief via the API. An unknown story index shows a "That story isn't available" fallback with a link back to the brief.
 
 ---
 
@@ -122,8 +110,8 @@ Under a sticky header with a **1W / 1M / 3M** window toggle. Forward-looking "wa
 ### 3.5 Active Watches
 - The reader's list of open forward-looking signals, with an **Open / Realised** filter (live counts). Open watches are **re-orderable** (up/down buttons; order persisted per device via localStorage). Realised watches show a green "Realised · <date>" badge and the sweep's evidence note.
 
-### 3.6 Agent status
-- A monitor for the background jobs that produce the layer — **Signal extraction, Synthesis, House View, Realisation sweep** — each with an ok/idle status, a relative last-run time, and a summary, plus a data-health footer (briefs · open · realised · embedded chunks).
+### 3.6 Freshness
+- The reader-facing surface is a calm **freshness line** — "⟳ Updated Xh ago" — on mobile/tablet, and a simplified **sync widget** in the desktop right rail ("Last sync Xh ago · N signals tracking · M realised"). The full per-job telemetry (Signal extraction, Synthesis, House View, Realisation sweep — status, last-run time, data-health counts) lives on the **admin page** (`/admin/signals`), not the reader view.
 
 ### 3.7 Markets carousel
 - The full instrument deck (**Exchanges · Rates & commodities · FX vs SGD**), swipeable, with range tabs (1D…5Y). Each card resolves the briefs' threshold signals against its live series, marking a signal **realised** on the first crossing.
@@ -143,22 +131,19 @@ Two engines, both grounded in real data — never an LLM's guess about a number:
 
 ## 4. Tab 3 — Archive (`/calendar`)
 
-A monthly calendar for browsing past briefs by date.
+Past briefs grouped under week signposts, with an all-time search.
 
-### 4.1 Layout & navigation
-- Centred month view titled "**{Month} {Year}**" with a subtitle "**N briefs this month**".
-- ‹ › buttons step to the previous/next month (rolling the year over at the boundaries).
-- A Monday-first 7-column grid; leading/trailing blanks pad the weeks. Weekday headers (Mon…Sun) sit above.
+### 4.1 Browse mode (no search)
+- A **search box** ("Search the archive…") sits at the top.
+- Recent briefs show as **week groups** — "This week", "Last week", "2 weeks ago" — each with a brief count. Every row is a **day + date** block (`Sat / 8`), the lead **headline**, an `N stories · 1 synthesis` meta, and a chevron → navigates to `/brief/{slug}`. One column on mobile; a two-column grid from `lg`.
+- Everything **older than two weeks** folds behind an expandable **"Browse earlier briefs by date"** control that opens a **month calendar** (Monday-first, ‹ › month nav, a cyan dot on days with a brief; a day click opens that brief). This keeps the browse scroll bounded.
 
-### 4.2 Day cells
-- **Days with a brief** are highlighted (brighter text, a small cyan dot, a hover state) and **clickable** → navigate to `/brief/{slug}` for that day, landing on the Today's Brief tab for that date.
-- **Days without a brief** are dimmed and non-interactive (disabled).
-- **Today** is outlined in cyan (whether or not it has a brief).
-- A **legend** explains the "Brief available" dot and the "Today" outline.
+### 4.2 Search mode (query present)
+- Typing **flattens** the tiers: a single week-grouped list of **all** matching briefs across the whole archive (headline/date match), so no older brief is ever hidden from search. Clearing the query returns to browse mode.
 
 ### 4.3 States
-- **Loading:** centred spinner in place of the grid.
-- Months with no briefs simply show no highlighted days and "0 briefs this month".
+- **Loading:** centred spinner.
+- **No matches / empty archive:** a short empty-state message.
 
 ---
 
@@ -171,7 +156,7 @@ visitors** (see §1.2) and is otherwise reached via the About tab.
 1. **Hero** — an "ABOUT" kicker, the serif title "The Daily Ripple", a one-line mission tagline, and a "**Start reading today's brief →**" call-to-action linking to `/`.
 2. **What this is** — the mission, with the brief's coverage rendered as an **eight-tile grid** that mirrors the daily deck (🌐 Lead story · ⚖️ Global politics & policy · 📊 Markets · 💼 Business · 🤖 Technology & the future of work · 🔬 Science & health · 🎭 Culture · 🔗 Systems Synthesis), each tile carrying its section emoji, ordinal (01–08), and category colour. A pulled-out line emphasises the core question ("So what does this mean for me, here?").
 3. **How to navigate the site** — three **interactive cards** (Today's Brief / Signals / Archive), each with an icon in that section's colour; clicking a card navigates to that tab.
-4. **Making the most of the Signals page** — a walkthrough of the Signals tab: ask across every brief, start with the House View, scan the market pulse, track/re-order Active Watches, watch flagged calls get marked realised, and see the agent jobs behind it — each linking into Signals.
+4. **Making the most of the Signals page** — a walkthrough of the Signals tab: ask across every brief, start with the House View, scan the market pulse, track/re-order Active Watches, watch flagged calls get marked realised, and read the freshness of the layer — each linking into Signals.
 5. **A note on how this is made — and its limits** — an AI-authorship disclosure ("Written by Claude · Anthropic"), the accuracy/limitations note, and a distinct amber **"This is not financial advice"** callout.
 6. **Footer** — the independent/self-funded line and a closing "Start reading today's brief →" CTA.
 
@@ -182,11 +167,11 @@ All copy is presented as written; the page only shapes its layout.
 ## 6. Cross-cutting behaviour
 
 ### 6.1 Responsive design
-- The layout adapts at the `lg` (1024px) breakpoint: deck **peek** previews are desktop-only; the brief's **swipe hint** is mobile-only; on Signals the theme-card grid and the agent-status/active-watches ops-rail go single-column on mobile and two-column on desktop, while the market-pulse strip reflows from two-across up to six. The deck's prev/next arrows live with the top counter on **all** sizes.
-- Sticky bars (nav, date picker, the Signals "Intelligence signals" header) keep key controls reachable while scrolling on both form factors.
+- Navigation switches at 640px: a **bottom tab bar** below, a **top tab bar** above (§1.3). Today's Brief is a single column on mobile and a lead-card-plus-grid from 640px; the Archive rows go two-column from `lg`. On Signals the theme-card grid and the active-watches rail go single-column on mobile and two-column on desktop (the rail is sticky, carrying Active Watches + the freshness widget), while the market-pulse strip reflows from two-across up to six.
+- Sticky bars (header, date picker, the Signals "Intelligence signals" header) keep key controls reachable while scrolling on both form factors.
 
 ### 6.2 Deep linking & cross-navigation
-- Signals watches, evidence-trail signals, RAG source hits, House View reasoning-trail links, Archive day cells, and the About nav cards all link into the rest of the app (`/brief/:slug?story=N` for brief stories), so a reader can move from a flagged signal, a source, or a date straight to the story behind it, and back.
+- Signals watches, evidence-trail signals, RAG source hits, House View reasoning-trail links, Archive rows, and the About nav cards all link into the rest of the app (`/brief/:slug/:story` for a specific story), so a reader can move from a flagged signal, a source, or a date straight to the story behind it, and back.
 
 ### 6.3 Data model (per brief)
 Each brief has: a human date and slug, an ISO `briefDate` (used for sorting/calendar), a greeting, an array of teaser lines, up to 8 **sections** (each with category, emoji, headline, summary, paragraphs, optional Singapore Lens, key metrics, sources, urgency, reading time), an optional systems-synthesis object, and an optional source (Telegraph) URL.

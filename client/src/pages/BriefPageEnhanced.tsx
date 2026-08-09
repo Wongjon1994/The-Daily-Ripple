@@ -1,16 +1,17 @@
 /**
- * Brief Page — the swipeable reading deck, database-driven.
- * Trends lives at /trends; archive at /calendar.
+ * Brief Page — Today's Brief as a single canonical list (UX-revamp §6.1).
+ * The old "at a glance" bento + duplicate swipe carousel are gone; each story
+ * opens its own dedicated Story page (/brief/:slug/:story). Signals live at
+ * /signals; the archive at /calendar.
  */
 
 import { useState, useCallback, useMemo } from "react";
 import type { DailyBrief } from "@/lib/briefParser";
-import MastheadBanner from "@/components/MastheadBanner";
-import SwipeDemo from "@/components/SwipeDemo";
-import BriefBento from "@/components/BriefBento";
+import SiteHeader from "@/components/SiteHeader";
+import TodayBriefList from "@/components/TodayBriefList";
 import WeeklyBriefSelector from "@/components/WeeklyBriefSelector";
 import { trpc } from "@/lib/trpc";
-import { Loader2, HelpCircle, X, ExternalLink, Send, ArrowUp } from "lucide-react";
+import { Loader2, HelpCircle, X, ExternalLink, Send } from "lucide-react";
 
 function rowToBrief(row: any): DailyBrief {
   return {
@@ -24,16 +25,11 @@ function rowToBrief(row: any): DailyBrief {
 
 interface BriefPageEnhancedProps {
   initialSlug?: string;
-  initialSectionIndex?: number;
 }
 
-export default function BriefPageEnhanced({ initialSlug, initialSectionIndex = 0 }: BriefPageEnhancedProps) {
+export default function BriefPageEnhanced({ initialSlug }: BriefPageEnhancedProps) {
   const [selectedSlug, setSelectedSlug] = useState<string | null>(initialSlug ?? null);
-  const [currentSectionIndex, setCurrentSectionIndex] = useState(initialSectionIndex);
   const [showUserGuide, setShowUserGuide] = useState(false);
-  // Focused reading: a bento click hides the summary and locks the view on the deck;
-  // "Back to summary" returns to the top. Deep links (?story=N) open focused too.
-  const [focusedReading, setFocusedReading] = useState(initialSectionIndex > 0);
 
   const { data: allRes, isLoading } = trpc.n8n.getAll.useQuery();
   const dbRows = allRes?.briefs ?? [];
@@ -61,33 +57,7 @@ export default function BriefPageEnhanced({ initialSlug, initialSectionIndex = 0
 
   const handleSelectBrief = useCallback((slug: string) => {
     setSelectedSlug(slug);
-    setCurrentSectionIndex(0);
-    setFocusedReading(false);
   }, []);
-
-  // Bento cell → jump to that story and enter focused reading (summary hidden, deck locked).
-  const handleBentoSelect = useCallback((index: number) => {
-    setCurrentSectionIndex(index);
-    setFocusedReading(true);
-    requestAnimationFrame(() => {
-      document.getElementById("reading-deck")?.scrollIntoView({ behavior: "smooth", block: "start" });
-    });
-  }, []);
-
-  const handleBackToSummary = useCallback(() => {
-    setFocusedReading(false);
-    requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "smooth" }));
-  }, []);
-
-  const handlePreviousSection = useCallback(() => {
-    if (!brief) return;
-    setCurrentSectionIndex((i) => (i === 0 ? brief.sections.length - 1 : i - 1));
-  }, [brief]);
-
-  const handleNextSection = useCallback(() => {
-    if (!brief) return;
-    setCurrentSectionIndex((i) => (i === brief.sections.length - 1 ? 0 : i + 1));
-  }, [brief]);
 
   if (isLoading) {
     return (
@@ -100,10 +70,10 @@ export default function BriefPageEnhanced({ initialSlug, initialSectionIndex = 0
     );
   }
 
-  if (!brief) {
+  if (!brief || !activeBriefSlug) {
     return (
       <div className="min-h-screen">
-        <MastheadBanner />
+        <SiteHeader />
         <div className="container py-24 text-center">
           <p style={{ color: "var(--color-mist-dim)" }}>No briefs available yet.</p>
           <p className="text-xs font-mono mt-2" style={{ color: "var(--color-mist-faint)" }}>
@@ -116,37 +86,22 @@ export default function BriefPageEnhanced({ initialSlug, initialSectionIndex = 0
 
   return (
     <div className="min-h-screen">
-      <MastheadBanner greeting={brief.greeting} teaser={brief.teaser} />
+      <SiteHeader greeting={brief.greeting} teaser={brief.teaser} />
 
-      {/* Brief picker row — locks directly beneath the sticky nav so the date
-          switcher and "full brief" link stay reachable while reading. */}
+      {/* Brief picker row — locks beneath the sticky header so the date switcher,
+          Telegram CTA and "full brief" link stay reachable while reading. */}
       <div
         className="sticky z-30 border-b border-border/40 backdrop-blur-md"
         style={{ top: "var(--nav-h)", background: "color-mix(in oklab, var(--background) 93%, transparent)" }}
       >
         <div className="container py-2.5 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
-          {focusedReading ? (
-            <button
-              onClick={handleBackToSummary}
-              className="flex items-center gap-2 text-[13px] font-semibold rounded-lg px-3.5 py-2 transition-colors whitespace-nowrap shrink-0"
-              style={{
-                color: "var(--color-gold-rich)",
-                border: "1px solid color-mix(in oklab, var(--color-gold-rich) 45%, transparent)",
-                background: "color-mix(in oklab, var(--color-gold-rich) 10%, transparent)",
-              }}
-            >
-              <ArrowUp className="h-4 w-4" />
-              Back to summary
-            </button>
-          ) : (
-            <div className="max-w-[240px]">
-              <WeeklyBriefSelector
-                briefs={allBriefs}
-                selectedBriefKey={activeBriefSlug ?? ""}
-                onSelectBrief={handleSelectBrief}
-              />
-            </div>
-          )}
+          <div className="max-w-[240px]">
+            <WeeklyBriefSelector
+              briefs={allBriefs}
+              selectedBriefKey={activeBriefSlug}
+              onSelectBrief={handleSelectBrief}
+            />
+          </div>
           <div className="flex items-center gap-3">
             <a
               href="https://t.me/TheDailyRipple"
@@ -192,24 +147,9 @@ export default function BriefPageEnhanced({ initialSlug, initialSectionIndex = 0
         </div>
       </div>
 
-      {/* At-a-glance bento summary, then the reading deck. Both share one centred
-          column so the bento and the deck line up on desktop (they don't below). */}
-      <main className="container py-3">
+      <main className="container py-4">
         <div className="mx-auto w-full" style={{ maxWidth: 1040 }}>
-          {!focusedReading && (
-            <div className="mb-4">
-              <BriefBento brief={brief} onSelectSection={handleBentoSelect} />
-            </div>
-          )}
-          <div id="reading-deck" style={{ scrollMarginTop: "calc(var(--nav-h) + 56px)" }}>
-            <SwipeDemo
-              brief={brief}
-              currentIndex={currentSectionIndex}
-              onPrevious={handlePreviousSection}
-              onNext={handleNextSection}
-              briefUrl={briefUrl}
-            />
-          </div>
+          <TodayBriefList brief={brief} slug={activeBriefSlug} />
         </div>
       </main>
 
@@ -218,25 +158,22 @@ export default function BriefPageEnhanced({ initialSlug, initialSectionIndex = 0
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
           <div className="bg-card rounded-lg p-6 max-w-sm w-full border border-border/60">
             <div className="flex items-center justify-between mb-4">
-              <h3
-                className="text-base font-bold"
-                style={{ fontFamily: "'Playfair Display', serif" }}
-              >
+              <h3 className="text-base font-bold" style={{ fontFamily: "'Playfair Display', serif" }}>
                 How to navigate
               </h3>
               <button
                 onClick={() => setShowUserGuide(false)}
                 className="p-1 hover:bg-white/10 rounded transition-colors"
+                aria-label="Close"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
             <ul className="space-y-2 text-sm" style={{ color: "var(--color-mist-dim)" }}>
-              <li>• The "at a glance" grid up top summarises all 8 stories — tap a box to jump to it</li>
-              <li>• Swipe left/right or use arrow keys to move between stories</li>
-              <li>• "Read more" expands the full analysis and sources</li>
-              <li>• The date picker switches to past briefs; Archive opens the calendar</li>
-              <li>• Trends tracks live markets and resolves the watch-signals flagged in past briefs</li>
+              <li>• Today's Brief lists all 8 stories — tap any one to open the full story</li>
+              <li>• Each story opens the full analysis, its Singapore Lens, and every source we used</li>
+              <li>• The date picker switches to past briefs; Archive browses them all</li>
+              <li>• Signals tracks live markets and resolves the watch-signals flagged in past briefs</li>
             </ul>
           </div>
         </div>

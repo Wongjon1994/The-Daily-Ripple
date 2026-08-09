@@ -20,7 +20,7 @@ import {
 import MarketsSection from "@/components/MarketsSection";
 import MarketPulseStrip from "@/components/MarketPulseStrip";
 import AskBar from "@/components/AskBar";
-import AgentStatus from "@/components/AgentStatus";
+import { FreshnessLine, TelemetryWidget } from "@/components/SignalsFreshness";
 import ActiveWatches from "@/components/ActiveWatches";
 import AlphaCard from "@/components/AlphaCard";
 import {
@@ -167,7 +167,7 @@ function SignalRowItem({ s, color }: { s: SignalRow; color: string }) {
   const realised = s.status === "realised";
   return (
     <Link
-      href={`/brief/${s.briefDateSlug}?story=${s.storyIndex + 1}`}
+      href={`/brief/${s.briefDateSlug}/${s.storyIndex + 1}`}
       className="block rounded-md border border-border/50 bg-[var(--color-ink-well)] p-2.5 transition-colors"
       style={{ ["--tw-hover-border" as string]: color }}
       onMouseEnter={(e) => (e.currentTarget.style.borderColor = `color-mix(in oklab, ${color} 45%, transparent)`)}
@@ -365,13 +365,19 @@ export default function TrendsDashboard({
             ))}
           </div>
         </div>
-        <p className="text-xs mb-5 mt-3" style={{ color: "var(--color-mist-faint)" }}>
-          Forward-looking signals synthesised across the {window === "1W" ? "past week" : window === "1M" ? "past month" : "past quarter"} of briefs,
-          grouped by theme. Themes appearing in 2+ briefs are shown; expand any card for its Singapore Lens and evidence trail.
-        </p>
+        <div className="flex items-center justify-between gap-3 mb-5 mt-3">
+          <p className="text-xs" style={{ color: "var(--color-mist-faint)" }}>
+            Forward-looking signals synthesised across the {window === "1W" ? "past week" : window === "1M" ? "past month" : "past quarter"} of briefs,
+            grouped by theme. Themes appearing in 2+ briefs are shown; expand any card for its Singapore Lens and evidence trail.
+          </p>
+          {/* Mobile/tablet: the whole agent panel collapses to one freshness line. */}
+          <FreshnessLine className="shrink-0 lg:hidden" />
+        </div>
 
-        {/* Rail — left: house view + dominant hero; right: agent status + watches. */}
-        <div className="grid gap-4 lg:grid-cols-3 mb-5">
+        {/* Rail — left: house view + dominant hero; right (sticky on desktop):
+            active watches + a simplified freshness widget (the raw per-job
+            telemetry now lives on the admin page). */}
+        <div className="grid gap-4 lg:grid-cols-3 mb-5 lg:items-start">
           <div className="lg:col-span-2 space-y-4">
             <AlphaCard />
             {view.dominant ? (
@@ -386,9 +392,14 @@ export default function TrendsDashboard({
               </div>
             )}
           </div>
-          <div className="space-y-4">
-            <AgentStatus />
+          <div
+            className="space-y-4 lg:sticky lg:self-start"
+            style={{ top: "calc(var(--nav-h) + 3.75rem)" }}
+          >
             <ActiveWatches signals={signals} />
+            <div className="hidden lg:block">
+              <TelemetryWidget />
+            </div>
           </div>
         </div>
 

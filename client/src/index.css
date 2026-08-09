@@ -193,9 +193,13 @@
   --color-ink-well: oklch(0.93 0.008 235);
   --color-mist: oklch(0.23 0.030 250);
   --color-mist-dim: oklch(0.38 0.026 250);
-  --color-mist-faint: oklch(0.50 0.022 248);
-  --color-cyan: oklch(0.52 0.110 222);
-  --color-cyan-dim: oklch(0.52 0.110 222 / 0.55);
+  --color-mist-faint: oklch(0.47 0.022 248);
+  --color-cyan: oklch(0.50 0.115 222);
+  --color-cyan-dim: oklch(0.50 0.115 222 / 0.55);
+  /* Status colours darkened for light surfaces so delta/realised TEXT clears
+     WCAG AA (contrast audit, punch-list item 7). */
+  --color-sage: oklch(0.46 0.130 162);
+  --color-crimson: oklch(0.48 0.200 25);
   --color-gold-soft: oklch(0.54 0.095 78);
   --color-gold-rich: oklch(0.50 0.115 80);
   --color-gold-faded: oklch(0.86 0.060 84);
@@ -251,9 +255,12 @@
   --color-ink-well: oklch(0.91 0.010 236);
   --color-mist: oklch(0.24 0.030 250);
   --color-mist-dim: oklch(0.39 0.026 250);
-  --color-mist-faint: oklch(0.50 0.022 248);
-  --color-cyan: oklch(0.52 0.110 222);
-  --color-cyan-dim: oklch(0.52 0.110 222 / 0.55);
+  --color-mist-faint: oklch(0.47 0.022 248);
+  --color-cyan: oklch(0.50 0.115 222);
+  --color-cyan-dim: oklch(0.50 0.115 222 / 0.55);
+  /* Status colours darkened for light surfaces (contrast audit, item 7). */
+  --color-sage: oklch(0.46 0.130 162);
+  --color-crimson: oklch(0.48 0.200 25);
   --color-gold-soft: oklch(0.54 0.095 78);
   --color-gold-rich: oklch(0.50 0.115 80);
   --color-gold-faded: oklch(0.85 0.062 84);
@@ -313,6 +320,9 @@
   --color-mist-faint: oklch(0.74 0.022 240);
   --color-cyan: oklch(0.80 0.120 205);
   --color-cyan-dim: oklch(0.80 0.120 205 / 0.6);
+  /* Status colours lifted for the evening (dark-ish) surface (contrast audit). */
+  --color-sage: oklch(0.80 0.140 165);
+  --color-crimson: oklch(0.80 0.170 25);
   --color-gold-soft: oklch(0.86 0.075 84);
   --color-gold-rich: oklch(0.82 0.120 82);
   --color-gold-faded: oklch(0.82 0.080 84);
@@ -366,6 +376,14 @@
     font-family: 'Source Sans 3', system-ui, sans-serif;
     /* Soften the switch between time-of-day theme bands. */
     transition: background-color 0.6s ease, color 0.6s ease;
+  }
+
+  /* Clear the fixed bottom tab bar on mobile (SiteHeader › BottomTabs, <640px)
+     so page content never hides behind it. Removed at ≥640px where nav is on top. */
+  @media (max-width: 639.98px) {
+    body {
+      padding-bottom: calc(56px + env(safe-area-inset-bottom));
+    }
   }
 
   /* Faded geopolitical map behind the whole site (fixed, theme-overlaid). */

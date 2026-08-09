@@ -7,7 +7,8 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import AboutPage from "./pages/AboutPage";
 import BriefPage from "./pages/BriefPage";
-import CalendarPage from "./pages/CalendarPage";
+import StoryPage from "./pages/StoryPage";
+import ArchivePage from "./pages/ArchivePage";
 import SignalsPage from "./pages/SignalsPage";
 import AdminSignalsPage from "./pages/AdminSignalsPage";
 
@@ -42,6 +43,7 @@ const ROUTE_TITLES: [RegExp, string][] = [
   [/^\/signals|^\/trends/, "Signals · The Daily Ripple"],
   [/^\/calendar/, "Archive · The Daily Ripple"],
   [/^\/about/, "About · The Daily Ripple"],
+  [/^\/brief\/[^/]+\/\d+/, "Story · The Daily Ripple"],
   [/^\/brief\//, "Today's Brief · The Daily Ripple"],
 ];
 
@@ -59,6 +61,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
+      <Route path="/brief/:slug/:story" component={StoryPage} />
       <Route path="/brief/:slug" component={BriefPage} />
       <Route path="/signals" component={SignalsPage} />
       <Route path="/admin/signals" component={AdminSignalsPage} />
@@ -66,7 +69,7 @@ function Router() {
       <Route path="/trends">
         <Redirect to="/signals" replace />
       </Route>
-      <Route path="/calendar" component={CalendarPage} />
+      <Route path="/calendar" component={ArchivePage} />
       <Route path="/about" component={AboutPage} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />

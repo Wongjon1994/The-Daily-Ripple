@@ -9,7 +9,8 @@ import {
   ArrowRight, BookOpen, CalendarDays, Sparkles, ShieldAlert,
   Radar, Search, Activity, Compass, Eye, CircleCheck,
 } from "lucide-react";
-import MastheadBanner from "@/components/MastheadBanner";
+import SiteHeader from "@/components/SiteHeader";
+import MastheadArt from "@/components/MastheadArt";
 
 const SERIF = "'Playfair Display', Georgia, serif";
 
@@ -36,7 +37,7 @@ const NAV_CARDS = [
   },
   {
     href: "/calendar", icon: CalendarDays, title: "Archive", color: "var(--color-cat-science)",
-    body: "Browse any past brief by date, on a simple calendar.",
+    body: "Every past brief, grouped by week — search by headline or date and jump straight in.",
   },
 ];
 
@@ -84,10 +85,13 @@ const para = "text-[15px] sm:text-base leading-7";
 export default function AboutPage() {
   return (
     <div className="min-h-screen">
-      <MastheadBanner />
+      <SiteHeader />
 
       <main className="container py-10 sm:py-14">
         <article className="max-w-2xl mx-auto">
+          {/* Masthead artwork — its home since the header slimmed down. */}
+          <MastheadArt className="mb-10 max-w-xl mx-auto" />
+
           {/* ── Hero ───────────────────────────────────────────────────────── */}
           <p className="text-[11px] font-semibold tracking-[0.14em] uppercase mb-3" style={{ color: "var(--color-cyan)" }}>
             About

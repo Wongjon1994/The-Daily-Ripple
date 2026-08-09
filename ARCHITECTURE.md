@@ -48,7 +48,7 @@ Every brief is checked twice: once inside n8n before the HTTP call (the `Check B
 
 ### Rigid schema, flexible generation
 
-The schema is deliberately strict — 12 fixed fields per section, typed metric values, a controlled category vocabulary keyed to emoji rather than free-text labels. All of the model's flexibility is pushed into the prose (headline, summary, paragraphs, analysis), never into the shape of the data. This is what makes a swipeable deck, the Signals intelligence dashboard, and a calendar archive all reliable renderers of the same underlying object — the UI never has to defensively guess at what shape the data might be in today.
+The schema is deliberately strict — 12 fixed fields per section, typed metric values, a controlled category vocabulary keyed to emoji rather than free-text labels. All of the model's flexibility is pushed into the prose (headline, summary, paragraphs, analysis), never into the shape of the data. This is what makes the story list + Story page, the Signals intelligence dashboard, and the grouped archive all reliable renderers of the same underlying object — the UI never has to defensively guess at what shape the data might be in today.
 
 ### Signals: two tracking mechanisms, deliberately different
 
@@ -97,7 +97,7 @@ Both calls are hard-gated on the relevant API key being set (`OPENAI_API_KEY`, `
 
 ### The Agent Status monitor — observability that already exists
 
-`getAgentStatus` aggregates the most recent run of each of the four jobs plus a data-health snapshot (brief count, last brief date, chunk count, signal counts by status) into one payload the frontend renders as a status page. This is the same idea as the per-run logging proposed in [EVALUATION.md](./EVALUATION.md) and [COST_TRACKING.md](./COST_TRACKING.md) — both of those are written to extend this existing `job_runs` pattern (new `job` values, e.g. `"eval"` and `"cost"`) rather than standing up a second, disconnected logging system next to a monitor that already works.
+`getAgentStatus` aggregates the most recent run of each of the four jobs plus a data-health snapshot (brief count, last brief date, chunk count, signal counts by status) into one payload. The full per-job telemetry renders on the **admin page** (`/admin/signals`); the reader-facing Signals page shows only a simplified freshness line/widget derived from the same payload. This is the same idea as the per-run logging proposed in [EVALUATION.md](./EVALUATION.md) and [COST_TRACKING.md](./COST_TRACKING.md) — both of those are written to extend this existing `job_runs` pattern (new `job` values, e.g. `"eval"` and `"cost"`) rather than standing up a second, disconnected logging system next to a monitor that already works.
 
 ## Data flow, end to end
 

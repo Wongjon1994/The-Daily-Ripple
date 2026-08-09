@@ -216,7 +216,7 @@ export function MarketCard({ data, range, signals = [] }: { data: MarketInstrume
       {/* Realised / watching signal — bound from the briefs, resolved on this series */}
       {topSignal?.threshold && (
         <Link
-          href={`/brief/${topSignal.signal.slug}?story=${topSignal.signal.storyIndex + 1}`}
+          href={`/brief/${topSignal.signal.slug}/${topSignal.signal.storyIndex + 1}`}
           className="block rounded-md px-2 py-1.5 border transition-colors hover:brightness-110"
           style={{
             borderColor: `color-mix(in oklab, ${topSignal.status === "realised" ? UP : AMBER} 32%, transparent)`,
