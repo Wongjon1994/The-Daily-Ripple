@@ -17,7 +17,6 @@ import {
   type ThemeInsightRow,
   type ThemeView,
 } from "@/lib/trendsView";
-import MarketsSection from "@/components/MarketsSection";
 import MarketPulseStrip from "@/components/MarketPulseStrip";
 import AskBar from "@/components/AskBar";
 import { FreshnessLine, TelemetryWidget } from "@/components/SignalsFreshness";
@@ -329,7 +328,7 @@ export default function TrendsDashboard({
     <div className="space-y-10">
       <AskBar />
 
-      <MarketPulseStrip />
+      <MarketPulseStrip briefs={briefs} />
 
       <section>
         <div
@@ -410,8 +409,6 @@ export default function TrendsDashboard({
           </div>
         )}
       </section>
-
-      <MarketsSection briefs={briefs} />
     </div>
   );
 }

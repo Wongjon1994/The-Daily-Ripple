@@ -10,13 +10,32 @@
  */
 
 import { useMemo, useState } from "react";
-import { TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { Link } from "wouter";
+import { TrendingUp, TrendingDown, Minus, CircleCheck, Eye } from "lucide-react";
 import { useMarkets, type MarketInstrument } from "@/hooks/useMarkets";
 import { formatPrice, exchangeLabel } from "@/lib/marketFormat";
+import { marketThresholdSignals, type BoundSignal } from "@/lib/trendsAnalysis";
+import type { DailyBrief } from "@/lib/briefParser";
 import { cn } from "@/lib/utils";
 
-// The pulse set: two equity indices, rates, two commodities, the key FX pair.
-const PULSE_SYMBOLS = ["^GSPC", "^NDX", "US10Y", "BRENT", "GOLD", "USDSGD"];
+// The full market set — the pulse is now the single markets surface, so it
+// carries every instrument: US indices, rates & commodities, then FX vs SGD.
+const PULSE_SYMBOLS = [
+  "^GSPC", "^NDX", "^DJI", "US10Y", "BRENT", "GOLD",
+  "USDSGD", "EURSGD", "GBPSGD", "JPYSGD", "AUDSGD", "CNYSGD",
+];
+
+// Keyword-matchable label per symbol for binding brief threshold-signals
+// (indices/rates/commodities; FX pairs fall back to their instrument label).
+const MATCH_LABEL: Record<string, string> = {
+  "^GSPC": "S&P 500",
+  "^NDX": "Nasdaq",
+  "^DJI": "Dow Jones",
+  US10Y: "Treasury Yield",
+  BRENT: "Brent Crude",
+  GOLD: "Gold",
+  USDSGD: "Singapore dollar",
+};
 
 const UP = "var(--color-sage)";
 const DOWN = "var(--color-crimson)";
@@ -55,7 +74,7 @@ function Spark({ series, color, w = 96, h = 26, fluid = false }: { series: { v: 
   );
 }
 
-function PulseChip({ inst, active, onClick }: { inst: MarketInstrument; active: boolean; onClick: () => void }) {
+function PulseChip({ inst, active, signal, onClick }: { inst: MarketInstrument; active: boolean; signal?: BoundSignal; onClick: () => void }) {
   const trend = trendOf(inst.dayChangePct);
   const isUp = inst.dayChangePct >= 0;
   const isFlat = Math.abs(inst.dayChangePct) < 0.01;
@@ -75,6 +94,14 @@ function PulseChip({ inst, active, onClick }: { inst: MarketInstrument; active: 
         <span className="text-[11px] font-semibold truncate" style={{ color: "var(--color-mist)" }}>
           {inst.label}
         </span>
+        {/* A bound brief signal on this instrument — tap to see it in the detail. */}
+        {signal?.threshold && (
+          signal.status === "realised" ? (
+            <CircleCheck className="h-3 w-3 shrink-0 ml-auto" style={{ color: "var(--color-sage)" }} aria-label="Flagged signal realised" />
+          ) : (
+            <Eye className="h-3 w-3 shrink-0 ml-auto" style={{ color: "var(--color-gold-rich)" }} aria-label="Watching a flagged signal" />
+          )
+        )}
       </div>
       <div className="mt-1 flex items-end justify-between gap-2">
         <div className="shrink-0">
@@ -99,7 +126,47 @@ function PulseChip({ inst, active, onClick }: { inst: MarketInstrument; active: 
   );
 }
 
-function PulseDetail({ inst }: { inst: MarketInstrument }) {
+/** The instrument's headline bound signal — a brief-flagged level resolved on
+ *  this series (realised on first crossing, else still watching). Links to the
+ *  story that flagged it. Preserves the binding that lived on the old Markets
+ *  cards now that Markets is consolidated into the pulse. */
+function PulseSignal({ inst, signal }: { inst: MarketInstrument; signal: BoundSignal }) {
+  if (!signal.threshold) return null;
+  const realised = signal.status === "realised";
+  const accent = realised ? "var(--color-sage)" : "var(--color-gold-rich)";
+  return (
+    <Link
+      href={`/brief/${signal.signal.slug}/${signal.signal.storyIndex + 1}`}
+      className="mt-3 block rounded-md px-2.5 py-2 border transition-colors hover:brightness-110"
+      style={{
+        borderColor: `color-mix(in oklab, ${accent} 32%, transparent)`,
+        background: `color-mix(in oklab, ${accent} 8%, transparent)`,
+      }}
+      title={signal.signal.text}
+    >
+      <div className="flex items-start gap-1.5 text-[11px] leading-snug" style={{ color: "var(--color-mist-dim)" }}>
+        {realised ? (
+          <CircleCheck className="w-3.5 h-3.5 shrink-0 mt-px" style={{ color: accent }} />
+        ) : (
+          <Eye className="w-3.5 h-3.5 shrink-0 mt-px" style={{ color: accent }} />
+        )}
+        <span>
+          {realised ? (
+            <>
+              Flagged {signal.threshold.direction} {formatPrice(signal.threshold.value, inst)} → hit{" "}
+              <span style={{ color: accent }}>{formatPrice(parseFloat(signal.realisation!.value), inst)}</span>{" "}
+              (+{signal.realisation!.lagDays}d)
+            </>
+          ) : (
+            <>Watching {signal.threshold.direction} {formatPrice(signal.threshold.value, inst)}</>
+          )}
+        </span>
+      </div>
+    </Link>
+  );
+}
+
+function PulseDetail({ inst, signal }: { inst: MarketInstrument; signal?: BoundSignal }) {
   const stat = (label: string, value: string, color = "var(--color-mist-dim)") => (
     <div>
       <div className="text-[9px] uppercase tracking-[0.12em] mb-0.5" style={{ color: "var(--color-mist-faint)" }}>{label}</div>
@@ -128,11 +195,12 @@ function PulseDetail({ inst }: { inst: MarketInstrument }) {
           ? stat("Prev Close", formatPrice(inst.prevClose, inst))
           : stat("52W Range", `${formatPrice(inst.fiftyTwoWeekLow, inst)} – ${formatPrice(inst.fiftyTwoWeekHigh, inst)}`)}
       </div>
+      {signal?.threshold && <PulseSignal inst={inst} signal={signal} />}
     </div>
   );
 }
 
-export default function MarketPulseStrip() {
+export default function MarketPulseStrip({ briefs = {} }: { briefs?: Record<string, DailyBrief> }) {
   const { instruments, loading } = useMarkets("1mo");
   const [expanded, setExpanded] = useState<string | null>(null);
 
@@ -140,6 +208,19 @@ export default function MarketPulseStrip() {
     const bySymbol = new Map(instruments.map((i) => [i.symbol, i]));
     return PULSE_SYMBOLS.map((s) => bySymbol.get(s)).filter((i): i is MarketInstrument => Boolean(i));
   }, [instruments]);
+
+  // Bind brief threshold-signals to each pulse instrument's series (the headline
+  // one surfaces in the chip indicator + expanded detail).
+  const signalBySymbol = useMemo(() => {
+    const m: Record<string, BoundSignal | undefined> = {};
+    for (const inst of pulse) {
+      const bound = inst.recent?.length
+        ? marketThresholdSignals(MATCH_LABEL[inst.symbol] ?? inst.label, inst.recent, briefs)
+        : [];
+      m[inst.symbol] = bound[0];
+    }
+    return m;
+  }, [pulse, briefs]);
 
   const active = pulse.find((i) => i.symbol === expanded) ?? null;
 
@@ -166,11 +247,12 @@ export default function MarketPulseStrip() {
                 key={inst.symbol}
                 inst={inst}
                 active={inst.symbol === expanded}
+                signal={signalBySymbol[inst.symbol]}
                 onClick={() => setExpanded((cur) => (cur === inst.symbol ? null : inst.symbol))}
               />
             ))}
           </div>
-          {active && <PulseDetail inst={active} />}
+          {active && <PulseDetail inst={active} signal={signalBySymbol[active.symbol]} />}
         </>
       )}
     </section>

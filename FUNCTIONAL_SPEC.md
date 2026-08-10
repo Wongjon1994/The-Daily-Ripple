@@ -95,8 +95,9 @@ An **agentic intelligence dashboard** synthesised across **all** briefs. Where t
 - A search bar over the whole archive. A query runs **retrieval-first** semantic search over the signal ledger + brief chunks and lists ranked, **cited** sources.
 - **Synthesise** is opt-in: it calls an LLM (Haiku) for a grounded answer with inline `[n]` citations linking back to the cited brief. Degrades gracefully (no embeddings → "no matching signals"; no answer key → citations still show). Example prompts seed the empty state.
 
-### 3.2 Market pulse
-- A compact strip of six headline instruments (S&P 500, Nasdaq 100, US 10Y, Brent, Gold, USD/SGD): price, day change, and a mini sparkline. Tap a chip to expand an inline detail row. The full Markets carousel lives lower down (§3.7).
+### 3.2 Market pulse (the single markets surface)
+- A strip of all tracked instruments — US indices (S&P 500, Nasdaq 100, Dow Jones), rates & commodities (US 10Y, Brent, Gold), and FX vs SGD (USD, EUR, GBP, JPY, AUD, CNY): each chip shows price, day change (with a direction arrow, not colour alone), and a mini sparkline; it reflows from two-across up to six.
+- **Tap to expand** a chip for an inline detail row: day change, 1-month range change, 52-week range (or previous close for FX/yields), and — when the instrument carries a **brief threshold-signal** — the headline bound signal ("Flagged above 90.00 → hit 93.85 (+13d)" when realised, else "Watching above …"), which links to the story that flagged it. Chips with a bound signal show a small check (realised) or eye (watching) marker. This replaces the former standalone Markets carousel.
 
 ### 3.3 Intelligence signals — the qualitative layer
 Under a sticky header with a **1W / 1M / 3M** window toggle. Forward-looking "watch" signals are extracted from each brief, grouped by theme, and enriched with pre-generated synthesis prose.
@@ -113,17 +114,14 @@ Under a sticky header with a **1W / 1M / 3M** window toggle. Forward-looking "wa
 ### 3.6 Freshness
 - The reader-facing surface is a calm **freshness line** — "⟳ Updated Xh ago" — on mobile/tablet, and a simplified **sync widget** in the desktop right rail ("Last sync Xh ago · N signals tracking · M realised"). The full per-job telemetry (Signal extraction, Synthesis, House View, Realisation sweep — status, last-run time, data-health counts) lives on the **admin page** (`/admin/signals`), not the reader view.
 
-### 3.7 Markets carousel
-- The full instrument deck (**Exchanges · Rates & commodities · FX vs SGD**), swipeable, with range tabs (1D…5Y). Each card resolves the briefs' threshold signals against its live series, marking a signal **realised** on the first crossing.
-
-### 3.8 Realisation logic (what "realised" means)
+### 3.7 Realisation logic (what "realised" means)
 Two engines, both grounded in real data — never an LLM's guess about a number:
 - **Numeric (deterministic):** a signal naming a tracked instrument *and* a level ("watch Brent above $90") is resolved against our own market series — realised on the first crossing after it surfaced. This is the single source of truth for market levels; the web engine never adjudicates them.
 - **Web-grounded (weekly):** the Sunday sweep web-checks each remaining open signal (search + an LLM verdict) and routes by confidence — high → realised, medium → an editorial queue (`pending_review`), low → left open. Market-flavoured signals are capped to the queue and can never auto-realise here.
 - Open signals **expire** after 30 days (or a named horizon).
 - Editors confirm/dismiss queued signals at `/admin/signals` (key-gated, not in nav).
 
-### 3.9 States
+### 3.8 States
 - **Loading:** centred spinner.
 - **No themes yet:** "No persistent themes in this window yet." — the read builds as briefs accumulate.
 

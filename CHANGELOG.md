@@ -2,6 +2,19 @@
 
 Newest first. Append an entry here for every change.
 
+### 2026-08-09 — Signals: consolidate Markets into the Market Pulse
+- The standalone **Markets carousel** (`MarketsSection`, `MarketCard`, the 1D–5Y
+  range terminal) is removed. The **Market Pulse** strip is now the single markets
+  surface and carries **all instruments** — US indices (S&P 500, Nasdaq 100,
+  **Dow Jones**), rates & commodities (US 10Y, Brent, Gold), and the six FX-vs-SGD
+  pairs (USD, EUR, GBP, JPY, AUD, CNY) — as tap-to-expand chips.
+- The briefs' **threshold-signal bindings are preserved**, not dropped: each chip
+  resolves its bound signal against the live series (a small check/eye marker on
+  the chip; the expanded detail shows "Flagged above 90.00 → hit 93.85 (+13d)" for
+  realised or "Watching above …" for open, linking to the story that flagged it).
+- Markets stays **under Signals** (no separate tab). Removed the now-orphaned
+  `mkt-slide` carousel animation. Docs synced (`README`, `FUNCTIONAL_SPEC`).
+
 ### 2026-08-09 — Mobile & web UX revamp (navigation, readability, information hierarchy)
 A structural revamp guided by the UX spec — no data changes, no theme re-skin; the
 navy/gold editorial identity is preserved.
