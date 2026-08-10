@@ -14,7 +14,7 @@ import MastheadArt from "@/components/MastheadArt";
 
 const SERIF = "'Playfair Display', Georgia, serif";
 
-/** The eight things every brief covers — mirrors the daily deck. */
+/** The eight things every brief covers — mirrors the daily brief. */
 const COVERAGE = [
   { emoji: "🌐", label: "Lead story", color: "var(--color-cyan)" },
   { emoji: "⚖️", label: "Global politics & policy", color: "var(--color-cat-geopolitics)" },
@@ -29,7 +29,7 @@ const COVERAGE = [
 const NAV_CARDS = [
   {
     href: "/", icon: BookOpen, title: "Today's Brief", color: "var(--color-cyan)",
-    body: "Where you start. The “at a glance” grid up top summarises all eight stories — tap any box to jump straight to it. From there, swipe, drag, or use your arrow keys to move between stories, each opening into the full analysis, the Singapore-specific lens, and every source we used.",
+    body: "Where you start. A clean, single-column list of the day's stories — tap any one to open its own page: the full analysis, the Singapore-specific lens, the key figures pulled out, and every source we used.",
   },
   {
     href: "/signals", icon: Radar, title: "Signals", color: "var(--color-cyan)",
@@ -45,7 +45,7 @@ const NAV_CARDS = [
 const SIGNALS_GUIDE = [
   {
     icon: Search, color: "var(--color-cyan)", title: "Ask across every brief",
-    body: "Type a question into the ask bar to pull the most relevant signals and passages from the whole archive. Hit “Synthesise” for a short, cited answer drawn only from what we've published — no outside guesswork.",
+    body: "Type a question into the “Ask Ripple” bar and you get a short, cited answer drawn only from what we've published — no outside guesswork. Each citation opens the brief behind it, and the full source list sits a tap away.",
   },
   {
     icon: Compass, color: "var(--color-gold-rich)", title: "Start with the House View",
@@ -53,7 +53,7 @@ const SIGNALS_GUIDE = [
   },
   {
     icon: Activity, color: "var(--color-cat-economics)", title: "Scan the market pulse",
-    body: "Six headline instruments — equities, rates, gold, oil, the SGD — sit up top with a quick trend line. Tap any to expand; the full Markets deck lives lower down the page.",
+    body: "Every instrument we track — the equity indices, rates, gold, oil, and the SGD crosses — sits up top with a quick trend line. Tap any to expand for the detail, including any signal we've flagged and are holding to account against that market.",
   },
   {
     icon: Eye, color: "var(--color-cat-culture)", title: "Track what matters to you",
@@ -64,8 +64,8 @@ const SIGNALS_GUIDE = [
     body: "When a level we flagged — an oil price, a rate, an index threshold — is crossed, the signal is marked realised. It's how we hold our own forecasts to account, in public.",
   },
   {
-    icon: Radar, color: "var(--color-mist-dim)", title: "See the machine working",
-    body: "The Agent status panel shows the automated jobs behind the page — signal extraction, synthesis, the House View, and realisation checks — and when each last ran.",
+    icon: Radar, color: "var(--color-mist-dim)", title: "Know how fresh it is",
+    body: "An “Updated Xh ago” line tells you how recently the intelligence layer refreshed — the automated jobs behind it (signal extraction, synthesis, the House View, and realisation checks) run quietly in the background.",
   },
 ];
 

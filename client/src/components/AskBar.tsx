@@ -1,18 +1,23 @@
 /**
- * Ask bar (Agentic Ripple, Phase D) — the agentic entry point at the top of the
- * Signals page. Retrieval-first: a query runs free semantic search over the signal
- * ledger + brief chunks (`n8n.search`). "Synthesize" is opt-in and calls Haiku
- * (`n8n.synthesizeAnswer`) for a grounded, cited answer — so generation cost is
- * only paid on explicit intent, per the locked cost model.
+ * Ask bar (Agentic Ripple) — the agentic entry point at the top of Signals.
  *
- * Degrades gracefully: with no embeddings (OPENAI_API_KEY unset) search returns
- * nothing; with no ANTHROPIC_API_KEY the answer is empty but citations still show.
+ * Answer-led, one action: a single deliberate "Ask" runs a grounded synthesis
+ * (`n8n.synthesizeAnswer`, Haiku) and lands straight on the answer — the LLM cost
+ * is still only paid on explicit intent (one submit), not on every keystroke.
+ * The call returns the answer AND its citations, so no separate retrieval pass is
+ * needed; the cited briefs sit in a collapsed "Sources" disclosure beneath the
+ * answer rather than a dominating grid. Inline [n] chips preview the source on
+ * hover and open the brief on click.
+ *
+ * Degrades gracefully: no embeddings (OPENAI_API_KEY) → no citations; no
+ * ANTHROPIC_API_KEY → answer empty but the cited briefs still show.
  */
 
 import { useState, type ReactNode } from "react";
-import { Search, Sparkles, Loader2, ArrowUpRight, X } from "lucide-react";
+import { Sparkles, Loader2, ArrowRight, ArrowUpRight, X, ChevronDown } from "lucide-react";
 import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
+import { cn } from "@/lib/utils";
 
 type Hit = {
   type: "signal" | "brief";
@@ -25,15 +30,15 @@ type Hit = {
 
 const EXAMPLES = ["Where are oil prices headed?", "The read on US rates", "China risk this quarter"];
 
-/** Strip Haiku's light markdown (headers, bold) and turn inline [n] refs into
- *  citation chips that link to the cited brief. */
+/** Strip Haiku's light markdown and turn inline [n] refs into citation chips
+ *  that preview the source on hover and link to the cited brief on click. */
 function renderAnswer(answer: string, citations: Hit[]): ReactNode {
   const clean = answer.replace(/^#{1,6}\s*/gm, "").replace(/\*\*(.+?)\*\*/g, "$1");
   return clean
     .split(/\n{2,}/)
     .filter((p) => p.trim())
     .map((para, pi) => (
-      <p key={pi} className="leading-relaxed" style={{ color: "var(--color-mist-dim)", fontSize: 14 }}>
+      <p key={pi} className="leading-relaxed" style={{ color: "var(--color-mist)", fontSize: 14 }}>
         {para.split(/(\[\d+\])/g).map((part, i) => {
           const m = part.match(/^\[(\d+)\]$/);
           if (m) {
@@ -44,9 +49,9 @@ function renderAnswer(answer: string, citations: Hit[]): ReactNode {
                 <Link
                   key={i}
                   href={`/brief/${cite.briefSlug}`}
-                  className="inline-flex items-center align-super font-mono rounded px-1 mx-0.5 transition-colors"
-                  style={{ fontSize: 9, color: "var(--color-cyan)", background: "color-mix(in oklab, var(--color-cyan) 14%, transparent)" }}
-                  title={cite.text}
+                  className="inline-flex items-center align-super font-mono rounded px-1 mx-0.5 transition-colors hover:brightness-125"
+                  style={{ fontSize: 9, color: "var(--color-cyan)", background: "color-mix(in oklab, var(--color-cyan) 16%, transparent)" }}
+                  title={`${cite.type === "signal" ? cite.theme ?? "signal" : cite.category ?? "brief"} — ${cite.text}`}
                 >
                   {n}
                 </Link>
@@ -58,7 +63,7 @@ function renderAnswer(answer: string, citations: Hit[]): ReactNode {
     ));
 }
 
-function HitRow({ hit, n }: { hit: Hit; n: number }) {
+function SourceRow({ hit, n }: { hit: Hit; n: number }) {
   const tag = hit.type === "signal" ? hit.theme : hit.category;
   return (
     <Link
@@ -82,23 +87,44 @@ function HitRow({ hit, n }: { hit: Hit; n: number }) {
   );
 }
 
+/** Cited briefs, collapsed by default beneath the answer. */
+function Sources({ citations, defaultOpen }: { citations: Hit[]; defaultOpen: boolean }) {
+  const [open, setOpen] = useState(defaultOpen);
+  if (citations.length === 0) return null;
+  return (
+    <div>
+      <button
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        className="flex items-center gap-1.5 font-mono font-semibold uppercase px-1 py-1 transition-colors hover:text-[var(--color-mist-dim)]"
+        style={{ color: "var(--color-mist-faint)", fontSize: 10, letterSpacing: "0.08em" }}
+      >
+        Sources · {citations.length}
+        <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", open && "rotate-180")} />
+      </button>
+      {open && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1.5">
+          {citations.map((h, i) => <SourceRow key={i} hit={h} n={i + 1} />)}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function AskBar() {
   const [draft, setDraft] = useState("");
   const [query, setQuery] = useState("");
-
-  const search = trpc.n8n.search.useQuery({ q: query, k: 8 }, { enabled: query.length > 0 });
   const synth = trpc.n8n.synthesizeAnswer.useMutation();
 
-  const hits = (search.data?.hits ?? []) as Hit[];
   const answer = synth.data?.answer ?? "";
   const citations = (synth.data?.citations ?? []) as Hit[];
 
-  const submit = (q: string) => {
+  const ask = (q: string) => {
     const trimmed = q.trim();
     if (!trimmed) return;
     setDraft(trimmed);
     setQuery(trimmed);
-    synth.reset();
+    synth.mutate({ q: trimmed });
   };
 
   const reset = () => {
@@ -107,116 +133,99 @@ export default function AskBar() {
     synth.reset();
   };
 
+  const asked = query.length > 0;
+
   return (
     <section aria-label="Ask the Ripple">
-      <div
-        className="rounded-xl border p-3 sm:p-4"
+      {/* Ask pill — sparkle mark, question input, circular submit (Ripple style) */}
+      <form
+        onSubmit={(e) => { e.preventDefault(); ask(draft); }}
+        className="flex items-center gap-2.5 rounded-full border pl-4 pr-1.5 py-1.5"
         style={{
           borderColor: "var(--card-lift-border)",
           background: "color-mix(in oklab, var(--color-cyan) 4%, var(--card))",
           boxShadow: "inset 0 1px 0 0 var(--card-lift-edge)",
         }}
       >
-        <form
-          onSubmit={(e) => { e.preventDefault(); submit(draft); }}
-          className="flex items-center gap-2"
-        >
-          <Search className="h-4 w-4 shrink-0" style={{ color: "var(--color-cyan)" }} />
-          <input
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            placeholder="Ask across the briefs…"
-            maxLength={400}
-            className="flex-1 bg-transparent outline-none text-sm min-w-0"
-            style={{ color: "var(--color-mist)" }}
-          />
-          {query && (
-            <button type="button" onClick={reset} aria-label="Clear" className="shrink-0 p-1 rounded transition-colors hover:text-[var(--color-mist)]" style={{ color: "var(--color-mist-faint)" }}>
-              <X className="h-3.5 w-3.5" />
-            </button>
-          )}
-          <button
-            type="submit"
-            disabled={!draft.trim()}
-            className="shrink-0 rounded-md px-3 py-1.5 text-[12px] font-mono transition-colors disabled:opacity-40"
-            style={{ color: "var(--color-cyan)", border: "1px solid var(--color-cyan-dim)", background: "color-mix(in oklab, var(--color-cyan) 12%, transparent)" }}
-          >
-            Search
+        <Sparkles className="h-4 w-4 shrink-0" style={{ color: "var(--color-cyan)" }} />
+        <input
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          placeholder="Ask Ripple across the briefs…"
+          maxLength={400}
+          className="flex-1 bg-transparent outline-none text-sm min-w-0 py-1"
+          style={{ color: "var(--color-mist)" }}
+        />
+        {asked && (
+          <button type="button" onClick={reset} aria-label="Clear" className="shrink-0 p-1 rounded-full transition-colors hover:text-[var(--color-mist)]" style={{ color: "var(--color-mist-faint)" }}>
+            <X className="h-4 w-4" />
           </button>
-        </form>
-
-        {!query && (
-          <div className="flex items-center gap-1.5 mt-2.5 flex-wrap">
-            <span className="font-mono uppercase tracking-[0.1em]" style={{ color: "var(--color-mist-faint)", fontSize: 9 }}>Try</span>
-            {EXAMPLES.map((ex) => (
-              <button
-                key={ex}
-                onClick={() => submit(ex)}
-                className="rounded-full border border-border/60 px-2 py-0.5 text-[11px] transition-colors hover:border-[var(--color-cyan-dim)] hover:text-[var(--color-cyan)]"
-                style={{ color: "var(--color-mist-faint)" }}
-              >
-                {ex}
-              </button>
-            ))}
-          </div>
         )}
-      </div>
+        <button
+          type="submit"
+          disabled={!draft.trim() || synth.isPending}
+          aria-label="Ask"
+          className="shrink-0 grid place-items-center h-9 w-9 rounded-full transition-colors disabled:opacity-40"
+          style={{ color: "var(--background)", background: "var(--color-cyan)" }}
+        >
+          {synth.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
+        </button>
+      </form>
 
-      {/* Results */}
-      {query && (
+      {!asked && (
+        <div className="flex items-center gap-1.5 mt-2.5 flex-wrap px-1">
+          <span className="font-mono uppercase tracking-[0.1em]" style={{ color: "var(--color-mist-faint)", fontSize: 9 }}>Try</span>
+          {EXAMPLES.map((ex) => (
+            <button
+              key={ex}
+              onClick={() => ask(ex)}
+              className="rounded-full border border-border/60 px-2.5 py-0.5 text-[11px] transition-colors hover:border-[var(--color-cyan-dim)] hover:text-[var(--color-cyan)]"
+              style={{ color: "var(--color-mist-faint)" }}
+            >
+              {ex}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Result — answer first, sources collapsed beneath */}
+      {asked && (
         <div className="mt-3 space-y-3">
-          {search.isLoading ? (
+          {synth.isPending ? (
             <div className="flex items-center gap-2 px-1 py-2 text-sm" style={{ color: "var(--color-mist-faint)" }}>
-              <Loader2 className="h-4 w-4 animate-spin" style={{ color: "var(--color-cyan-dim)" }} /> Searching the ledger…
+              <Loader2 className="h-4 w-4 animate-spin" style={{ color: "var(--color-cyan-dim)" }} /> Reading across the briefs…
             </div>
-          ) : hits.length === 0 ? (
+          ) : synth.isError ? (
             <div className="rounded-xl border border-border/60 bg-card p-5 text-center">
-              <p className="text-sm" style={{ color: "var(--color-mist-dim)" }}>No matching signals yet.</p>
+              <p className="text-sm" style={{ color: "var(--color-mist-dim)" }}>Couldn't reach the synthesis service.</p>
+              <button onClick={() => ask(query)} className="text-xs mt-2 font-mono" style={{ color: "var(--color-cyan)" }}>Try again</button>
+            </div>
+          ) : citations.length === 0 && !answer ? (
+            <div className="rounded-xl border border-border/60 bg-card p-5 text-center">
+              <p className="text-sm" style={{ color: "var(--color-mist-dim)" }}>No matching briefs yet.</p>
               <p className="text-xs mt-1" style={{ color: "var(--color-mist-faint)" }}>
                 Semantic search builds as briefs are embedded — try a broader question.
               </p>
             </div>
           ) : (
             <>
-              {/* Synthesize action / answer */}
               {answer ? (
                 <div
                   className="rounded-xl border p-4"
                   style={{ borderColor: "color-mix(in oklab, var(--color-cyan) 30%, transparent)", background: "color-mix(in oklab, var(--color-cyan) 5%, var(--card))" }}
                 >
-                  <div className="flex items-center gap-1.5 font-mono font-semibold uppercase mb-2" style={{ color: "var(--color-cyan)", fontSize: 10, letterSpacing: "0.08em" }}>
-                    <Sparkles className="h-3.5 w-3.5" /> Synthesised answer
+                  <div className="flex items-center gap-1.5 font-mono font-semibold uppercase mb-2.5" style={{ color: "var(--color-cyan)", fontSize: 10, letterSpacing: "0.08em" }}>
+                    <Sparkles className="h-3.5 w-3.5" /> Ripple's read
                   </div>
                   <div className="space-y-2.5">{renderAnswer(answer, citations)}</div>
                 </div>
               ) : (
-                <div className="flex items-center justify-between gap-3 rounded-xl border border-border/60 bg-card px-4 py-3">
-                  <p className="text-xs" style={{ color: "var(--color-mist-dim)" }}>
-                    {synth.isSuccess
-                      ? "Couldn’t synthesise an answer from the current context — see the sources below."
-                      : `${hits.length} sources found. Synthesise a grounded, cited answer?`}
-                  </p>
-                  <button
-                    onClick={() => synth.mutate({ q: query })}
-                    disabled={synth.isPending}
-                    className="shrink-0 flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-mono transition-colors disabled:opacity-50"
-                    style={{ color: "var(--color-cyan)", border: "1px solid var(--color-cyan-dim)", background: "color-mix(in oklab, var(--color-cyan) 12%, transparent)" }}
-                  >
-                    {synth.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
-                    {synth.isPending ? "Synthesising…" : "Synthesise"}
-                  </button>
-                </div>
+                <p className="text-xs px-1" style={{ color: "var(--color-mist-faint)" }}>
+                  Answer unavailable right now — here are the most relevant briefs.
+                </p>
               )}
 
-              {/* Sources */}
-              <div>
-                <div className="font-mono font-semibold uppercase mb-2 px-1" style={{ color: "var(--color-mist-faint)", fontSize: 10, letterSpacing: "0.08em" }}>
-                  Sources · {hits.length}
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {hits.map((h, i) => <HitRow key={i} hit={h} n={i + 1} />)}
-                </div>
-              </div>
+              <Sources citations={citations} defaultOpen={!answer} />
             </>
           )}
         </div>

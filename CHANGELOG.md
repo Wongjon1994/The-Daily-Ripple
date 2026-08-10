@@ -2,6 +2,20 @@
 
 Newest first. Append an entry here for every change.
 
+### 2026-08-09 — Signals: answer-led "Ask Ripple" bar
+- The Ask experience is no longer a two-stage Search → Synthesise flow. A single
+  deliberate submit now runs the grounded synthesis and lands **straight on the
+  answer** ("Ripple's read") — the LLM cost is still only paid on explicit intent
+  (one submit, not on typing).
+- New **"Ask Ripple"** pill visual (sparkle mark + circular submit button), matching
+  the Ripple Transit ask bar. One "Reading across the briefs…" state covers the wait.
+- **Sources are demoted**: the cited briefs sit in a collapsed "Sources · N"
+  disclosure beneath the answer instead of an always-open 8-card grid; inline `[n]`
+  citations preview the source on hover and open the brief on click.
+- Drops the separate retrieval call — `synthesizeAnswer` already returns its
+  citations, so one request yields the answer and its sources. Graceful degradation
+  unchanged (no embeddings → "No matching briefs"; no answer key → sources still show).
+
 ### 2026-08-09 — Signals: consolidate Markets into the Market Pulse
 - The standalone **Markets carousel** (`MarketsSection`, `MarketCard`, the 1D–5Y
   range terminal) is removed. The **Market Pulse** strip is now the single markets

@@ -91,9 +91,10 @@ A focused, standalone read for one story. A slim bar with a **Back to brief** co
 
 An **agentic intelligence dashboard** synthesised across **all** briefs. Where the daily brief is one day, Signals is the running, opinionated read on what's building and what to watch. A small pipeline of background jobs (extraction, synthesis, house view, realisation) produces the layer; the page itself never calls an LLM at read time. Top to bottom:
 
-### 3.1 Ask bar (RAG)
-- A search bar over the whole archive. A query runs **retrieval-first** semantic search over the signal ledger + brief chunks and lists ranked, **cited** sources.
-- **Synthesise** is opt-in: it calls an LLM (Haiku) for a grounded answer with inline `[n]` citations linking back to the cited brief. Degrades gracefully (no embeddings → "no matching signals"; no answer key → citations still show). Example prompts seed the empty state.
+### 3.1 Ask bar (RAG) — "Ask Ripple"
+- A pill-shaped ask bar (sparkle mark + a circular submit button) over the whole archive. It is **answer-led and one action**: a single deliberate submit runs a grounded synthesis (Haiku) and lands straight on the **answer** — the LLM cost is still only paid on explicit intent (one submit), not on typing. One "Reading across the briefs…" state covers the wait.
+- The answer ("Ripple's read") carries inline `[n]` citation chips that preview the source on hover and open the cited brief on click; the cited briefs sit in a **collapsed "Sources · N"** disclosure beneath the answer rather than a dominating grid.
+- Degrades gracefully: no embeddings → "No matching briefs yet"; no answer key → the cited briefs still show (sources open). Example prompts seed the empty state.
 
 ### 3.2 Market pulse (the single markets surface)
 - A strip of all tracked instruments — US indices (S&P 500, Nasdaq 100, Dow Jones), rates & commodities (US 10Y, Brent, Gold), and FX vs SGD (USD, EUR, GBP, JPY, AUD, CNY): each chip shows price, day change (with a direction arrow, not colour alone), and a mini sparkline; it reflows from two-across up to six.
