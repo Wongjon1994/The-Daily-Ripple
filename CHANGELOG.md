@@ -2,6 +2,12 @@
 
 Newest first. Append an entry here for every change.
 
+### 2026-08-10 — Fix: Signals windows were all capped at 30 briefs
+- Signals fetched briefs via `getAll` with no limit (default **30**), so the 1M
+  and 3M windows could never see more than 30 briefs. Now SignalsPage fetches up
+  to **90**, and the window slicing in `windowDatesFor` is count-based: **1W ≈ 6,
+  1M = last 30, 3M = last 90** briefs. (Verified: 1W→6, 1M→30, 3M→64/64 available.)
+
 ### 2026-08-10 — Fix: Archive was missing older months (June)
 - The revamped Archive fetched briefs via `n8n.getAll`, which defaults to a
   **limit of 30** — so on a database with more than ~30 briefs the older months

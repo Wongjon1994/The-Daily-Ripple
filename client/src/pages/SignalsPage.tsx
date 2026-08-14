@@ -22,7 +22,9 @@ function rowToBrief(row: any): DailyBrief {
 
 export default function SignalsPage() {
   const [window, setWindow] = useState<TrendsWindow>("1W");
-  const { data, isLoading } = trpc.n8n.getAll.useQuery();
+  // Fetch enough briefs for the widest window (3M = last 90 briefs); 1M caps at
+  // 30 and 1W at ~6, sliced client-side in windowDatesFor.
+  const { data, isLoading } = trpc.n8n.getAll.useQuery({ limit: 90 });
   const { data: signalsData } = trpc.n8n.getSignals.useQuery();
   const { data: insightsData } = trpc.n8n.getThemeInsights.useQuery({ window });
 

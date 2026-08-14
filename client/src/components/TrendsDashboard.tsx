@@ -64,18 +64,13 @@ const shortIso = (s: string) => {
   return m && d ? `${MONTHS[parseInt(m, 10) - 1]} ${parseInt(d, 10)}` : s;
 };
 
-/** Distinct brief dates (ISO) within the selected window. */
+/** Distinct brief dates (ISO) within the selected window. Count-based caps:
+ *  1W ≈ one publishing week (6 briefs), 1M = the last 30 briefs, 3M = the last
+ *  90 briefs. (SignalsPage fetches up to 90 briefs so 3M can reach its cap.) */
 function windowDatesFor(briefs: Record<string, DailyBrief>, window: TrendsWindow): string[] {
   const all = Array.from(new Set(Object.values(briefs).map((b) => iso(b.date)).filter(Boolean))).sort();
-  // Briefs publish Mon–Sat, so one publishing week is 6 briefs (not 7).
-  if (window === "1W") return all.slice(-6);
-  const days = window === "1M" ? 30 : 90;
-  const newest = all[all.length - 1];
-  if (!newest) return [];
-  const cutoff = new Date(newest);
-  cutoff.setUTCDate(cutoff.getUTCDate() - days);
-  const cutoffIso = cutoff.toISOString().slice(0, 10);
-  return all.filter((d) => d >= cutoffIso);
+  const cap = window === "1W" ? 6 : window === "1M" ? 30 : 90;
+  return all.slice(-cap);
 }
 
 /** Trim to a word boundary with an ellipsis — a safe collapsed preview that
