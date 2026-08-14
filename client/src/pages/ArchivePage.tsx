@@ -18,7 +18,6 @@ import { Link, useLocation } from "wouter";
 import { Search, ChevronRight, ChevronLeft, CalendarDays, Loader2, X } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import SiteHeader from "@/components/SiteHeader";
-import { isSynthesisSection } from "@/lib/trendsAnalysis";
 import { parseBriefDate } from "@/lib/dateUtils";
 import { getWeekKey, getWeekLabel, getWeekOffset, sortWeekKeys } from "@/lib/weekUtils";
 import { cn } from "@/lib/utils";
@@ -44,12 +43,11 @@ function isoOf(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
+/** Server (getArchive) already computes the lead headline + counts + headlines,
+ *  so this just derives the calendar/grouping date fields. */
 function rowToItem(row: any): ArchiveItem {
-  const sections: any[] = Array.isArray(row.sections) ? row.sections : [];
-  const stories = sections.filter((s) => !isSynthesisSection(s));
-  const synthesis = sections.filter((s) => isSynthesisSection(s));
-  const lead = stories[0] ?? sections[0];
   const d = parseBriefDate(row.date);
+  const headlines: string[] = Array.isArray(row.headlines) ? row.headlines : [];
   return {
     slug: row.dateSlug,
     date: row.date,
@@ -57,10 +55,10 @@ function rowToItem(row: any): ArchiveItem {
     weekday: WEEKDAYS[d.getDay()] ?? "",
     day: d.getDate(),
     offset: getWeekOffset(row.date),
-    leadHeadline: lead?.headline ?? row.date,
-    storyCount: stories.length,
-    synthesisCount: synthesis.length,
-    haystack: `${row.date} ${sections.map((s) => s.headline).join(" ")}`.toLowerCase(),
+    leadHeadline: row.leadHeadline ?? row.date,
+    storyCount: row.storyCount ?? 0,
+    synthesisCount: row.synthesisCount ?? 0,
+    haystack: `${row.date} ${headlines.join(" ")}`.toLowerCase(),
   };
 }
 
@@ -202,11 +200,11 @@ function ArchiveCalendar({ items, initialIso }: { items: ArchiveItem[]; initialI
 }
 
 export default function ArchivePage() {
-  const { data, isLoading } = trpc.n8n.getAll.useQuery();
+  const { data, isLoading } = trpc.n8n.getArchive.useQuery();
   const [query, setQuery] = useState("");
   const [showOlder, setShowOlder] = useState(false);
 
-  const items = useMemo(() => (data?.briefs ?? []).map(rowToItem), [data]);
+  const items = useMemo(() => (data?.items ?? []).map(rowToItem), [data]);
   const q = query.trim().toLowerCase();
   const searching = q.length > 0;
 

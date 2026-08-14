@@ -511,6 +511,42 @@ export async function getBriefDates() {
     .orderBy(desc(schema.briefs.briefDate));
 }
 
+/**
+ * Lightweight, UNBOUNDED list for the Archive: every brief with its lead
+ * headline, story/synthesis counts, and all section headlines (for search) —
+ * computed server-side so the whole archive never ships full section prose (as
+ * getAllBriefs would). Unlike getAllBriefs this has no limit, so older months
+ * (e.g. June) always appear in the calendar/grouping.
+ */
+export async function getArchiveList() {
+  const db = getDb();
+  const rows = await db
+    .select({
+      briefDate: schema.briefs.briefDate,
+      dateSlug: schema.briefs.dateSlug,
+      date: schema.briefs.date,
+      sections: schema.briefs.sections,
+    })
+    .from(schema.briefs)
+    .orderBy(desc(schema.briefs.briefDate));
+
+  const isSynthesis = (s: any) => /system|synthesis/i.test(s?.category || "");
+  return rows.map((r) => {
+    const sections: any[] = Array.isArray(r.sections) ? r.sections : [];
+    const stories = sections.filter((s) => !isSynthesis(s));
+    const lead = stories[0] ?? sections[0];
+    return {
+      briefDate: r.briefDate,
+      dateSlug: r.dateSlug,
+      date: r.date,
+      leadHeadline: (lead?.headline as string) ?? r.date,
+      storyCount: stories.length,
+      synthesisCount: sections.length - stories.length,
+      headlines: sections.map((s) => (s?.headline as string) ?? "").filter(Boolean),
+    };
+  });
+}
+
 export async function countBriefs(): Promise<number> {
   const db = getDb();
   const results = await db

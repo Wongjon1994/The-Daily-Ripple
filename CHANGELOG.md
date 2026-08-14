@@ -2,6 +2,16 @@
 
 Newest first. Append an entry here for every change.
 
+### 2026-08-10 — Fix: Archive was missing older months (June)
+- The revamped Archive fetched briefs via `n8n.getAll`, which defaults to a
+  **limit of 30** — so on a database with more than ~30 briefs the older months
+  (e.g. June) dropped out of the week grouping and the calendar showed "0 briefs".
+- Added an unbounded, lightweight **`n8n.getArchive`** endpoint (`getArchiveList`
+  in db.ts): every brief with its lead headline, story/synthesis counts, and
+  section headlines for search — computed server-side so the whole archive never
+  ships full section prose. The Archive now shows all months (all 64 briefs; June
+  back to 26). `getAll` is untouched, so **Signals is unaffected**.
+
 ### 2026-08-09 — Signals: answer-led "Ask Ripple" bar
 - The Ask experience is no longer a two-stage Search → Synthesise flow. A single
   deliberate submit now runs the grounded synthesis and lands **straight on the

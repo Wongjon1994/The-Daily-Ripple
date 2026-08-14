@@ -5,6 +5,7 @@ import {
   getBriefBySlug,
   getAllBriefs,
   getBriefDates,
+  getArchiveList,
   upsertBrief,
   getSignals,
   confirmSignal,
@@ -103,6 +104,12 @@ export const appRouter = router({
     getBriefDates: publicProcedure.query(async () => {
       const dates = await getBriefDates();
       return { ok: true, dates };
+    }),
+
+    /** Unbounded lightweight list for the Archive (all briefs, every month). */
+    getArchive: publicProcedure.query(async () => {
+      const items = await getArchiveList();
+      return { ok: true, items };
     }),
 
     /** Persisted qualitative signals (Trends Part 2). Optional status filter. */
